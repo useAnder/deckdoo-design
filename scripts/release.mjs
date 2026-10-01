@@ -11,7 +11,7 @@
  *   3. HEAD solto: commit do `dist/` por cima, tag anotada `vX.Y.Z`;
  *   4. volta para a `main` e empurra a `main` e a tag.
  */
-import { execFileSync } from "node:child_process";
+import { execFileSync, execSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 
@@ -43,8 +43,8 @@ if (pkg.version !== version) {
   git("commit", "-am", tag);
 }
 
-// 2. Build. `shell: true` no Windows: o pnpm é um .cmd.
-execFileSync("pnpm", ["build"], { stdio: "inherit", shell: process.platform === "win32" });
+// 2. Build. Pela shell: no Windows o pnpm é um .cmd.
+execSync("pnpm build", { stdio: "inherit" });
 
 // 3. O dist/ só na tag.
 git("checkout", "--quiet", "--detach");
