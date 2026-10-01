@@ -1,0 +1,6 @@
+/*
+ * O CSS do pacote, importado pelo app uma vez (`@deckdoo/design/styles.css`), depois do
+ * `@mantine/core/styles.css`: os tokens `--dd-*` e o visual das peças.
+ */
+@import "./tokens.css";
+@import "./design.css";

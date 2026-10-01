@@ -1,0 +1,497 @@
+/* A página da cozinha (`/dev/cozinha`). O que é padrão da suíte está em `src/design`. */
+
+body {
+  background: var(--dd-canvas);
+}
+
+.ks {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: var(--dd-gap);
+  min-height: 100vh;
+  padding: var(--dd-gap);
+  background: var(--dd-canvas);
+  color: var(--dd-ink);
+}
+
+/* ——— Barra lateral ——— */
+
+.ks-side {
+  position: sticky;
+  top: var(--dd-gap);
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 2 * var(--dd-gap));
+  padding: 18px 14px 14px;
+  overflow-y: auto;
+}
+
+.ks-side nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ks-side-label {
+  margin: 20px 14px 8px;
+}
+
+.ks-workspace {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px 8px 8px;
+  border: 0;
+  border-radius: var(--dd-r-block);
+  background: var(--dd-sunken);
+  color: var(--dd-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ks-workspace strong,
+.ks-workspace .dd-muted {
+  display: block;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.ks-workspace .dd-muted {
+  font-size: 12px;
+}
+
+.ks-side-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.ks-ai-card {
+  padding: 14px;
+  border-radius: var(--dd-r-block);
+}
+
+.ks-ai-badge {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--dd-inverse);
+  color: var(--dd-accent);
+}
+
+.ks-ai-badge-inv {
+  background: color-mix(in srgb, var(--dd-on-inverse) 12%, transparent);
+}
+
+.dd-accent .ks-ai-badge-inv {
+  background: var(--dd-inverse);
+  color: var(--dd-accent);
+}
+
+.ks-ai-link,
+.ks-next-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 12px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: var(--dd-r-pill);
+  background: var(--dd-surface);
+  color: var(--dd-ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.ks-user {
+  padding: 10px 12px;
+  border-radius: var(--dd-r-block);
+  background: var(--dd-sunken);
+}
+
+/* ——— Conteúdo ——— */
+
+.ks-main {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  min-width: 0;
+  padding: 8px 8px 80px;
+}
+
+.ks-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.ks-themebar {
+  padding: 6px 6px 6px 12px;
+  border-radius: var(--dd-r-pill);
+  background: var(--dd-surface);
+}
+
+.ks-swatch-btn {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--dd-surface);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--dd-border-strong);
+  cursor: pointer;
+}
+
+.ks-swatch-btn[data-active] {
+  box-shadow: 0 0 0 2px var(--dd-ink);
+}
+
+.ks-section {
+  scroll-margin-top: 24px;
+}
+
+.ks-section-head {
+  margin-bottom: 16px;
+  max-width: 760px;
+}
+
+.ks-section-head h2 {
+  margin-bottom: 4px;
+}
+
+/* ——— Marca ——— */
+
+.ks-brand {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--dd-gap);
+}
+
+.ks-brand-tile {
+  display: grid;
+  place-items: center;
+  min-height: 140px;
+}
+
+.ks-brand-tile img {
+  max-width: 100%;
+  height: 40px;
+}
+
+.ks-mark-row {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 20px;
+}
+
+.ks-mark-row img {
+  height: auto;
+}
+
+/* ——— Cores ——— */
+
+.ks-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 12px;
+}
+
+.ks-swatch {
+  overflow: hidden;
+  border-radius: var(--dd-r-block);
+  background: var(--dd-surface);
+}
+
+.ks-swatch-chip {
+  display: flex;
+  align-items: flex-end;
+  height: 88px;
+  padding: 10px 14px;
+  font-size: 22px;
+  font-weight: 600;
+  box-shadow: inset 0 -1px 0 var(--dd-border);
+}
+
+.ks-swatch-meta {
+  padding: 10px 14px 12px;
+}
+
+.ks-layers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+  padding: 8px;
+  border-radius: var(--dd-r-block);
+  background: var(--dd-canvas);
+}
+
+.ks-layer {
+  display: flex;
+  align-items: flex-end;
+  min-height: 84px;
+  padding: 12px;
+  border-radius: var(--dd-r-item);
+  box-shadow: inset 0 0 0 1px var(--dd-border);
+}
+
+.ks-layer > span {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+}
+
+/* ——— Tipografia ——— */
+
+.ks-type-row {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 16px;
+}
+
+/* ——— Navegação ——— */
+
+.ks-tabs-demo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 6px 6px 6px;
+  border-radius: var(--dd-r-pill);
+  background: var(--dd-surface);
+}
+
+.ks-tabs-demo .dd-tabs {
+  padding: 0;
+}
+
+.ks-tabs-demo > .mantine-Group-root {
+  padding-right: 8px;
+}
+
+.ks-tabs-id {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 6px;
+  padding: 5px 12px 5px 5px;
+  border-radius: var(--dd-r-pill);
+  background: var(--dd-sunken);
+}
+
+.ks-dot-icon {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--dd-inverse);
+  color: var(--dd-accent);
+}
+
+/* ——— Cartões ——— */
+
+.ks-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--dd-gap);
+}
+
+.ks-span-2 {
+  grid-column: span 2;
+}
+
+.ks-big-num {
+  font-size: 34px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ks-big-num small {
+  margin-left: 2px;
+  font-size: 13px;
+  color: var(--dd-ink-faint);
+}
+
+.ks-stats {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 10px;
+}
+
+.ks-stats-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.ks-stat-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: var(--dd-r-block);
+}
+
+.ks-check {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--dd-surface);
+  color: var(--dd-ink);
+}
+
+.ks-next {
+  display: flex;
+  flex-direction: column;
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: var(--dd-r-block);
+}
+
+/* ——— Tabela ——— */
+
+.ks-table-wrap {
+  overflow-x: auto;
+}
+
+/* ——— Camadas ——— */
+
+.ks-diff-add,
+.ks-diff-mod {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  border-radius: 50%;
+}
+
+.ks-diff-add {
+  background: var(--dd-accent);
+  color: var(--dd-on-accent);
+}
+
+.ks-diff-mod {
+  background: var(--dd-hover);
+}
+
+/* ——— Tela exemplo ——— */
+
+.ks-example {
+  padding: 20px;
+  border-radius: calc(var(--dd-r-panel) + 8px);
+  background: var(--dd-shell);
+  box-shadow: inset 0 0 0 1px var(--dd-border);
+}
+
+.ks-example-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.ks-example-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+  gap: var(--dd-gap);
+}
+
+.ks-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 260px;
+  padding: 10px;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at 80% 10%,
+      color-mix(in srgb, #00c3ff 70%, transparent),
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 10% 90%,
+      color-mix(in srgb, #5e17eb 85%, transparent),
+      transparent 60%
+    ),
+    #0f1a3a;
+}
+
+.ks-hero-art {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px;
+}
+
+.ks-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--dd-r-pill);
+  background: var(--dd-surface);
+  color: var(--dd-ink);
+}
+
+.ks-hero-card {
+  padding: 14px 16px;
+  border-radius: var(--dd-r-block);
+  background: var(--dd-surface);
+}
+
+/* ——— Telas estreitas ——— */
+
+@media (max-width: 1100px) {
+  .ks-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .ks-example-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 860px) {
+  .ks {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ks-side {
+    display: none;
+  }
+  .ks-main {
+    padding: 0 0 48px;
+  }
+  .ks-cards,
+  .ks-stats,
+  .ks-stats-4 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ks-span-2 {
+    grid-column: auto;
+  }
+  .ks-type-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+  .dd-panel {
+    padding: 18px 16px 20px;
+  }
+}

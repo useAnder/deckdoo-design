@@ -1,0 +1,9 @@
+# Dependências
+node_modules/
+
+# Build: na main não vai; nas tags de versão vai (scripts/release.mjs força o add).
+dist/
+playground/dist/
+*.tsbuildinfo
+
+.claude/settings.local.json

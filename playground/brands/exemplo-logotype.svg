@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 100">
+  <path fill-rule="evenodd" d="M24 0h52a24 24 0 0 1 24 24v52a24 24 0 0 1-24 24H24A24 24 0 0 1 0 76V24A24 24 0 0 1 24 0Zm2 30a4 4 0 0 0-4 4v32a4 4 0 0 0 4 4h48a4 4 0 0 0 4-4V34a4 4 0 0 0-4-4Zm8 12h32v6H34Zm0 12h20v6H34Z"/>
+  <text x="122" y="74" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="700" textLength="278" lengthAdjust="spacingAndGlyphs">exemplo</text>
+</svg>

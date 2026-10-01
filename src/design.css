@@ -1,0 +1,469 @@
+/*
+ * As peças da suíte que o Mantine não tem com essa cara (`components.tsx`).
+ */
+
+/* Painel: o cartão branco sobre o fundo. */
+.dd-panel {
+  background: var(--dd-surface);
+  border-radius: var(--dd-r-panel);
+  padding: 22px 24px 24px;
+  color: var(--dd-ink);
+}
+
+.dd-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  min-height: 36px;
+}
+
+/* Bloco: o cinza dentro do painel (lista, detalhes, grupo de números). */
+.dd-block {
+  background: var(--dd-sunken);
+  border-radius: var(--dd-r-block);
+  padding: 16px;
+}
+
+/* Cartão invertido: escuro no claro, claro no escuro. */
+.dd-inverse {
+  background: var(--dd-inverse);
+  color: var(--dd-on-inverse);
+}
+
+.dd-inverse .dd-muted {
+  color: var(--dd-on-inverse-muted);
+}
+
+/* Cartão de destaque: o acento inteiro. */
+.dd-accent {
+  background: var(--dd-accent);
+  color: var(--dd-on-accent);
+}
+
+.dd-muted {
+  color: var(--dd-ink-muted);
+}
+
+.dd-faint {
+  color: var(--dd-ink-faint);
+}
+
+.dd-mono {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 0.8em;
+  letter-spacing: 0.01em;
+}
+
+/* Rótulo de seção ("EDIÇÃO", "ESPAÇO"), como na barra lateral. */
+.dd-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dd-ink-faint);
+}
+
+/* Item de navegação lateral. */
+.dd-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 9px 12px 9px 14px;
+  border: 0;
+  border-radius: var(--dd-r-pill);
+  background: transparent;
+  color: var(--dd-ink);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+.dd-nav-item:hover {
+  background: var(--dd-hover);
+}
+
+.dd-nav-item[data-active] {
+  background: var(--dd-inverse);
+  color: var(--dd-on-inverse);
+}
+
+.dd-nav-item:focus-visible,
+.dd-tab:focus-visible {
+  outline: 2px solid var(--dd-accent);
+  outline-offset: 2px;
+}
+
+.dd-nav-item .dd-count {
+  margin-left: auto;
+}
+
+/* Contador (nav, abas). Ativo, vira acento. */
+.dd-count {
+  min-width: 26px;
+  padding: 1px 8px;
+  border-radius: var(--dd-r-pill);
+  background: var(--dd-sunken);
+  color: var(--dd-ink-muted);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 18px;
+  text-align: center;
+}
+
+[data-active] > .dd-count {
+  background: var(--dd-accent);
+  color: var(--dd-on-accent);
+}
+
+/* Abas em pílula. */
+.dd-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: var(--dd-r-pill);
+  background: var(--dd-surface);
+}
+
+.dd-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border: 0;
+  border-radius: var(--dd-r-pill);
+  background: transparent;
+  color: var(--dd-ink);
+  font: inherit;
+  font-size: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.dd-tab:hover {
+  background: var(--dd-hover);
+}
+
+.dd-tab[data-active],
+.dd-tab[aria-current="page"] {
+  background: var(--dd-inverse);
+  color: var(--dd-on-inverse);
+}
+
+.dd-tab .dd-count {
+  min-width: 0;
+  padding: 0;
+  background: none;
+}
+
+.dd-tab[data-active] .dd-count {
+  background: none;
+  color: var(--dd-accent);
+}
+
+/* No escuro a aba ativa é clara: o número vai no tom escuro do acento. */
+[data-mantine-color-scheme="dark"] .dd-tab[data-active] .dd-count,
+[data-mantine-color-scheme="dark"] .dd-tab[aria-current="page"] .dd-count {
+  color: var(--mantine-color-accent-9);
+}
+
+/* Pílula de estado com bolinha ("No prazo"). */
+.dd-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: var(--dd-r-pill);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  background: var(--dd-sunken);
+  color: var(--dd-ink);
+}
+
+.dd-status::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.dd-status[data-tone="ok"] {
+  background: var(--dd-ok);
+  color: #0e172a;
+}
+.dd-status[data-tone="ok"]::before {
+  background: #0e172a;
+}
+.dd-status[data-tone="attention"] {
+  background: var(--dd-attention);
+  color: #0e172a;
+}
+.dd-status[data-tone="attention"]::before {
+  background: #0e172a;
+}
+.dd-status[data-tone="danger"] {
+  background: var(--dd-danger);
+  color: #0e172a;
+}
+.dd-status[data-tone="danger"]::before {
+  background: #0e172a;
+}
+.dd-status[data-tone="info"] {
+  background: color-mix(in srgb, var(--dd-info) 22%, var(--dd-surface));
+}
+.dd-status[data-tone="info"]::before {
+  background: var(--dd-info);
+}
+.dd-status[data-tone="neutral"]::before {
+  background: var(--dd-ink-faint);
+}
+
+/* Número grande do painel. */
+.dd-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px;
+  border-radius: var(--dd-r-block);
+  background: var(--dd-sunken);
+  min-width: 0;
+}
+
+.dd-stat[data-active] {
+  background: var(--dd-inverse);
+  color: var(--dd-on-inverse);
+}
+
+.dd-stat[data-active] .dd-muted {
+  color: var(--dd-on-inverse-muted);
+}
+
+.dd-stat-value {
+  font-size: 34px;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Linha do tempo de etapas. */
+.dd-steps {
+  display: grid;
+  /* Etapa não espreme o rótulo: em tela estreita, a linha rola de lado. */
+  grid-auto-columns: minmax(76px, 1fr);
+  grid-auto-flow: column;
+  overflow-x: auto;
+  padding: 18px 8px 14px;
+  border-radius: var(--dd-r-block);
+  background: var(--dd-sunken);
+}
+
+.dd-step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* O traço que liga uma bolinha à próxima. */
+.dd-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 10px;
+  left: calc(50% + 12px);
+  right: calc(-50% + 12px);
+  height: 2px;
+  background: var(--dd-border-strong);
+}
+
+.dd-step[data-state="done"]:not(:last-child)::after {
+  background: var(--dd-accent);
+}
+
+.dd-step-dot {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin-bottom: 4px;
+  border-radius: 50%;
+  border: 2px solid var(--dd-border-strong);
+  background: var(--dd-surface);
+  color: var(--dd-on-accent);
+}
+
+.dd-step[data-state="done"] .dd-step-dot {
+  border-color: var(--dd-accent);
+  background: var(--dd-accent);
+}
+
+.dd-step[data-state="current"] .dd-step-dot {
+  border: 6px solid var(--dd-ink);
+  background: var(--dd-accent);
+}
+
+.dd-step[data-state="todo"] {
+  color: var(--dd-ink-faint);
+}
+
+/* Lista em linhas dentro de um bloco. */
+.dd-rows > * + * {
+  border-top: 1px solid var(--dd-border);
+}
+
+.dd-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 4px;
+}
+
+/* Tabela da suíte. */
+.dd-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+}
+
+.dd-table th {
+  padding: 10px 12px;
+  background: var(--dd-sunken);
+  color: var(--dd-ink-muted);
+  font-weight: 500;
+  font-size: 13px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.dd-table th:first-child {
+  border-radius: var(--dd-r-item) 0 0 var(--dd-r-item);
+}
+
+.dd-table th:last-child {
+  border-radius: 0 var(--dd-r-item) var(--dd-r-item) 0;
+}
+
+.dd-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--dd-border);
+  vertical-align: middle;
+}
+
+.dd-table tbody tr {
+  cursor: pointer;
+}
+
+.dd-table tbody tr:hover td {
+  background: var(--dd-sunken);
+}
+
+.dd-table tbody tr:hover td:first-child {
+  border-radius: var(--dd-r-item) 0 0 var(--dd-r-item);
+}
+
+.dd-table tbody tr:hover td:last-child {
+  border-radius: 0 var(--dd-r-item) var(--dd-r-item) 0;
+}
+
+/* Medidor de pontinhos ("confiança da IA"). */
+.dd-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.dd-dots > span {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--dd-accent);
+}
+
+.dd-dots > span[data-off] {
+  background: color-mix(in srgb, currentColor 25%, transparent);
+}
+
+/*
+ * A marca (`Logo`): dois desenhos, um aparece. Fundo claro (tema claro, acento, invertido no
+ * tema escuro) mostra o normal; fundo escuro (tema escuro, invertido no tema claro) mostra o
+ * inverso. As três regras têm a mesma especificidade: vale a última que casar. `data-on` força.
+ */
+.dd-logo-switch {
+  display: inline-flex;
+  flex: none;
+  line-height: 0;
+}
+
+.dd-logo-switch > [data-shape="light"] {
+  display: inline-block;
+}
+.dd-logo-switch > [data-shape="dark"] {
+  display: none;
+}
+
+:is([data-mantine-color-scheme="dark"], [data-mantine-color-scheme="light"] .dd-inverse)
+  .dd-logo-switch
+  > [data-shape="light"] {
+  display: none;
+}
+:is([data-mantine-color-scheme="dark"], [data-mantine-color-scheme="light"] .dd-inverse)
+  .dd-logo-switch
+  > [data-shape="dark"] {
+  display: inline-block;
+}
+
+:is([data-mantine-color-scheme="dark"] .dd-inverse, [data-mantine-color-scheme] .dd-accent)
+  .dd-logo-switch
+  > [data-shape="light"] {
+  display: inline-block;
+}
+:is([data-mantine-color-scheme="dark"] .dd-inverse, [data-mantine-color-scheme] .dd-accent)
+  .dd-logo-switch
+  > [data-shape="dark"] {
+  display: none;
+}
+
+.dd-logo-switch[data-on="light"] > [data-shape="light"],
+.dd-logo-switch[data-on="dark"] > [data-shape="dark"] {
+  display: inline-block !important;
+}
+.dd-logo-switch[data-on="light"] > [data-shape="dark"],
+.dd-logo-switch[data-on="dark"] > [data-shape="light"] {
+  display: none !important;
+}
+
+/* Marca em máscara: a forma vem do SVG, a cor do texto em volta. */
+.dd-logo {
+  display: inline-block;
+  flex: none;
+  background: currentColor;
+  mask-repeat: no-repeat;
+  mask-size: contain;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  -webkit-mask-position: center;
+}
+
+/* Ícone de app: o quadrado é o acento do app (`buildTheme({ accent })`). */
+.dd-app-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  background: var(--dd-accent);
+}

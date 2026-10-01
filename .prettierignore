@@ -1,0 +1,7 @@
+# Artefato gerado não é código de ninguém.
+**/dist/**
+**/node_modules/**
+pnpm-lock.yaml
+
+# Prosa é escrita à mão.
+**/*.md

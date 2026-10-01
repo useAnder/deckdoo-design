@@ -1,0 +1,14 @@
+# Normalize line endings to LF across all platforms (same as EloquentSlides).
+* text=auto eol=lf
+
+# Lockfiles: keep in repo but skip them in diffs (large, machine-generated).
+pnpm-lock.yaml -diff linguist-generated
+
+# O dist/ só existe nas tags de versão (scripts/release.mjs): não entra em diff nem em estatística.
+dist/** -diff linguist-generated
+
+# Binary assets git must not touch.
+*.png binary
+*.jpg binary
+*.woff binary
+*.woff2 binary

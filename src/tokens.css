@@ -1,0 +1,88 @@
+/*
+ * Os tokens da suíte fora do Mantine: o que as telas leem como `var(--dd-*)`.
+ * O tema (`theme.ts`) cuida de componente; aqui ficam fundo, superfícies, tinta e cantos —
+ * o que dá a cara de "painéis brancos sobre um fundo cinza" das referências.
+ */
+
+:root,
+[data-mantine-color-scheme="light"] {
+  /* Camadas, do fundo para a frente. */
+  --dd-canvas: #e8ebee; /* o fundo da janela */
+  --dd-shell: #f3f5f6; /* a moldura do app (barra lateral, cabeçalho) */
+  --dd-surface: #ffffff; /* painel */
+  --dd-sunken: #f2f4f5; /* bloco dentro do painel */
+  --dd-hover: #e9ecef;
+  --dd-border: rgb(14 23 42 / 0.08);
+  --dd-border-strong: rgb(14 23 42 / 0.16);
+
+  /* Tinta. */
+  --dd-ink: #0e172a;
+  --dd-ink-muted: #5a6372;
+  --dd-ink-faint: #8a92a0;
+
+  /* Destaques. `--dd-accent` acompanha a cor primária do tema. */
+  --dd-accent: var(--mantine-primary-color-filled);
+  --dd-accent-soft: var(--mantine-primary-color-light);
+  --dd-on-accent: var(--mantine-primary-color-contrast, #0e172a);
+
+  /* O cartão invertido (IA, "o que vem agora"). */
+  --dd-inverse: #0e172a;
+  --dd-inverse-sunken: #172340;
+  --dd-inverse-hover: #1b2848;
+  --dd-on-inverse: #fbfcf8;
+  --dd-on-inverse-muted: #97a0b4;
+
+  /* Estados. */
+  --dd-ok: #a2ff00;
+  --dd-info: #00c3ff;
+  --dd-warn: #ffea2e;
+  --dd-attention: #ff7a00;
+  --dd-danger: #ff6f61;
+
+  /* Cantos: painel > bloco > controle. */
+  --dd-r-panel: 28px;
+  --dd-r-block: 20px;
+  --dd-r-item: 14px;
+  --dd-r-pill: 999px;
+
+  --dd-gap: 16px;
+}
+
+[data-mantine-color-scheme="dark"] {
+  --dd-canvas: #060b16;
+  --dd-shell: #0a1120;
+  --dd-surface: #0e172a;
+  --dd-sunken: #152038;
+  --dd-hover: #1b2848;
+  --dd-border: rgb(232 235 242 / 0.08);
+  --dd-border-strong: rgb(232 235 242 / 0.16);
+
+  --dd-ink: #eef1f6;
+  --dd-ink-muted: #a2abbe;
+  --dd-ink-faint: #6c7690;
+
+  /* No escuro, o invertido é o claro: o cartão da IA continua sendo o que mais salta. */
+  --dd-inverse: #fbfcf8;
+  --dd-inverse-sunken: #eef1ea;
+  --dd-inverse-hover: #e3e7de;
+  --dd-on-inverse: #0e172a;
+  --dd-on-inverse-muted: #5a6372;
+}
+
+/* Palavra não quebra no meio, nunca (pt-BR): nem hífen do navegador, nem corte. */
+.dd-root,
+.dd-root * {
+  hyphens: none;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+/* Palavra composta ("gemini-flash", "PPTX/PDF") fica inteira na mesma linha. */
+.dd-nobreak {
+  white-space: nowrap;
+}
+
+/* Número que se compara com outro (contagem, data, ID) não dança de largura. */
+.dd-num {
+  font-variant-numeric: tabular-nums;
+}
