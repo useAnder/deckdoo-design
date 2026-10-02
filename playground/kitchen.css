@@ -4,37 +4,9 @@ body {
   background: var(--dd-canvas);
 }
 
-.ks {
-  display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
-  gap: var(--dd-gap);
-  min-height: 100vh;
-  padding: var(--dd-gap);
-  background: var(--dd-canvas);
-  color: var(--dd-ink);
-}
+/* A moldura (`.dd-frame`, `.dd-side`, `.dd-main`) é do pacote; aqui só o que é da cozinha. */
 
 /* ——— Barra lateral ——— */
-
-.ks-side {
-  position: sticky;
-  top: var(--dd-gap);
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - 2 * var(--dd-gap));
-  padding: 18px 14px 14px;
-  overflow-y: auto;
-}
-
-.ks-side nav {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.ks-side-label {
-  margin: 20px 14px 8px;
-}
 
 .ks-workspace {
   display: flex;
@@ -60,14 +32,6 @@ body {
 
 .ks-workspace .dd-muted {
   font-size: 12px;
-}
-
-.ks-side-foot {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: auto;
-  padding-top: 16px;
 }
 
 .ks-ai-card {
@@ -122,19 +86,31 @@ body {
 /* ——— Conteúdo ——— */
 
 .ks-main {
-  display: flex;
-  flex-direction: column;
   gap: 40px;
-  min-width: 0;
   padding: 8px 8px 80px;
 }
 
+/*
+ * O topo (título e barra de tema) fica preso: dá para trocar acento, cantos e tema com a página
+ * rolada. A margem negativa estica o fundo até a borda da janela, para o conteúdo passar por
+ * baixo sem aparecer em cima.
+ */
 .ks-top {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  margin: calc(-1 * var(--ks-top-pad)) -8px 0;
+  padding: var(--ks-top-pad) 8px 12px;
+  background: var(--dd-canvas);
+}
+
+.ks {
+  --ks-top-pad: calc(var(--dd-gap) + 8px);
 }
 
 .ks-themebar {
@@ -157,7 +133,8 @@ body {
 }
 
 .ks-section {
-  scroll-margin-top: 24px;
+  /* Abaixo do topo preso. */
+  scroll-margin-top: 120px;
 }
 
 .ks-section-head {
@@ -362,12 +339,6 @@ body {
   border-radius: var(--dd-r-block);
 }
 
-/* ——— Tabela ——— */
-
-.ks-table-wrap {
-  overflow-x: auto;
-}
-
 /* ——— Camadas ——— */
 
 .ks-diff-add,
@@ -473,8 +444,18 @@ body {
   .ks {
     grid-template-columns: minmax(0, 1fr);
   }
-  .ks-side {
+  /* Na cozinha a barra só navega entre seções: em tela estreita, some. */
+  .ks .dd-side {
     display: none;
+  }
+  /* Aqui o topo quebra em linhas e tomaria um quarto da tela: rola junto. */
+  .ks-top {
+    position: static;
+    margin: 0;
+    padding: 0;
+  }
+  .ks-section {
+    scroll-margin-top: 24px;
   }
   .ks-main {
     padding: 0 0 48px;

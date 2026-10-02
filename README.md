@@ -1,8 +1,13 @@
 # @deckdoo/design
 
-O padrão visual da suíte DeckDoo: tema Mantine, tokens CSS, peças e marca. Nasceu no DeckDoo
-(EloquentSlides) e vale para todos os apps. A bancada para ver e testar tudo é a **cozinha**
-(`pnpm dev`, em `http://localhost:48391`).
+O padrão visual da suíte DeckDoo: tema Mantine, tokens CSS, peças e marca. Nasceu no app de
+slides do DeckDoo e vale para todos os apps da suíte. A bancada para ver e testar tudo é a
+**cozinha** (`pnpm dev`, em `http://localhost:48391`).
+
+> **Uso interno.** O repositório é público só para os apps da suíte instalarem sem token (no CI
+> e no build de imagem também). Não é um pacote de uso geral: a API muda conforme os apps
+> precisam, não há suporte, e issues e PRs de fora não são acompanhados. A marca DeckDoo
+> (logotipo e mascote) não está licenciada para uso fora da suíte.
 
 ## Instalar
 
@@ -32,8 +37,8 @@ const theme = buildTheme(); // limão, controles em pílula
 </MantineProvider>;
 ```
 
-As fontes ficam com o app: Figtree e Geist Mono pelo `index.html` (Google Fonts). O pacote não
-injeta fonte.
+As fontes ficam com o app: Figtree e Geist Mono. O pacote não injeta fonte. O caminho simples é
+o Google Fonts no `index.html`:
 
 ```html
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -43,6 +48,23 @@ injeta fonte.
   rel="stylesheet"
 />
 ```
+
+**App com CSP** (`style-src`/`font-src 'self'`): o Google Fonts é bloqueado em produção — e só
+em produção, porque o Vite de dev não manda CSP. Em vez de abrir a política, sirva as fontes
+do próprio bundle, nos mesmos pesos:
+
+```ts
+import "@fontsource/figtree/400.css";
+import "@fontsource/figtree/500.css";
+import "@fontsource/figtree/600.css";
+import "@fontsource/figtree/700.css";
+import "@fontsource/geist-mono/400.css";
+import "@fontsource/geist-mono/500.css";
+```
+
+O resto do pacote cabe numa CSP restrita, com duas condições: o `Logo` põe a máscara no atributo
+`style` (`style-src-attr 'unsafe-inline'`, que o Mantine já exige) e o SVG pode chegar como data
+URI (`img-src data:`).
 
 ## O que é de cada app
 
@@ -103,7 +125,31 @@ DeckDoo; sem `--bg`, limão; a tinta sai do contraste (ou `--ink`).
 | `Logo`, `AppIcon` | Logotipo / mascote; ícone de app |
 | `Panel`, `Block`, `NavItem`, `PillTabs`, `Count` | Camadas e navegação |
 | `Status`, `Stat`, `Steps`, `Dots` | Estado, número grande, etapas, medidor |
-| `styles.css` | `--dd-*` claro e escuro, `.dd-root`, `.dd-nobreak`, `.dd-num` e as classes das peças (`.dd-panel`, `.dd-inverse`, `.dd-accent`, `.dd-table`, `.dd-rows`…) |
+| `styles.css` | `--dd-*` claro e escuro, `.dd-root`, `.dd-nobreak`, `.dd-num`, a moldura (`.dd-frame`…) e as classes das peças (`.dd-panel`, `.dd-inverse`, `.dd-accent`, `.dd-table`, `.dd-rows`…) |
+
+### Moldura do app
+
+```html
+<div class="dd-root dd-frame">
+  <aside class="dd-side dd-panel">
+    <!-- logo, espaço de trabalho -->
+    <div class="dd-eyebrow dd-side-label">Seção</div>
+    <nav><!-- NavItem… --></nav>
+    <div class="dd-side-foot"><!-- IA, usuário --></div>
+  </aside>
+  <main class="dd-main"><!-- painéis --></main>
+</div>
+```
+
+Barra de 260 px presa à esquerda; abaixo de 48em ela vira o topo da página. Só o esqueleto: o
+cabeçalho da suíte (espaço de trabalho, usuário) ainda é de cada app.
+
+### Tabela
+
+`<table class="dd-table">` (ou `<Table className="dd-table" withRowBorders={false}>`) dentro de
+um `.dd-table-wrap`, que rola de lado em vez da página. A linha só ganha cursor de clique com
+`data-clickable` — use quando a linha inteira abre algo; se o alvo é um link na célula, não
+marque. `Badge` em célula não corta o rótulo.
 
 ## Regras
 
@@ -116,6 +162,8 @@ DeckDoo; sem `--bg`, limão; a tinta sai do contraste (ou `--ink`).
   forte que não é o acento, a pílula ativa e o cartão da IA.
 - **Estados:** pílula com bolinha (`Status`): ok = limão, info = céu, atenção = laranja,
   erro = coral, neutro = cinza. O texto diz o estado; a cor só reforça.
+- **Ação destrutiva em texto** ("Remover"): `c="var(--dd-danger-text)"`. O coral da paleta
+  (`--dd-danger`) é fundo, não texto: sobre branco não passa de 3:1.
 - **Controles em pílula** (botão, campo, aba, badge); `buildTheme({ corners: "suave" })` troca
   para canto de 14.
 - **Tipografia:** Figtree em tudo, inclusive números (com `.dd-num`, algarismos de largura

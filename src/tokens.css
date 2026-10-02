@@ -38,6 +38,8 @@
   --dd-warn: #ffea2e;
   --dd-attention: #ff7a00;
   --dd-danger: #ff6f61;
+  /* Coral como texto ("Remover"): o `--dd-danger` é claro demais sobre branco. */
+  --dd-danger-text: #9a4a4a; /* coral.8 */
 
   /* Cantos: painel > bloco > controle. */
   --dd-r-panel: 28px;
@@ -67,6 +69,8 @@
   --dd-inverse-hover: #e3e7de;
   --dd-on-inverse: #0e172a;
   --dd-on-inverse-muted: #5a6372;
+
+  --dd-danger-text: #ffa39a; /* coral.4 */
 }
 
 /* Palavra não quebra no meio, nunca (pt-BR): nem hífen do navegador, nem corte. */

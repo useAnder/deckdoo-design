@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   ActionIcon,
+  Anchor,
   Avatar,
   Badge,
   Button,
@@ -166,8 +167,8 @@ function Kitchen({ controls }: { controls: Controls }) {
   }, []);
 
   return (
-    <div className="dd-root ks" lang="pt-BR">
-      <aside className="ks-side dd-panel">
+    <div className="dd-root dd-frame ks" lang="pt-BR">
+      <aside className="dd-side dd-panel">
         <Group justify="space-between" wrap="nowrap" mb="md">
           <Logo height={26} />
           <Tooltip label="Recolher barra">
@@ -188,7 +189,7 @@ function Kitchen({ controls }: { controls: Controls }) {
           <CaretDown size={14} style={{ marginLeft: "auto" }} />
         </button>
 
-        <div className="dd-eyebrow ks-side-label">Padrão visual</div>
+        <div className="dd-eyebrow dd-side-label">Padrão visual</div>
         <nav>
           {SECTIONS.map((s) => (
             <NavItem
@@ -201,7 +202,7 @@ function Kitchen({ controls }: { controls: Controls }) {
           ))}
         </nav>
 
-        <div className="ks-side-foot">
+        <div className="dd-side-foot">
           <div className="dd-accent ks-ai-card">
             <Group justify="space-between" wrap="nowrap">
               <Group gap={10} wrap="nowrap">
@@ -246,7 +247,7 @@ function Kitchen({ controls }: { controls: Controls }) {
         </div>
       </aside>
 
-      <main className="ks-main">
+      <main className="dd-main ks-main">
         <header className="ks-top">
           <div>
             <Text size="xs" className="dd-muted">
@@ -604,6 +605,9 @@ function Buttons() {
             <Button color="coral" leftSection={<Trash size={16} />}>
               Excluir
             </Button>
+            <Anchor component="button" size="sm" c="var(--dd-danger-text)">
+              Remover
+            </Anchor>
           </Group>
           <Group gap="sm">
             <Button size="xs">Pequeno</Button>
@@ -1090,7 +1094,7 @@ function TableSection() {
           </Group>
         }
       >
-        <div className="ks-table-wrap">
+        <div className="dd-table-wrap">
           <table className="dd-table">
             <thead>
               <tr>

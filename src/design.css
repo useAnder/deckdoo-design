@@ -2,6 +2,69 @@
  * As peças da suíte que o Mantine não tem com essa cara (`components.tsx`).
  */
 
+/*
+ * Moldura do app: barra lateral fixa à esquerda, conteúdo à direita, tudo sobre o
+ * `--dd-canvas`. A barra é um painel (`<aside class="dd-side dd-panel">`); em tela estreita ela
+ * vira o topo da página, sem ficar presa.
+ */
+.dd-frame {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: var(--dd-gap);
+  min-height: 100vh;
+  padding: var(--dd-gap);
+  background: var(--dd-canvas);
+  color: var(--dd-ink);
+}
+
+.dd-side {
+  position: sticky;
+  top: var(--dd-gap);
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 2 * var(--dd-gap));
+  padding: 18px 14px 14px;
+  overflow-y: auto;
+}
+
+.dd-side nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* O `.dd-eyebrow` que abre um grupo da navegação. */
+.dd-side-label {
+  margin: 20px 14px 8px;
+}
+
+/* O pé da barra (IA, usuário): sempre embaixo. */
+.dd-side-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.dd-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dd-gap);
+  min-width: 0;
+}
+
+@media (max-width: 48em) {
+  .dd-frame {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dd-side {
+    position: static;
+    height: auto;
+  }
+}
+
 /* Painel: o cartão branco sobre o fundo. */
 .dd-panel {
   background: var(--dd-surface);
@@ -333,7 +396,11 @@
   padding: 12px 4px;
 }
 
-/* Tabela da suíte. */
+/* Tabela da suíte. Larga demais, rola dentro do `.dd-table-wrap`, não a página. */
+.dd-table-wrap {
+  overflow-x: auto;
+}
+
 .dd-table {
   width: 100%;
   border-collapse: separate;
@@ -365,8 +432,18 @@
   vertical-align: middle;
 }
 
-.dd-table tbody tr {
+/* Cursor de clique só na linha que abre algo (`<tr data-clickable>`): a linha toda é o alvo. */
+.dd-table tbody tr[data-clickable] {
   cursor: pointer;
+}
+
+/*
+ * Badge em célula não encurta o rótulo. O `Badge` do Mantine corta o texto com reticências,
+ * então declara largura mínima quase zero, e numa tabela mais larga que o painel o layout
+ * automático espreme a coluna até "Painel externo" virar "P…".
+ */
+.dd-table .mantine-Badge-label {
+  overflow: visible;
 }
 
 .dd-table tbody tr:hover td {
