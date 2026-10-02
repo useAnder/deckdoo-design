@@ -4,6 +4,9 @@ O padrão visual da suíte DeckDoo: tema Mantine, tokens CSS, peças e marca. Na
 slides do DeckDoo e vale para todos os apps da suíte. A bancada para ver e testar tudo é a
 **cozinha** (`pnpm dev`, em `http://localhost:48391`).
 
+A personalidade, o mascote (DuDoo), o tom de voz e as regras de microtexto estão em
+[docs/marca.md](docs/marca.md).
+
 > **Uso interno.** O repositório é público só para os apps da suíte instalarem sem token (no CI
 > e no build de imagem também). Não é um pacote de uso geral: a API muda conforme os apps
 > precisam, não há suporte, e issues e PRs de fora não são acompanhados. A marca DeckDoo
@@ -125,6 +128,7 @@ DeckDoo; sem `--bg`, limão; a tinta sai do contraste (ou `--ink`).
 | `Logo`, `AppIcon` | Logotipo / mascote; ícone de app |
 | `Panel`, `Block`, `NavItem`, `PillTabs`, `Count` | Camadas e navegação |
 | `Status`, `Stat`, `Steps`, `Dots` | Estado, número grande, etapas, medidor |
+| `DuDoo`, `ChatBubble`, `DuDooWall` | O assistente: rosto, fala do chat, papel de parede |
 | `styles.css` | `--dd-*` claro e escuro, `.dd-root`, `.dd-nobreak`, `.dd-num`, a moldura (`.dd-frame`…) e as classes das peças (`.dd-panel`, `.dd-inverse`, `.dd-accent`, `.dd-table`, `.dd-rows`…) |
 
 ### Moldura do app
@@ -172,7 +176,10 @@ marque. `Badge` em célula não corta o rótulo.
 - **Tema escuro:** a pessoa escolhe no menu do usuário; fica no `localStorage`. Toda tela tem que
   funcionar nos dois.
 - **Ícones:** Phosphor (`@phosphor-icons/react`), traço regular a 16–18 px; preenchido só no
-  ícone da IA e em "apresentar".
+  brilho (`Sparkle`) das ações de IA e em "apresentar".
+- **DuDoo, o assistente:** o brilho é o botão ("Gerar com IA"), reconhecido na hora; o rosto
+  de quem fala é o DuDoo (`<DuDoo />`), sempre marinho com o mascote em limão, em todos os apps.
+  O chat é `ChatBubble` sobre `DuDooWall`. Voz e regras em [docs/marca.md](docs/marca.md).
 - **Marca:** `<Logo variant="type" | "mark" />` escolhe sozinha o desenho normal ou o inverso
   pelo fundo (tema escuro, `.dd-inverse`, `.dd-accent`). Sobre cor da paleta ou foto, diga o
   fundo com `on="dark" | "light"`.

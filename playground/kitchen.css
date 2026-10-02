@@ -46,12 +46,6 @@ body {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: var(--dd-inverse);
-  color: var(--dd-accent);
-}
-
-.ks-ai-badge-inv {
-  background: color-mix(in srgb, var(--dd-on-inverse) 12%, transparent);
 }
 
 .dd-accent .ks-ai-badge-inv {
@@ -429,6 +423,132 @@ body {
   background: var(--dd-surface);
 }
 
+/* ——— Voz ——— */
+
+.ks-doc-intro p {
+  margin: 0;
+}
+
+.ks-voice {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--dd-gap);
+}
+
+/* A seção larga (tabelas de tom) ocupa a linha toda. */
+.ks-voice > .ks-doc:has(table) {
+  grid-column: 1 / -1;
+}
+
+.ks-doc {
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.ks-doc p,
+.ks-doc ul,
+.ks-doc ol {
+  margin: 0 0 12px;
+  max-width: 72ch;
+}
+
+.ks-doc ul,
+.ks-doc ol {
+  padding-left: 20px;
+}
+
+.ks-doc li + li {
+  margin-top: 6px;
+}
+
+.ks-doc h3 {
+  margin: 24px 0 10px;
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+
+.ks-doc code {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 0.85em;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--dd-sunken);
+}
+
+.ks-doc .dd-table-wrap {
+  margin: 4px 0 16px;
+}
+
+.ks-doc .dd-table td {
+  vertical-align: top;
+}
+
+.ks-doc > :last-child > :last-child {
+  margin-bottom: 0;
+}
+
+/* ——— Conversa ——— */
+
+.ks-chat {
+  display: flex;
+  flex-direction: column;
+  max-width: 720px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.ks-chat-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px 12px 18px;
+}
+
+.ks-chat-wall {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 480px;
+  margin: 0 10px;
+  padding: 18px 14px;
+  overflow-y: auto;
+  border-radius: var(--dd-r-block);
+}
+
+/* Aviso do sistema no meio da conversa: não é fala do DuDoo, então não tem rosto nem balão. */
+.ks-chat-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  align-self: center;
+  max-width: 85%;
+  padding: 6px 12px;
+  border-radius: var(--dd-r-item);
+  background: var(--dd-surface);
+  box-shadow: 0 0 0 1px var(--dd-border);
+  color: var(--dd-ink-muted);
+  font-size: 13px;
+}
+
+.ks-chat-notice > svg {
+  flex: none;
+  margin-top: 3px;
+  color: var(--mantine-color-orange-7);
+}
+
+.ks-chat-list {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.ks-chat-foot {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 12px 14px 14px;
+}
+
 /* ——— Telas estreitas ——— */
 
 @media (max-width: 1100px) {
@@ -460,6 +580,7 @@ body {
   .ks-main {
     padding: 0 0 48px;
   }
+  .ks-voice,
   .ks-cards,
   .ks-stats,
   .ks-stats-4 {

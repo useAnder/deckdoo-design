@@ -59,6 +59,7 @@
     "eslint": "^10.11.0",
     "eslint-plugin-react-hooks": "7.1.1",
     "globals": "^16.5.0",
+    "marked": "^18.0.14",
     "prettier": "^3.9.9",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",

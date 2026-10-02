@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { marked } from "marked";
 import {
   ActionIcon,
   Anchor,
@@ -9,6 +10,7 @@ import {
   ColorInput,
   Group,
   Kbd,
+  Loader,
   MantineProvider,
   Menu,
   Modal,
@@ -33,10 +35,12 @@ import {
   ArrowLeft,
   ArrowUpRight,
   Archive,
+  ArrowUp,
   Bell,
   CaretDown,
   CaretRight,
   ChartBar,
+  ChatCircleDots,
   CheckCircle,
   Copy,
   DotsThree,
@@ -46,8 +50,10 @@ import {
   Images,
   Info,
   MagnifyingGlass,
+  Megaphone,
   Moon,
   Palette,
+  Paperclip,
   PencilSimple,
   Play,
   Plus,
@@ -66,10 +72,13 @@ import {
   AppIcon,
   BRAND,
   Block,
+  ChatBubble,
   Count,
   DECKDOO_BRAND,
   DesignProvider,
   Dots,
+  DuDoo,
+  DuDooWall,
   Logo,
   NavItem,
   Panel,
@@ -79,12 +88,12 @@ import {
   Steps,
   accentHex,
   buildTheme,
-  useBrand,
   type Accent,
   type Brand as BrandIdentity,
   type Corners,
 } from "@deckdoo/design";
 import { EXEMPLO_BRAND } from "./brands.js";
+import marca from "../docs/marca.md?raw";
 import "./kitchen.css";
 
 /**
@@ -131,6 +140,7 @@ interface Controls {
 
 const SECTIONS = [
   { id: "marca", label: "Marca", icon: Sparkle },
+  { id: "voz", label: "Voz", icon: Megaphone },
   { id: "cores", label: "Cores", icon: Palette },
   { id: "tipografia", label: "Tipografia", icon: TextAa },
   { id: "botoes", label: "Botões", icon: Play },
@@ -138,13 +148,13 @@ const SECTIONS = [
   { id: "estados", label: "Estados", icon: CheckCircle },
   { id: "navegacao", label: "Navegação", icon: StackIcon },
   { id: "cartoes", label: "Cartões", icon: ChartBar },
+  { id: "conversa", label: "Conversa", icon: ChatCircleDots },
   { id: "tabela", label: "Tabela", icon: FileText },
   { id: "camadas", label: "Camadas", icon: Copy },
   { id: "tela", label: "Tela exemplo", icon: House },
 ] as const;
 
 function Kitchen({ controls }: { controls: Controls }) {
-  const { name } = useBrand();
   const [active, setActive] = useState<string>("marca");
   const [aiOn, setAiOn] = useState(true);
 
@@ -206,15 +216,13 @@ function Kitchen({ controls }: { controls: Controls }) {
           <div className="dd-accent ks-ai-card">
             <Group justify="space-between" wrap="nowrap">
               <Group gap={10} wrap="nowrap">
-                <span className="ks-ai-badge">
-                  <Sparkle size={16} weight="fill" />
-                </span>
+                <DuDoo />
                 <div>
                   <Text fw={600} size="sm" lh={1.2}>
-                    {name} IA
+                    DuDoo
                   </Text>
                   <Text size="xs" opacity={0.75}>
-                    {aiOn ? "Ligada · 12 decks" : "Desligada"}
+                    {aiOn ? "Ligado · 12 decks" : "Desligado"}
                   </Text>
                 </div>
               </Group>
@@ -224,7 +232,7 @@ function Kitchen({ controls }: { controls: Controls }) {
                 // Sobre o acento a tinta é sempre escura, nos dois temas.
                 color="ink.9"
                 size="md"
-                aria-label={`${name} IA`}
+                aria-label="DuDoo"
               />
             </Group>
             <button type="button" className="ks-ai-link">
@@ -264,6 +272,7 @@ function Kitchen({ controls }: { controls: Controls }) {
         </header>
 
         <Brand />
+        <Voice />
         <Colors />
         <Typography />
         <Buttons />
@@ -271,6 +280,7 @@ function Kitchen({ controls }: { controls: Controls }) {
         <States />
         <Navigation />
         <Cards />
+        <Conversation />
         <TableSection />
         <Layers />
         <Example />
@@ -391,7 +401,7 @@ function Brand() {
         </BrandRow>
         <BrandRow
           title="Mascote"
-          note="O ícone sozinho: avatar da IA, favicon, ícone de app. Também troca de desenho no escuro."
+          note="O ícone sozinho: favicon, ícone de app, o rosto do DuDoo. Também troca de desenho no escuro."
         >
           <div className="dd-panel ks-brand-tile ks-mark-row">
             <Logo variant="mark" height={64} />
@@ -558,7 +568,7 @@ function Typography() {
           <div className="ks-type-row">
             <span className="dd-mono dd-faint">Corpo · 16</span>
             <Text maw={620}>
-              A IA leu o material que você enviou e montou um roteiro com doze slides. Revise a
+              O DuDoo leu o material que você enviou e montou um roteiro com doze slides. Revise a
               pauta, ajuste o que quiser e peça o rascunho quando estiver pronto — o tom segue o
               modelo da marca, e as imagens vêm da sua Biblioteca.
             </Text>
@@ -763,7 +773,7 @@ function States() {
               Pro
             </Badge>
             <Badge variant="filled" leftSection={<Sparkle size={11} weight="fill" />}>
-              Ordenado pela IA
+              Ordenado pelo DuDoo
             </Badge>
             <Count>128</Count>
           </Group>
@@ -782,7 +792,7 @@ function States() {
               title="Slide 4 transborda"
               withCloseButton={false}
             >
-              O texto não cabe na caixa. Encurte ou peça à IA para refazer.
+              O texto não cabe na caixa. Encurte ou peça ao DuDoo para refazer.
             </Notification>
             <Notification
               icon={<Info size={18} />}
@@ -867,10 +877,205 @@ function Navigation() {
   );
 }
 
+/* ——— Voz ——— */
+
+// O `docs/marca.md` lido direto do arquivo: a cozinha não guarda uma segunda cópia do texto.
+// Cada `##` vira um painel; link relativo (para o README) vira texto, que aqui não abre nada.
+const VOICE = (() => {
+  const md = marca.replace(/\[([^\]]+)\]\((?!https?:)[^)]*\)/g, "$1");
+  const [head = "", ...parts] = md.split(/^## /m);
+  const html = (text: string) =>
+    (marked.parse(text, { async: false }) as string)
+      .replaceAll("<table>", '<div class="dd-table-wrap"><table class="dd-table">')
+      .replaceAll("</table>", "</table></div>");
+  return {
+    intro: html(head.replace(/^# .*$/m, "")),
+    parts: parts.map((part) => {
+      const [title = "", ...body] = part.split("\n");
+      return { title, html: html(body.join("\n")) };
+    }),
+  };
+})();
+
+function Voice() {
+  return (
+    <Section
+      id="voz"
+      title="Voz e personalidade"
+      note={<span className="ks-doc-intro" dangerouslySetInnerHTML={{ __html: VOICE.intro }} />}
+    >
+      <div className="ks-voice">
+        {VOICE.parts.map((part) => (
+          <Panel key={part.title} title={part.title} className="ks-doc">
+            <div dangerouslySetInnerHTML={{ __html: part.html }} />
+          </Panel>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+/* ——— Conversa ——— */
+
+interface Said {
+  from: "dudoo" | "you";
+  text: string;
+}
+
+function Conversation() {
+  const [said, setSaid] = useState<Said[]>([]);
+  const [draft, setDraft] = useState("");
+  const [typing, setTyping] = useState(false);
+  const wall = useRef<HTMLDivElement>(null);
+
+  // A conversa rola por dentro até a última fala; a página fica onde está.
+  useEffect(() => {
+    const el = wall.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [said, typing]);
+
+  const send = () => {
+    const text = draft.trim();
+    if (!text || typing) return;
+    setSaid((s) => [...s, { from: "you", text }]);
+    setDraft("");
+    setTyping(true);
+    window.setTimeout(() => {
+      setTyping(false);
+      setSaid((s) => [
+        ...s,
+        { from: "dudoo", text: "Anotado. Ajusto o roteiro e te mostro antes de gerar." },
+      ]);
+    }, 1400);
+  };
+
+  return (
+    <Section
+      id="conversa"
+      title="Conversa"
+      note="Quem fala é o DuDoo: o rosto dele na fala, o brilho na ação. Aviso do sistema não é fala dele."
+    >
+      <section className="dd-panel ks-chat">
+        <header className="ks-chat-head">
+          <Group gap={10} wrap="nowrap">
+            <DuDoo size={36} />
+            <div>
+              <Text fw={600} lh={1.2}>
+                DuDoo
+              </Text>
+              <Text size="xs" className="dd-muted">
+                2 de 4 · Roteiro
+              </Text>
+            </div>
+          </Group>
+          <Button size="xs" variant="default">
+            Briefing
+          </Button>
+        </header>
+
+        <DuDooWall className="ks-chat-wall" ref={wall}>
+          <ChatBubble from="dudoo">
+            Oi! Me conta a ideia: pra quem é o deck e o que ele precisa mudar na cabeça de quem
+            assiste?
+          </ChatBubble>
+          <ChatBubble from="you">
+            Resultados do 3º trimestre pra diretoria. A margem caiu, mas quero mostrar que o plano
+            está funcionando.
+          </ChatBubble>
+          <div className="ks-chat-notice">
+            <Warning size={14} />
+            <span>
+              Não deu para ler <span className="dd-nobreak">vendas-q3.xlsx</span>. Envie de novo em
+              .xlsx ou .csv.
+            </span>
+          </div>
+          <ChatBubble from="you">Mandei de novo, agora em .csv.</ChatBubble>
+          <ChatBubble from="dudoo">
+            Li a planilha. Três pontos pedem atenção; o maior é a margem em agosto.
+          </ChatBubble>
+          <ChatBubble from="dudoo" avatar={false}>
+            <Stack gap="xs">
+              <span>Proponho 12 slides, nesta ordem:</span>
+              <ol className="ks-chat-list">
+                <li>O trimestre em um número</li>
+                <li>Onde a margem caiu, e por quê</li>
+                <li>O que o plano já mudou</li>
+                <li>Os próximos 90 dias</li>
+              </ol>
+              <Group gap="xs">
+                <Button size="xs" leftSection={<Sparkle size={14} weight="fill" />}>
+                  Gerar 12 slides
+                </Button>
+                <Button size="xs" variant="default">
+                  Ajustar roteiro
+                </Button>
+              </Group>
+            </Stack>
+          </ChatBubble>
+          {said.map((m, i) => (
+            <ChatBubble key={i} from={m.from}>
+              {m.text}
+            </ChatBubble>
+          ))}
+          {typing && (
+            <ChatBubble from="dudoo">
+              <Loader
+                size="xs"
+                type="dots"
+                color="var(--dd-ink-faint)"
+                aria-label="O DuDoo está escrevendo"
+              />
+            </ChatBubble>
+          )}
+        </DuDooWall>
+
+        <form
+          className="ks-chat-foot"
+          onSubmit={(e) => {
+            e.preventDefault();
+            send();
+          }}
+        >
+          <Tooltip label="Anexar material">
+            <ActionIcon size="lg" variant="subtle" color="gray" aria-label="Anexar material">
+              <Paperclip size={18} />
+            </ActionIcon>
+          </Tooltip>
+          <Textarea
+            flex={1}
+            autosize
+            minRows={1}
+            maxRows={4}
+            placeholder="Escreva para o DuDoo"
+            aria-label="Mensagem para o DuDoo"
+            value={draft}
+            onChange={(e) => setDraft(e.currentTarget.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                send();
+              }
+            }}
+          />
+          <ActionIcon
+            type="submit"
+            size="lg"
+            color="inverse"
+            variant="filled"
+            aria-label="Enviar"
+            disabled={!draft.trim() || typing}
+          >
+            <ArrowUp size={18} />
+          </ActionIcon>
+        </form>
+      </section>
+    </Section>
+  );
+}
+
 /* ——— Cartões ——— */
 
 function Cards() {
-  const { name } = useBrand();
   return (
     <Section
       id="cartoes"
@@ -905,10 +1110,8 @@ function Cards() {
         <section className="dd-panel dd-inverse">
           <Group justify="space-between" mb="sm">
             <Group gap={10}>
-              <span className="ks-ai-badge ks-ai-badge-inv">
-                <Sparkle size={16} weight="fill" />
-              </span>
-              <Text fw={600}>{name} IA</Text>
+              <DuDoo />
+              <Text fw={600}>DuDoo</Text>
             </Group>
             <span className="dd-mono dd-muted">há 2 min</span>
           </Group>
@@ -1086,7 +1289,7 @@ function TableSection() {
         actions={
           <Group gap="xs">
             <Badge variant="filled" leftSection={<Sparkle size={11} weight="fill" />}>
-              Ordenado pela IA
+              Ordenado pelo DuDoo
             </Badge>
             <ActionIcon aria-label="Mais">
               <DotsThree size={16} />
@@ -1187,7 +1390,7 @@ function Layers() {
         size={540}
         title={
           <div>
-            <Title order={3}>Deixar a IA refazer o slide 4?</Title>
+            <Title order={3}>Deixar o DuDoo refazer o slide 4?</Title>
             <Text size="sm" className="dd-muted" mt={4}>
               O texto muda, então a Elena aprova antes de o deck sair.
             </Text>
@@ -1340,7 +1543,7 @@ function Example() {
         <Group gap="sm" mt="md">
           <Images size={16} />
           <Text size="sm" className="dd-muted">
-            Ícones: Phosphor, traço regular a 16–18 px; preenchido só no ícone da IA.
+            Ícones: Phosphor, traço regular a 16–18 px; preenchido só no brilho das ações de IA.
           </Text>
         </Group>
       </div>

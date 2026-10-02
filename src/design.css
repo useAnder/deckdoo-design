@@ -544,3 +544,92 @@
   flex: none;
   background: var(--dd-accent);
 }
+
+/*
+ * O DuDoo (`DuDoo`): sempre marinho com o mascote em limão, nos dois temas. É o personagem,
+ * então não segue o acento do app.
+ */
+.dd-dudoo {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  border-radius: 50%;
+  background: #0e172a;
+  box-shadow: 0 0 0 1px var(--dd-border);
+  color: #a2ff00;
+}
+
+/* No cartão invertido do tema claro o fundo também é marinho: um aro claro separa o círculo. */
+[data-mantine-color-scheme="light"] .dd-inverse .dd-dudoo {
+  box-shadow: 0 0 0 1px rgb(251 252 248 / 0.18);
+}
+
+/* O papel de parede (`DuDooWall`): o mascote repetido, quase sumindo, atrás do conteúdo. */
+.dd-wall {
+  position: relative;
+  isolation: isolate;
+  background: var(--dd-sunken);
+}
+
+.dd-wall::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: var(--dd-ink);
+  opacity: 0.08;
+  mask-image: var(--dd-wall-light);
+  mask-size: 300px 300px;
+  mask-repeat: repeat;
+  -webkit-mask-image: var(--dd-wall-light);
+  -webkit-mask-size: 300px 300px;
+  -webkit-mask-repeat: repeat;
+  pointer-events: none;
+}
+
+[data-mantine-color-scheme="dark"] .dd-wall::before {
+  opacity: 0.09;
+  mask-image: var(--dd-wall-dark);
+  -webkit-mask-image: var(--dd-wall-dark);
+}
+
+/* As falas (`ChatBubble`): a sua em tinta à direita, a do DuDoo à esquerda com o rosto. O
+   canto de onde a fala sai é mais fechado. */
+.dd-chat-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.dd-chat-row[data-mine] {
+  justify-content: flex-end;
+}
+
+.dd-chat-gap {
+  flex: none;
+  width: 28px;
+}
+
+.dd-bubble {
+  max-width: min(85%, 560px);
+  padding: 10px 14px;
+  border-radius: 18px;
+  border-bottom-left-radius: 6px;
+  background: var(--dd-sunken);
+  color: var(--dd-ink);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.dd-bubble[data-mine] {
+  border-bottom-left-radius: 18px;
+  border-bottom-right-radius: 6px;
+  background: var(--dd-inverse);
+  color: var(--dd-on-inverse);
+}
+
+/* Sobre o papel de parede (cinza), a fala do DuDoo vira painel branco para não sumir. */
+.dd-wall .dd-bubble:not([data-mine]) {
+  background: var(--dd-surface);
+  box-shadow: 0 0 0 1px var(--dd-border);
+}

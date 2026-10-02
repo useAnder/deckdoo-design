@@ -19,8 +19,11 @@ export {
 export {
   AppIcon,
   Block,
+  ChatBubble,
   Count,
   Dots,
+  DuDoo,
+  DuDooWall,
   Logo,
   NavItem,
   Panel,

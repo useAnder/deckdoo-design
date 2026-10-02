@@ -1,7 +1,9 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import type { ComponentPropsWithRef, ComponentPropsWithoutRef, ReactNode } from "react";
 import { isLightColor, useMantineTheme } from "@mantine/core";
 import { Check } from "@phosphor-icons/react";
-import { useBrand, type BrandShape } from "./brand.js";
+import { DECKDOO_BRAND, useBrand, type BrandShape } from "./brand.js";
+import wallUrl from "./brand/dudoo-tile.svg";
+import wallInverseUrl from "./brand/dudoo-tile-inverse.svg";
 
 /**
  * As peças da suíte que o Mantine não tem com essa cara. Nascem aqui, se provam na cozinha
@@ -269,5 +271,61 @@ export function AppIcon({ size = 40 }: { size?: number }) {
         color="var(--dd-on-accent)"
       />
     </span>
+  );
+}
+
+/**
+ * O DuDoo, o assistente da suíte: o mascote do DeckDoo em limão sobre um círculo marinho, nos
+ * dois temas e em todos os apps (é um personagem, não a marca do app). É o rosto de quem fala
+ * no chat; a ação de IA ("Gerar com IA") continua com o ícone de brilho.
+ */
+export function DuDoo({ size = 32 }: { size?: number }) {
+  const { light, dark = light } = DECKDOO_BRAND.mark;
+  return (
+    <span className="dd-dudoo" role="img" aria-label="DuDoo" style={{ width: size, height: size }}>
+      <LogoShape shape="dark" height={Math.round(size * 0.56)} {...dark} />
+    </span>
+  );
+}
+
+/**
+ * O papel de parede do DuDoo: o mascote repetido, bem de leve, atrás da conversa (ou do palco
+ * do app de slides). O desenho é máscara: a cor vem do token e acompanha o tema.
+ */
+export function DuDooWall({ className, style, ...rest }: ComponentPropsWithRef<"div">) {
+  return (
+    <div
+      className={cx("dd-wall", className)}
+      style={{
+        ...style,
+        ["--dd-wall-light" as string]: `url("${wallUrl}")`,
+        ["--dd-wall-dark" as string]: `url("${wallInverseUrl}")`,
+      }}
+      {...rest}
+    />
+  );
+}
+
+/**
+ * Uma fala do chat. A sua vai à direita, em tinta; a do DuDoo à esquerda, com o rosto dele
+ * ao lado. Em falas seguidas do DuDoo, `avatar={false}` deixa só a primeira com o rosto.
+ */
+export function ChatBubble({
+  from,
+  avatar = true,
+  children,
+}: {
+  from: "dudoo" | "you";
+  avatar?: boolean;
+  children: ReactNode;
+}) {
+  const mine = from === "you";
+  return (
+    <div className="dd-chat-row" data-mine={mine || undefined}>
+      {!mine && (avatar ? <DuDoo size={28} /> : <span className="dd-chat-gap" />)}
+      <div className="dd-bubble" data-mine={mine || undefined}>
+        {children}
+      </div>
+    </div>
   );
 }
