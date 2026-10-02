@@ -1,4 +1,9 @@
-import type { ComponentPropsWithRef, ComponentPropsWithoutRef, ReactNode } from "react";
+import type {
+  ComponentPropsWithRef,
+  ComponentPropsWithoutRef,
+  ElementType,
+  ReactNode,
+} from "react";
 import { isLightColor, useMantineTheme } from "@mantine/core";
 import { Check } from "@phosphor-icons/react";
 import { DECKDOO_BRAND, useBrand, type BrandShape } from "./brand.js";
@@ -44,22 +49,36 @@ export function Count({ children }: { children: ReactNode }) {
   return <span className="dd-count">{children}</span>;
 }
 
-export function NavItem({
-  icon,
-  label,
-  count,
-  active,
-  ...rest
-}: {
+interface NavItemOwnProps {
   icon: ReactNode;
   label: string;
   count?: number;
   active?: boolean;
-} & ComponentPropsWithoutRef<"button">) {
+}
+
+/**
+ * Item da barra lateral. É botão; com `component` vira outra coisa — `component="a"` com
+ * `href`, ou o link do roteador (`component={Link} to="/clientes"`). O `NavLink`, que marca
+ * `aria-current="page"` sozinho, acende o item sem precisar de `active`.
+ */
+export type NavItemProps<C extends ElementType = "button"> = NavItemOwnProps & {
+  component?: C;
+} & Omit<ComponentPropsWithoutRef<C>, keyof NavItemOwnProps | "component">;
+
+export function NavItem<C extends ElementType = "button">({
+  component,
+  icon,
+  label,
+  count,
+  active,
+  className,
+  ...rest
+}: NavItemProps<C>) {
+  const Root: ElementType = component ?? "button";
   return (
-    <button
-      type="button"
-      className="dd-nav-item"
+    <Root
+      type={Root === "button" ? "button" : undefined}
+      className={cx("dd-nav-item", className)}
       data-active={active || undefined}
       aria-current={active ? "page" : undefined}
       {...rest}
@@ -67,13 +86,15 @@ export function NavItem({
       {icon}
       <span>{label}</span>
       {count !== undefined && <Count>{count}</Count>}
-    </button>
+    </Root>
   );
 }
 
 export interface PillTab {
   value: string;
   label: string;
+  /** Antes do rótulo, no tamanho do texto (Phosphor a 16). */
+  icon?: ReactNode;
   count?: number;
 }
 
@@ -101,6 +122,7 @@ export function PillTabs({
           data-active={tab.value === value || undefined}
           onClick={() => onChange(tab.value)}
         >
+          {tab.icon}
           {tab.label}
           {tab.count !== undefined && <Count>{tab.count}</Count>}
         </button>

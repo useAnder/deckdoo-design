@@ -55,8 +55,15 @@
 }
 
 @media (max-width: 48em) {
+  /* Coluna em flex, não grade: a grade com `min-height` esticaria a barra até a altura da
+     tela. Assim ela fica do tamanho do conteúdo e o conteúdo ocupa o resto. */
   .dd-frame {
-    grid-template-columns: minmax(0, 1fr);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dd-main {
+    flex: 1;
   }
 
   .dd-side {
@@ -153,7 +160,8 @@
   background: var(--dd-hover);
 }
 
-.dd-nav-item[data-active] {
+.dd-nav-item[data-active],
+.dd-nav-item[aria-current="page"] {
   background: var(--dd-inverse);
   color: var(--dd-on-inverse);
 }
@@ -182,7 +190,8 @@
   text-align: center;
 }
 
-[data-active] > .dd-count {
+[data-active] > .dd-count,
+.dd-nav-item[aria-current="page"] > .dd-count {
   background: var(--dd-accent);
   color: var(--dd-on-accent);
 }
@@ -198,13 +207,30 @@
   background: var(--dd-surface);
 }
 
+/* Sobre um painel a barra branca sumiria: lá ela é cinza; num bloco dentro dele, branca de novo. */
+:is(
+    .dd-panel,
+    .mantine-Paper-root,
+    .mantine-Card-root,
+    .mantine-Modal-content,
+    .mantine-Drawer-content
+  )
+  .dd-tabs {
+  background: var(--dd-sunken);
+}
+
+.dd-block .dd-tabs {
+  background: var(--dd-surface);
+}
+
 .dd-tab {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 7px 14px;
   border: 0;
-  border-radius: var(--dd-r-pill);
+  /* Dentro da barra, que tem 4 de respiro: o canto acompanha o dela. */
+  border-radius: max(0px, var(--dd-r-pill) - 4px);
   background: transparent;
   color: var(--dd-ink);
   font: inherit;
@@ -613,8 +639,8 @@
 .dd-bubble {
   max-width: min(85%, 560px);
   padding: 10px 14px;
-  border-radius: 18px;
-  border-bottom-left-radius: 6px;
+  border-radius: min(18px, var(--dd-r-block));
+  border-bottom-left-radius: min(6px, var(--dd-r-block));
   background: var(--dd-sunken);
   color: var(--dd-ink);
   font-size: 14px;
@@ -622,8 +648,8 @@
 }
 
 .dd-bubble[data-mine] {
-  border-bottom-left-radius: 18px;
-  border-bottom-right-radius: 6px;
+  border-bottom-left-radius: min(18px, var(--dd-r-block));
+  border-bottom-right-radius: min(6px, var(--dd-r-block));
   background: var(--dd-inverse);
   color: var(--dd-on-inverse);
 }

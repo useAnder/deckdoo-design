@@ -41,11 +41,16 @@
   /* Coral como texto ("Remover"): o `--dd-danger` é claro demais sobre branco. */
   --dd-danger-text: #9a4a4a; /* coral.8 */
 
-  /* Cantos: painel > bloco > controle. */
-  --dd-r-panel: 28px;
-  --dd-r-block: 20px;
-  --dd-r-item: 14px;
-  --dd-r-pill: 999px;
+  /*
+   * Cantos: painel > bloco > item. Seguem o `corners` do `buildTheme` pelas variáveis de raio
+   * que o Mantine emite; o valor depois da vírgula é o do jeito `pilula`, para quando não há
+   * `MantineProvider`.
+   */
+  --dd-r-panel: var(--mantine-radius-xl, 28px);
+  --dd-r-block: var(--mantine-radius-lg, 20px);
+  --dd-r-item: var(--mantine-radius-md, 14px);
+  --dd-r-control: var(--mantine-radius-control, 999px);
+  --dd-r-pill: var(--mantine-radius-pill, 999px);
 
   --dd-gap: 16px;
 }
@@ -71,6 +76,22 @@
   --dd-on-inverse-muted: #5a6372;
 
   --dd-danger-text: #ffa39a; /* coral.4 */
+}
+
+/*
+ * Paper, Modal e Drawer pintam o fundo com `--mantine-color-body`, que no escuro é o `dark.7`,
+ * um tom acima do painel. Aqui ele vira o painel, como já é no claro (branco). O seletor é o
+ * mesmo do Mantine: vale por vir depois.
+ */
+:root[data-mantine-color-scheme="dark"] {
+  --mantine-color-body: var(--dd-surface);
+}
+
+/* Card e Popover (o Menu e o Combobox são Popover) pulam a variável e pintam `dark.6` direto. A
+   regra do Mantine vem em `:where()`, então esta ganha; `bg` no componente ainda ganha dela. */
+[data-mantine-color-scheme="dark"]
+  :is(.mantine-Card-root, .mantine-Popover-dropdown, .mantine-Menu-dropdown) {
+  background-color: var(--dd-surface);
 }
 
 /* Palavra não quebra no meio, nunca (pt-BR): nem hífen do navegador, nem corte. */

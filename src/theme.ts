@@ -28,6 +28,7 @@ import {
   parseThemeColor,
   type VariantColorsResolver,
   type MantineColorsTuple,
+  type MantineRadiusValues,
 } from "@mantine/core";
 
 /**
@@ -150,7 +151,45 @@ const variantColorResolver: VariantColorsResolver = (input) => {
  */
 export const INVERSE = "inverse";
 
-export type Corners = "pilula" | "suave";
+/**
+ * O jeito dos cantos, do mais redondo ao quadrado: `pilula` (controles em pílula), `suave`
+ * (controles com canto de 14, painéis iguais), `sutil` (tudo bem menos arredondado: controle 8,
+ * painel 16) e `reto` (tudo quadrado).
+ */
+export type Corners = "pilula" | "suave" | "sutil" | "reto";
+
+/**
+ * A escala de cada jeito. `xs`…`xl` são os raios do Mantine (o painel é o `xl`, o bloco o `lg`,
+ * o item o `md`); `control` é o canto de botão, campo e aba; `pill` é o da pílula de verdade
+ * (item da barra lateral, `PillTabs`, contador, estado, badge). Os dois extras viram
+ * `--mantine-radius-control` e `--mantine-radius-pill`, e valem como `radius="control"` em
+ * qualquer componente do Mantine.
+ */
+const CORNERS: Record<
+  Corners,
+  Record<"xs" | "sm" | "md" | "lg" | "xl" | "control" | "pill", string>
+> = {
+  pilula: {
+    xs: "6px",
+    sm: "10px",
+    md: "14px",
+    lg: "20px",
+    xl: "28px",
+    control: "999px",
+    pill: "999px",
+  },
+  suave: {
+    xs: "6px",
+    sm: "10px",
+    md: "14px",
+    lg: "20px",
+    xl: "28px",
+    control: "14px",
+    pill: "999px",
+  },
+  sutil: { xs: "4px", sm: "6px", md: "8px", lg: "12px", xl: "16px", control: "8px", pill: "8px" },
+  reto: { xs: "0px", sm: "0px", md: "0px", lg: "0px", xl: "0px", control: "0px", pill: "0px" },
+};
 
 /** Uma cor da paleta pelo nome, ou qualquer hex (`#rgb` ou `#rrggbb`). */
 export type Accent = BrandColor | `#${string}`;
@@ -183,9 +222,6 @@ const FONT_STACK = "system-ui, -apple-system, 'Segoe UI', sans-serif";
 const MONO_STACK = "'Geist Mono', ui-monospace, 'Cascadia Code', monospace";
 
 export function buildTheme({ accent = "lime", corners = "pilula" }: ThemeOptions = {}) {
-  // Controles (botão, campo, aba): pílula inteira ou canto suave. Painéis sempre arredondados.
-  const control = corners === "pilula" ? "xl" : "md";
-
   return createTheme({
     primaryColor: "accent",
     primaryShade: { light: 6, dark: 6 },
@@ -220,7 +256,8 @@ export function buildTheme({ accent = "lime", corners = "pilula" }: ThemeOptions
         h4: { fontSize: "1.0625rem", lineHeight: "1.35" },
       },
     },
-    radius: { xs: "6px", sm: "10px", md: "14px", lg: "20px", xl: "28px" },
+    // `control` e `pill` não são chaves do Mantine, mas ele emite toda chave como variável CSS.
+    radius: CORNERS[corners] as MantineRadiusValues,
     defaultRadius: "md",
     spacing: { xs: "8px", sm: "12px", md: "16px", lg: "24px", xl: "32px" },
     shadows: {
@@ -232,7 +269,7 @@ export function buildTheme({ accent = "lime", corners = "pilula" }: ThemeOptions
     },
     components: {
       Button: Button.extend({
-        defaultProps: { radius: control },
+        defaultProps: { radius: "control" },
         vars: (_theme, props) => {
           if (props.color === INVERSE) {
             return {
@@ -250,7 +287,7 @@ export function buildTheme({ accent = "lime", corners = "pilula" }: ThemeOptions
         },
       }),
       ActionIcon: ActionIcon.extend({
-        defaultProps: { radius: "xl", variant: "default" },
+        defaultProps: { radius: "pill", variant: "default" },
         vars: (_theme, props) =>
           props.color === INVERSE
             ? {
@@ -286,26 +323,26 @@ export function buildTheme({ accent = "lime", corners = "pilula" }: ThemeOptions
             : { root: {} },
       }),
       Badge: Badge.extend({
-        defaultProps: { radius: "xl", variant: "light" },
+        defaultProps: { radius: "pill", variant: "light" },
         styles: { root: { textTransform: "none", fontWeight: 500, letterSpacing: 0 } },
       }),
       // Todo campo de uma linha é controle, não só o `TextInput`: cada componente do Mantine
       // tem o próprio padrão, e o que fica de fora cai no `defaultRadius` (canto 14). Foi
       // assim que o campo de senha destoou do e-mail ao lado no login do Hub. Campo novo
       // de uma linha entra aqui; o `Textarea`, de várias, fica no canto de bloco.
-      TextInput: TextInput.extend({ defaultProps: { radius: control } }),
-      PasswordInput: PasswordInput.extend({ defaultProps: { radius: control } }),
-      NumberInput: NumberInput.extend({ defaultProps: { radius: control } }),
-      Select: Select.extend({ defaultProps: { radius: control } }),
-      MultiSelect: MultiSelect.extend({ defaultProps: { radius: control } }),
-      Autocomplete: Autocomplete.extend({ defaultProps: { radius: control } }),
-      TagsInput: TagsInput.extend({ defaultProps: { radius: control } }),
-      NativeSelect: NativeSelect.extend({ defaultProps: { radius: control } }),
-      FileInput: FileInput.extend({ defaultProps: { radius: control } }),
+      TextInput: TextInput.extend({ defaultProps: { radius: "control" } }),
+      PasswordInput: PasswordInput.extend({ defaultProps: { radius: "control" } }),
+      NumberInput: NumberInput.extend({ defaultProps: { radius: "control" } }),
+      Select: Select.extend({ defaultProps: { radius: "control" } }),
+      MultiSelect: MultiSelect.extend({ defaultProps: { radius: "control" } }),
+      Autocomplete: Autocomplete.extend({ defaultProps: { radius: "control" } }),
+      TagsInput: TagsInput.extend({ defaultProps: { radius: "control" } }),
+      NativeSelect: NativeSelect.extend({ defaultProps: { radius: "control" } }),
+      FileInput: FileInput.extend({ defaultProps: { radius: "control" } }),
       Textarea: Textarea.extend({ defaultProps: { radius: "md" } }),
-      SegmentedControl: SegmentedControl.extend({ defaultProps: { radius: control } }),
+      SegmentedControl: SegmentedControl.extend({ defaultProps: { radius: "control" } }),
       Checkbox: Checkbox.extend({ defaultProps: { radius: "xs" } }),
-      Tabs: Tabs.extend({ defaultProps: { radius: control } }),
+      Tabs: Tabs.extend({ defaultProps: { radius: "control" } }),
       Paper: Paper.extend({ defaultProps: { radius: "xl" } }),
       Card: Card.extend({ defaultProps: { radius: "xl", padding: "lg" } }),
       Modal: Modal.extend({ defaultProps: { radius: "xl", padding: "lg", centered: true } }),

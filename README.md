@@ -71,7 +71,7 @@ URI (`img-src data:`).
 
 ## O que é de cada app
 
-Tudo é igual em todos os apps, menos duas coisas.
+Tudo é igual em todos os apps, menos o acento, os cantos e a marca.
 
 ### Acento
 
@@ -85,6 +85,24 @@ O acento vira a cor primária do Mantine (`accent`, dez tons, com o original no 
 clara num escuro. O `AppIcon` usa o acento de fundo.
 
 `--dd-ok` **não** segue o acento: é o estado "ok", limão em todos os apps.
+
+### Cantos
+
+```ts
+buildTheme({ corners: "sutil" });
+```
+
+| `corners` | Controle (botão, campo, aba) | Pílula (nav, `PillTabs`, badge, estado) | Painel / bloco / item |
+| --- | --- | --- | --- |
+| `pilula` (padrão) | pílula | pílula | 28 / 20 / 14 |
+| `suave` | 14 | pílula | 28 / 20 / 14 |
+| `sutil` | 8 | 8 | 16 / 12 / 8 |
+| `reto` | 0 | 0 | 0 |
+
+O jeito muda a escala de raio do Mantine (`xs`…`xl`) e os tokens `--dd-r-*` seguem por ela, então
+as peças e o CSS do app acompanham sem fazer nada. Para um controle próprio, use
+`radius="control"` (ou `"pill"`) num componente do Mantine, ou `var(--dd-r-control)` /
+`var(--dd-r-pill)` no CSS.
 
 ### Marca
 
@@ -126,7 +144,7 @@ DeckDoo; sem `--bg`, limão; a tinta sai do contraste (ou `--ink`).
 | `BRAND`, `INVERSE`, `accentHex` | A paleta, a cor `"inverse"` e o normalizador de acento |
 | `DesignProvider`, `useBrand`, `DECKDOO_BRAND` | A marca do app |
 | `Logo`, `AppIcon` | Logotipo / mascote; ícone de app |
-| `Panel`, `Block`, `NavItem`, `PillTabs`, `Count` | Camadas e navegação |
+| `Panel`, `Block`, `NavItem`, `PillTabs`, `Count` | Camadas e navegação (`NavItem` vira link com `component`; aba aceita `icon`) |
 | `Status`, `Stat`, `Steps`, `Dots` | Estado, número grande, etapas, medidor |
 | `DuDoo`, `ChatBubble`, `DuDooWall` | O assistente: rosto, fala do chat, papel de parede |
 | `styles.css` | `--dd-*` claro e escuro, `.dd-root`, `.dd-nobreak`, `.dd-num`, a moldura (`.dd-frame`…) e as classes das peças (`.dd-panel`, `.dd-inverse`, `.dd-accent`, `.dd-table`, `.dd-rows`…) |
@@ -145,8 +163,19 @@ DeckDoo; sem `--bg`, limão; a tinta sai do contraste (ou `--ink`).
 </div>
 ```
 
-Barra de 260 px presa à esquerda; abaixo de 48em ela vira o topo da página. Só o esqueleto: o
-cabeçalho da suíte (espaço de trabalho, usuário) ainda é de cada app.
+Barra de 260 px presa à esquerda; abaixo de 48em ela vira o topo da página, na altura do
+próprio conteúdo. Só o esqueleto: o cabeçalho da suíte (espaço de trabalho, usuário) ainda é de
+cada app.
+
+O `NavItem` é botão; para navegar de verdade, passe o link:
+
+```tsx
+<NavItem component={NavLink} to="/clientes" icon={<Users size={18} />} label="Clientes" />
+<NavItem component="a" href="/ajuda" icon={<Question size={18} />} label="Ajuda" />
+```
+
+O `NavLink` do roteador marca `aria-current="page"`, e isso já acende o item: não precisa de
+`active`.
 
 ### Tabela
 
@@ -168,8 +197,10 @@ marque. `Badge` em célula não corta o rótulo.
   erro = coral, neutro = cinza. O texto diz o estado; a cor só reforça.
 - **Ação destrutiva em texto** ("Remover"): `c="var(--dd-danger-text)"`. O coral da paleta
   (`--dd-danger`) é fundo, não texto: sobre branco não passa de 3:1.
-- **Controles em pílula** (botão, campo, aba, badge); `buildTheme({ corners: "suave" })` troca
-  para canto de 14.
+- **Controles em pílula** (botão, campo, aba, badge); `buildTheme({ corners })` troca para
+  `suave`, `sutil` ou `reto` (ver [Cantos](#cantos)).
+- **Abas (`PillTabs`)** são brancas sobre o fundo e cinza sobre painel, Card ou Modal; dentro de
+  um bloco, brancas de novo.
 - **Tipografia:** Figtree em tudo, inclusive números (com `.dd-num`, algarismos de largura
   fixa). Geist Mono é tempero, não regra: só onde a tela quer cara de terminal ou em ID e código
   de máquina.
@@ -198,6 +229,9 @@ marque. `Badge` em célula não corta o rótulo.
 - **Canto de campo é por componente:** o Mantine não herda o raio do `TextInput` para os
   outros campos. Cada campo de uma linha (senha, número, seleção, etiquetas, arquivo…) está
   listado em `theme.ts`; o que faltar ali sai com canto 14 ao lado de um campo em pílula.
+- **Fundo do que flutua no escuro:** o Mantine pinta Paper e Modal com `--mantine-color-body` e
+  Card e Popover/Menu com `dark.6`, tons acima do painel. O `tokens.css` põe os dois no
+  `--dd-surface`; por isso o `styles.css` vem depois do CSS do Mantine.
 - **Troca normal/inverso do `Logo`** é CSS (`.dd-logo-switch`), com três regras de mesma
   especificidade em que vale a última. Mexer na ordem quebra o caso "invertido no tema escuro".
 

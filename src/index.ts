@@ -31,6 +31,7 @@ export {
   Stat,
   Status,
   Steps,
+  type NavItemProps,
   type PillTab,
   type Step,
   type Tone,

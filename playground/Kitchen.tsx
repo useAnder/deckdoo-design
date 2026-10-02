@@ -203,12 +203,18 @@ function Kitchen({ controls }: { controls: Controls }) {
         <div className="dd-eyebrow dd-side-label">Padrão visual</div>
         <nav>
           {SECTIONS.map((s) => (
+            // Link de verdade (`component="a"`): abre em nova aba, copia o endereço.
             <NavItem
               key={s.id}
+              component="a"
+              href={`#${s.id}`}
               icon={<s.icon size={18} />}
               label={s.label}
               active={active === s.id}
-              onClick={() => document.getElementById(s.id)?.scrollIntoView({ behavior: "smooth" })}
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById(s.id)?.scrollIntoView({ behavior: "smooth" });
+              }}
             />
           ))}
         </nav>
@@ -338,6 +344,8 @@ function ThemeBar({ controls }: { controls: Controls }) {
         data={[
           { value: "pilula", label: "Pílula" },
           { value: "suave", label: "Suave" },
+          { value: "sutil", label: "Sutil" },
+          { value: "reto", label: "Reto" },
         ]}
       />
       <ActionIcon
@@ -829,6 +837,7 @@ function States() {
 
 function Navigation() {
   const [tab, setTab] = useState("visao");
+  const [inner, setInner] = useState("resumo");
   return (
     <Section
       id="navegacao"
@@ -875,6 +884,24 @@ function Navigation() {
               <Title order={3}>Plano de expansão 2027</Title>
             </div>
           </Group>
+        </Panel>
+        <Panel
+          title="Dentro de um painel"
+          actions={
+            <PillTabs
+              value={inner}
+              onChange={setInner}
+              tabs={[
+                { value: "resumo", label: "Resumo", icon: <ChartBar size={16} /> },
+                { value: "pessoas", label: "Pessoas", icon: <Users size={16} />, count: 4 },
+                { value: "arquivos", label: "Arquivos", icon: <Paperclip size={16} /> },
+              ]}
+            />
+          }
+        >
+          <Text size="sm" className="dd-muted">
+            Sobre o painel a barra vira cinza; com ícone, ele vem antes do rótulo.
+          </Text>
         </Panel>
       </Stack>
     </Section>
