@@ -195,6 +195,9 @@ marque. `Badge` em célula não corta o rótulo.
 - **`color="inverse"`** não é cor do Mantine: Button, ActionIcon, Switch, Progress, Avatar e
   Tooltip leem os tokens `--dd-inverse*` pelo `vars` do tema. Componente novo que precise disso
   ganha o mesmo tratamento em `theme.ts`.
+- **Canto de campo é por componente:** o Mantine não herda o raio do `TextInput` para os
+  outros campos. Cada campo de uma linha (senha, número, seleção, etiquetas, arquivo…) está
+  listado em `theme.ts`; o que faltar ali sai com canto 14 ao lado de um campo em pílula.
 - **Troca normal/inverso do `Logo`** é CSS (`.dd-logo-switch`), com três regras de mesma
   especificidade em que vale a última. Mexer na ordem quebra o caso "invertido no tema escuro".
 

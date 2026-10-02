@@ -17,6 +17,7 @@ import {
   Notification,
   Progress,
   Radio,
+  PasswordInput,
   SegmentedControl,
   Select,
   SimpleGrid,
@@ -683,6 +684,9 @@ function Fields() {
               defaultValue="Diretoria"
               error="Diga para quem é a apresentação."
             />
+            {/* Cada campo do Mantine tem o próprio padrão de canto: o de senha fica aqui para
+                a bancada mostrar se ele sair da pílula junto com os outros. */}
+            <PasswordInput label="Senha" defaultValue="deckdoo-it" />
             <Select
               label="Modelo de marca"
               data={["DeckDoo padrão", "DeckDoo escuro", "Cliente — Acme"]}
