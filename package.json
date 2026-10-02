@@ -1,6 +1,6 @@
 {
   "name": "@deckdoo/design",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "O padrão visual da suíte DeckDoo: tema Mantine, tokens CSS, peças e marca.",
   "license": "UNLICENSED",
   "private": true,
