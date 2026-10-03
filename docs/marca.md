@@ -29,13 +29,92 @@ assistente: quando a IA fala, quem fala é o DuDoo.
   quando há uma ação dele: sugerir, gerar, revisar, explicar.
 - **Na divulgação**, a marca fala como "a gente" (o time da DeckDoo) e o DuDoo entra como
   personagem.
-- **O rosto e o brilho.** O rosto do DuDoo (o mascote em limão num círculo marinho, igual
-  em todos os apps) marca quem fala: o perfil das falas no chat, o cartão do assistente. O
-  brilho (✦) marca a ação: "Gerar com IA", "Refazer". Botão de IA leva o brilho, não o rosto,
-  porque é reconhecido na hora.
+- **O rosto e o brilho.** O rosto do DuDoo (`<DuDoo />`, o mascote num círculo, igual em
+  todos os apps) marca quem fala: o perfil das falas no chat, o cartão do assistente. O brilho
+  (✦) marca a ação: "Gerar com IA", "Refazer". Botão de IA leva o brilho, não o rosto, porque é
+  reconhecido na hora.
 - **Onde o DuDoo não aparece:** cobrança, permissões, segurança, perda de dados e falha do
   sistema. Ali fala a interface, sóbria. Ninguém quer um mascote simpático explicando que o
   cartão foi recusado.
+
+## O DuDoo desenhado
+
+O mascote é um D com dois furos, e é assim que ele ganha expressão sem mudar de desenho
+(`<DuDooFace />`, e o `mood` do `<DuDoo />` e do `<ChatBubble />`). A bancada para ver e
+testar é o ateliê da cozinha (`/dudoo.html`).
+
+### Só os olhos mexem
+
+- **O corpo é a marca.** Não estica, não ganha boca, sobrancelha nem braço. Numa ilustração
+  pode inclinar (`lean`); no avatar, fica reto.
+- **Os olhos** mudam em quatro coisas: para onde a pupila olha, o tamanho de cada um, a
+  pálpebra de cima (que desce e inclina) e o olho fechado em curva ("^" sorrindo, "‿"
+  dormindo).
+- **O olho da direita morde a borda do D.** É o que dá a cara de quem espia. Quando o branco do
+  olho é pintado (no escuro, no avatar), ele sai da borda como um círculo inteiro.
+
+### As cores
+
+A pupila é sempre marinho. O resto segue o fundo, sozinho, pelos tokens `--dd-dudoo-*`:
+
+|                         | Fundo claro                         | Fundo escuro e acento                              |
+| ----------------------- | ----------------------------------- | -------------------------------------------------- |
+| Avatar (`DuDoo`)        | Círculo limão, mascote marinho      | Círculo marinho, mascote limão, branco do olho claro |
+| Desenhado (`DuDooFace`) | Mascote marinho, o olho é o fundo   | Mascote marinho com contorno claro e branco do olho  |
+
+"Fundo escuro" é o tema escuro e o cartão invertido do tema claro. Sobre o acento (`.dd-accent`)
+o avatar limão sumiria, então vai o marinho; o desenhado fica marinho, sem contorno.
+
+### As expressões
+
+Um vocabulário pequeno, ligado às intensidades da voz. Na intensidade Sério o DuDoo não
+aparece, então não existe cara de erro, de bronca ou de tristeza.
+
+| `mood`      | Intensidade | Quando                                                                 |
+| ----------- | ----------- | ---------------------------------------------------------------------- |
+| `neutro`    | Neutro      | O padrão: avatar no chat, cartão do assistente, tudo que não é momento |
+| `olhando`   | Trabalho    | Aponta com o olhar: para o campo da conversa, para o slide que mudou   |
+| `pensando`  | Trabalho    | Enquanto gera                                                          |
+| `curioso`   | Trabalho    | Uma pergunta dele: "Quer que eu divida em dois?"                       |
+| `de-canto`  | Trabalho    | Algo pede uma segunda olhada: "O texto do slide 4 não coube"           |
+| `focado`    | Trabalho    | Revisando, analisando dado                                             |
+| `confuso`   | Trabalho    | Não entendeu o pedido e vai perguntar                                  |
+| `empolgado` | Festa       | Boas-vindas, primeiro deck                                             |
+| `feliz`     | Festa       | Marco alcançado: "Pronto: 12 slides"                                   |
+| `piscada`   | Festa       | Cumplicidade de passagem: um atalho, uma dica. Rara                    |
+| `esperando` | Neutro      | Conversa vazia, nada a fazer                                           |
+| `dormindo`  | Neutro      | IA desligada                                                           |
+
+Expressão nova se monta com `dudooExpression({ … })` e se prova no ateliê antes de entrar aqui.
+
+### Onde e quanto
+
+- **Neutro é o padrão.** Expressão é para um momento; se toda fala tem cara, nenhuma tem. No
+  chat, cada fala leva a expressão do que ela diz, e a seguinte volta ao neutro.
+- **O DuDoo entra quando há uma ação dele** (sugerir, gerar, revisar, explicar). Busca vazia
+  e lista em dia ficam com rabisco sem ele; cobrança, permissão, erro e exclusão, nem rabisco
+  colorido.
+- **Uma aparição por tela.** Se o avatar já está no chat, o estado vazio ao lado não leva o
+  DuDoo de novo.
+- **Espiar é o jeito barato:** só os olhos por cima da borda de um cartão, olhando para o que
+  ele sugere. Não pede cena e não gasta o personagem. A cena inteira fica para poucos
+  momentos: o primeiro uso, a geração, o deck pronto.
+
+### Rabiscos
+
+O traço de quem pensa desenhando, que dá nome ao DuDoo. É a ilustração da suíte: estado vazio,
+espera, marco.
+
+- **Traço em tinta** (`--dd-ink`), ponta redonda, curva sem ser exata: linha levemente
+  arqueada, canto mole, contorno que passa do ponto onde começou. Vem do `sketch(semente)`;
+  filtro de tremor não, porque pixeliza.
+- **A cor é mancha** chapada e deslocada do traço, como impressão fora de registro. **Uma cor
+  da paleta por cena:** a do acento do app ou a do assunto.
+- **As peças:** o cartão (o slide, a página), o laço que liga uma coisa à outra (`curl`), o
+  brilho (`sparkle`), os três traços de ênfase (`ticks`).
+- **Gente desenhada, não.** O personagem é o DuDoo; nas cenas ele vai marinho, e no escuro
+  vira linha como o resto.
+- **No Sério,** só traço e mancha cinza: sem DuDoo, sem brilho, sem cor da paleta.
 
 ## Tom de voz
 

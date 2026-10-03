@@ -53,6 +53,18 @@
   --dd-r-pill: var(--mantine-radius-pill, 999px);
 
   --dd-gap: 16px;
+
+  /*
+   * O DuDoo (`DuDooFace`, `DuDoo`). O desenhado é marinho nos dois temas; sobre fundo escuro
+   * ganha o contorno claro (`line`) do mascote invertido. O avatar é limão com o mascote
+   * marinho sobre fundo claro e marinho com o mascote limão sobre fundo escuro. A pupila é
+   * sempre marinho. As trocas por contexto (cartão invertido, acento) estão em `design.css`.
+   */
+  --dd-dudoo-body: #0e172a;
+  --dd-dudoo-line: transparent;
+  --dd-dudoo-bg: #a2ff00;
+  --dd-dudoo-ink: #0e172a;
+  --dd-dudoo-white: transparent;
 }
 
 [data-mantine-color-scheme="dark"] {
@@ -76,6 +88,11 @@
   --dd-on-inverse-muted: #5a6372;
 
   --dd-danger-text: #ffa39a; /* coral.4 */
+
+  --dd-dudoo-line: #fbfcf8;
+  --dd-dudoo-bg: #0e172a;
+  --dd-dudoo-ink: #a2ff00;
+  --dd-dudoo-white: #fbfcf8;
 }
 
 /*

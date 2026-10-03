@@ -146,7 +146,9 @@ DeckDoo; sem `--bg`, limão; a tinta sai do contraste (ou `--ink`).
 | `Logo`, `AppIcon` | Logotipo / mascote; ícone de app |
 | `Panel`, `Block`, `NavItem`, `PillTabs`, `Count` | Camadas e navegação (`NavItem` vira link com `component`; aba aceita `icon`) |
 | `Status`, `Stat`, `Steps`, `Dots` | Estado, número grande, etapas, medidor |
-| `DuDoo`, `ChatBubble`, `DuDooWall` | O assistente: rosto, fala do chat, papel de parede |
+| `DuDoo`, `ChatBubble`, `DuDooWall` | O assistente: rosto (com `mood`), fala do chat, papel de parede |
+| `DuDooFace`, `DUDOO_MOODS`, `dudooExpression` | O mascote com expressão, para ilustração; o vocabulário; expressão sob medida |
+| `sketch`, `sparkle`, `curl` | O rabisco: traço à mão em vetor, o brilho, o laço |
 | `styles.css` | `--dd-*` claro e escuro, `.dd-root`, `.dd-nobreak`, `.dd-num`, a moldura (`.dd-frame`…) e as classes das peças (`.dd-panel`, `.dd-inverse`, `.dd-accent`, `.dd-table`, `.dd-rows`…) |
 
 ### Moldura do app
@@ -209,8 +211,10 @@ marque. `Badge` em célula não corta o rótulo.
 - **Ícones:** Phosphor (`@phosphor-icons/react`), traço regular a 16–18 px; preenchido só no
   brilho (`Sparkle`) das ações de IA e em "apresentar".
 - **DuDoo, o assistente:** o brilho é o botão ("Gerar com IA"), reconhecido na hora; o rosto
-  de quem fala é o DuDoo (`<DuDoo />`), sempre marinho com o mascote em limão, em todos os apps.
-  O chat é `ChatBubble` sobre `DuDooWall`. Voz e regras em [docs/marca.md](docs/marca.md).
+  de quem fala é o DuDoo (`<DuDoo mood="pensando" />`), igual em todos os apps: limão com o
+  mascote marinho no fundo claro, marinho com o mascote limão no escuro. O chat é `ChatBubble`
+  (com `mood`) sobre `DuDooWall`. Expressões, cores, ilustração e voz em
+  [docs/marca.md](docs/marca.md); a bancada é o ateliê (`/dudoo.html` na cozinha).
 - **Marca:** `<Logo variant="type" | "mark" />` escolhe sozinha o desenho normal ou o inverso
   pelo fundo (tema escuro, `.dd-inverse`, `.dd-accent`). Sobre cor da paleta ou foto, diga o
   fundo com `on="dark" | "light"`.
@@ -243,6 +247,9 @@ pnpm dev          # a cozinha, lendo src/ direto (sem build)
 pnpm typecheck && pnpm lint && pnpm format:check
 pnpm build        # dist/: index.js, index.d.ts, styles.css
 ```
+
+O ateliê do DuDoo (`/dudoo.html`, link na barra da cozinha) é a bancada do mascote: anatomia,
+laboratório de expressão, o vocabulário, o chat e as cenas em rabisco.
 
 A cozinha troca acento (da paleta ou hex), cantos, tema e marca (DeckDoo ou uma de exemplo, em
 `playground/brands/`) na barra do topo.

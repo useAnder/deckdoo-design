@@ -1,0 +1,212 @@
+/* O ateliê do DuDoo (`/dudoo.html`). Reaproveita o topo e as seções da cozinha. */
+
+.at {
+  --ks-top-pad: calc(var(--dd-gap) + 8px);
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--ks-top-pad) 16px 80px;
+}
+
+.at-top {
+  margin: calc(-1 * var(--ks-top-pad)) -16px 0;
+  padding-inline: 16px;
+}
+
+.at-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ——— Anatomia ——— */
+
+.at-anatomy {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: var(--dd-gap);
+}
+
+.at-anatomy-stage {
+  display: grid;
+  place-items: center;
+  padding-block: 48px 24px;
+}
+
+.at-anatomy-face {
+  position: relative;
+  color: var(--dd-ink);
+}
+
+/* O mascote original em vermelho, por cima do desenhado, para conferir. */
+.at-overlay {
+  position: absolute;
+  inset: 0;
+  background: #ff2d55;
+  opacity: 0.5;
+  mask: var(--at-mark) center / 100% 100% no-repeat;
+  -webkit-mask: var(--at-mark) center / 100% 100% no-repeat;
+}
+
+.at-callout {
+  position: absolute;
+  padding: 2px 10px;
+  border-radius: var(--dd-r-pill);
+  background: var(--dd-accent);
+  color: var(--dd-on-accent);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ——— Laboratório ——— */
+
+.at-lab {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+}
+
+.at-lab-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.at-lab-big {
+  display: grid;
+  place-items: center;
+  min-height: 300px;
+  color: var(--dd-ink);
+}
+
+.at-lab-chip {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--dd-r-item);
+}
+
+.at-labeled {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.at-pad {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: var(--dd-r-item);
+  background:
+    linear-gradient(var(--dd-border-strong), var(--dd-border-strong)) center / 1px 100% no-repeat,
+    linear-gradient(var(--dd-border-strong), var(--dd-border-strong)) center / 100% 1px no-repeat,
+    var(--dd-sunken);
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.at-pad-dot {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  border-radius: 50%;
+  background: var(--dd-inverse);
+  box-shadow: 0 0 0 3px var(--dd-accent);
+  pointer-events: none;
+}
+
+.at-code {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+}
+
+/* ——— Catálogo e kit ——— */
+
+.at-card {
+  color: var(--dd-ink);
+}
+
+.at-kit {
+  padding: 8px;
+}
+
+/* ——— Chat ——— */
+
+.at-chat-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: var(--dd-gap);
+}
+
+.at-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  border-radius: var(--dd-r-panel);
+}
+
+/* ——— Cenas ——— */
+
+.at-scene {
+  display: flex;
+  flex-direction: column;
+}
+
+.at-scene-tags {
+  margin-bottom: 8px;
+}
+
+.at-scene-art {
+  max-width: 300px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Espiando: o rosto atrás do cartão, com só os olhos acima da borda. */
+.at-peek {
+  position: relative;
+  padding-top: 40px;
+}
+
+.at-peek-face {
+  position: absolute;
+  top: 0;
+  right: 28px;
+  color: var(--dd-ink);
+}
+
+.at-peek-left .at-peek-face {
+  right: auto;
+  left: 28px;
+}
+
+.at-peek-card {
+  position: relative;
+}
+
+.at-peek .dd-block.at-peek-card {
+  background: var(--dd-surface);
+}
+
+@media (max-width: 62em) {
+  .at-anatomy,
+  .at-lab,
+  .at-chat-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 30em) {
+  .at-labeled {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+}

@@ -14,6 +14,15 @@ export default defineConfig({
       { find: /^@deckdoo\/design$/, replacement: `${src}/index.ts` },
     ],
   },
+  // Duas páginas: a cozinha e o ateliê do DuDoo.
+  build: {
+    rollupOptions: {
+      input: {
+        cozinha: resolve(import.meta.dirname, "index.html"),
+        dudoo: resolve(import.meta.dirname, "dudoo.html"),
+      },
+    },
+  },
   server: {
     port: 48391,
     // Falha alto se a porta estiver ocupada, em vez de migrar para outra.

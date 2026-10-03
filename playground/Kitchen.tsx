@@ -53,6 +53,7 @@ import {
   MagnifyingGlass,
   Megaphone,
   Moon,
+  PaintBrush,
   Palette,
   Paperclip,
   PencilSimple,
@@ -219,11 +220,21 @@ function Kitchen({ controls }: { controls: Controls }) {
           ))}
         </nav>
 
+        <div className="dd-eyebrow dd-side-label">Mascote</div>
+        <nav>
+          <NavItem
+            component="a"
+            href="/dudoo.html"
+            icon={<PaintBrush size={18} />}
+            label="Ateliê do DuDoo"
+          />
+        </nav>
+
         <div className="dd-side-foot">
           <div className="dd-accent ks-ai-card">
             <Group justify="space-between" wrap="nowrap">
               <Group gap={10} wrap="nowrap">
-                <DuDoo />
+                <DuDoo mood={aiOn ? "neutro" : "dormindo"} />
                 <div>
                   <Text fw={600} size="sm" lh={1.2}>
                     DuDoo
@@ -984,7 +995,7 @@ function Conversation() {
     <Section
       id="conversa"
       title="Conversa"
-      note="Quem fala é o DuDoo: o rosto dele na fala, o brilho na ação. Aviso do sistema não é fala dele."
+      note="Quem fala é o DuDoo: o rosto dele na fala, com a expressão do momento (mood), e o brilho na ação. Aviso do sistema não é fala dele."
     >
       <section className="dd-panel ks-chat">
         <header className="ks-chat-head">
@@ -1005,7 +1016,7 @@ function Conversation() {
         </header>
 
         <DuDooWall className="ks-chat-wall" ref={wall}>
-          <ChatBubble from="dudoo">
+          <ChatBubble from="dudoo" mood="empolgado">
             Oi! Me conta a ideia: pra quem é o deck e o que ele precisa mudar na cabeça de quem
             assiste?
           </ChatBubble>
@@ -1021,7 +1032,7 @@ function Conversation() {
             </span>
           </div>
           <ChatBubble from="you">Mandei de novo, agora em .csv.</ChatBubble>
-          <ChatBubble from="dudoo">
+          <ChatBubble from="dudoo" mood="focado">
             Li a planilha. Três pontos pedem atenção; o maior é a margem em agosto.
           </ChatBubble>
           <ChatBubble from="dudoo" avatar={false}>
@@ -1049,7 +1060,7 @@ function Conversation() {
             </ChatBubble>
           ))}
           {typing && (
-            <ChatBubble from="dudoo">
+            <ChatBubble from="dudoo" mood="pensando">
               <Loader
                 size="xs"
                 type="dots"

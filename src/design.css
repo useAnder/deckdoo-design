@@ -572,17 +572,40 @@
 }
 
 /*
- * O DuDoo (`DuDoo`): sempre marinho com o mascote em limão, nos dois temas. É o personagem,
- * então não segue o acento do app.
+ * O DuDoo (`DuDoo`): limão com o mascote marinho sobre fundo claro, marinho com o mascote limão
+ * sobre fundo escuro (os tokens `--dd-dudoo-*`). É o personagem, então não segue o acento do
+ * app.
  */
 .dd-dudoo {
   display: inline-grid;
   place-items: center;
   flex: none;
   border-radius: 50%;
-  background: #0e172a;
+  background: var(--dd-dudoo-bg);
   box-shadow: 0 0 0 1px var(--dd-border);
-  color: #a2ff00;
+}
+
+/* O cartão invertido é escuro no claro e claro no escuro: o DuDoo segue o fundo, não o tema. */
+[data-mantine-color-scheme="light"] .dd-inverse {
+  --dd-dudoo-line: #fbfcf8;
+  --dd-dudoo-bg: #0e172a;
+  --dd-dudoo-ink: #a2ff00;
+  --dd-dudoo-white: #fbfcf8;
+}
+
+[data-mantine-color-scheme="dark"] .dd-inverse {
+  --dd-dudoo-line: transparent;
+  --dd-dudoo-bg: #a2ff00;
+  --dd-dudoo-ink: #0e172a;
+  --dd-dudoo-white: transparent;
+}
+
+/* Sobre o acento o desenhado fica marinho sem contorno, e o avatar limão sumiria: vai o marinho. */
+.dd-accent {
+  --dd-dudoo-line: transparent;
+  --dd-dudoo-bg: #0e172a;
+  --dd-dudoo-ink: #a2ff00;
+  --dd-dudoo-white: #fbfcf8;
 }
 
 /* No cartão invertido do tema claro o fundo também é marinho: um aro claro separa o círculo. */

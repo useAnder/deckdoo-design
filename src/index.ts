@@ -36,3 +36,13 @@ export {
   type Step,
   type Tone,
 } from "./components.js";
+export {
+  DUDOO_MOODS,
+  DuDooFace,
+  dudooExpression,
+  type DuDooExpression,
+  type DuDooEye,
+  type DuDooFaceProps,
+  type DuDooMood,
+} from "./dudoo.js";
+export { curl, sketch, sparkle, type SketchPoint } from "./sketch.js";

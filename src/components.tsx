@@ -6,7 +6,8 @@ import type {
 } from "react";
 import { isLightColor, useMantineTheme } from "@mantine/core";
 import { Check } from "@phosphor-icons/react";
-import { DECKDOO_BRAND, useBrand, type BrandShape } from "./brand.js";
+import { useBrand, type BrandShape } from "./brand.js";
+import { DUDOO_MOODS, DuDooFace, type DuDooExpression, type DuDooMood } from "./dudoo.js";
 import wallUrl from "./brand/dudoo-tile.svg";
 import wallInverseUrl from "./brand/dudoo-tile-inverse.svg";
 
@@ -297,15 +298,31 @@ export function AppIcon({ size = 40 }: { size?: number }) {
 }
 
 /**
- * O DuDoo, o assistente da suíte: o mascote do DeckDoo em limão sobre um círculo marinho, nos
- * dois temas e em todos os apps (é um personagem, não a marca do app). É o rosto de quem fala
- * no chat; a ação de IA ("Gerar com IA") continua com o ícone de brilho.
+ * O DuDoo, o assistente da suíte: o rosto de quem fala no chat, igual em todos os apps (é um
+ * personagem, não a marca do app). Sobre fundo claro, limão com o mascote marinho; sobre fundo
+ * escuro (e sobre o acento), marinho com o mascote limão. A pupila é sempre marinho. A troca é
+ * pelo CSS (`--dd-dudoo-*`). A ação de IA ("Gerar com IA") continua com o ícone de brilho.
  */
-export function DuDoo({ size = 32 }: { size?: number }) {
-  const { light, dark = light } = DECKDOO_BRAND.mark;
+export function DuDoo({
+  size = 32,
+  mood = "neutro",
+}: {
+  size?: number;
+  /** A expressão: neutro é o padrão; muda com o que ele está fazendo (ver `docs/marca.md`). */
+  mood?: DuDooMood | DuDooExpression;
+}) {
+  const ex = typeof mood === "string" ? DUDOO_MOODS[mood] : mood;
   return (
     <span className="dd-dudoo" role="img" aria-label="DuDoo" style={{ width: size, height: size }}>
-      <LogoShape shape="dark" height={Math.round(size * 0.56)} {...dark} />
+      <DuDooFace
+        size={Math.round(size * 0.56)}
+        mood={ex.lean ? { ...ex, lean: 0 } : ex}
+        color="var(--dd-dudoo-ink)"
+        pupil="#0e172a"
+        line="transparent"
+        sclera="var(--dd-dudoo-white)"
+        title=""
+      />
     </span>
   );
 }
@@ -335,16 +352,19 @@ export function DuDooWall({ className, style, ...rest }: ComponentPropsWithRef<"
 export function ChatBubble({
   from,
   avatar = true,
+  mood,
   children,
 }: {
   from: "dudoo" | "you";
   avatar?: boolean;
+  /** A expressão do DuDoo nesta fala: a que combina com o que ele diz. */
+  mood?: DuDooMood | DuDooExpression;
   children: ReactNode;
 }) {
   const mine = from === "you";
   return (
     <div className="dd-chat-row" data-mine={mine || undefined}>
-      {!mine && (avatar ? <DuDoo size={28} /> : <span className="dd-chat-gap" />)}
+      {!mine && (avatar ? <DuDoo size={28} mood={mood} /> : <span className="dd-chat-gap" />)}
       <div className="dd-bubble" data-mine={mine || undefined}>
         {children}
       </div>
