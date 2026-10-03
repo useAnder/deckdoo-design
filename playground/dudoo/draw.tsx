@@ -28,8 +28,8 @@ import { useDuDooMotion, usePrefersReducedMotion } from "./motion.js";
  * - **mancha** (`blob`): entra depois do traço, deslizando até o lugar, como a cor que cai fora
  *   de registro.
  * - **brilho** (`sparkle`): salta, com um giro, quando o resto está pronto.
- * - **DuDoo**: chega por último, subindo um pouco, e só então faz a cara da cena. O corpo não
- *   estica; só aparece.
+ * - **DuDoo**: chega por último, como a coruja pousando (gira até o prumo, assenta, dá um
+ *   pulinho), e só então faz a cara da cena. O corpo não estica.
  *
  * O que está num grupo `data-dd-draw="loop"` se desenha, assenta, apaga e recomeça: a espera do
  * `SceneGenerating`. O resto desenha uma vez e para. Com movimento reduzido, a cena já aparece
@@ -54,10 +54,22 @@ const BLOB = { ms: 380, from: [-9, -7] as const, ease: "cubic-bezier(0.2, 0.7, 0
 const POP = { ms: 420, stagger: 80, ease: "cubic-bezier(0.3, 1.7, 0.5, 1)" };
 /** Depois que o ponto salta, quanto a mão espera para o próximo traço. */
 const DOT_LEAD = 180;
-/** O DuDoo entra inclinado, girando pela base, passa um pouco do prumo e assenta. */
-const DUDOO = { ms: 520, rise: 8, tilt: -14, past: 3 };
+/**
+ * A chegada do DuDoo, como a coruja pousando: entra inclinado para o outro lado, gira pelo centro
+ * até o prumo (passa um pouco e volta), assenta, e dá um pulinho no lugar, subindo e descendo.
+ * Só gira e anda: o corpo não estica.
+ */
+const DUDOO = {
+  ms: 860,
+  /** De onde vem: um pouco abaixo e inclinado para a direita. */
+  from: { y: 8, tilt: 14 },
+  /** Quanto passa do prumo antes de assentar. */
+  past: -3,
+  /** A altura do pulinho. */
+  hop: 6,
+};
 /** Quanto o DuDoo fica na cena antes de fazer a cara dela: chega, olha, reage. */
-const DUDOO_REACT = 380;
+const DUDOO_REACT = 200;
 /** O loop: depois de desenhado, segura assim, apaga neste tempo e espera para recomeçar. */
 const LOOP = { hold: 1100, fade: 320, gap: 260, /** O slide se montando sem pressa. */ ink: 1000 };
 
@@ -270,27 +282,30 @@ export function drawOn(root: SVGSVGElement, { delay = 0, speed = 1 } = {}): Draw
   let dudooAt = 0;
   for (const { el, role } of once) {
     if (role !== "dudoo") continue;
-    // Gira pela base, como quem se inclina para entrar. Só gira: o corpo não estica.
+    // Pousa: gira pelo centro até o prumo, assenta e dá o pulinho.
     el.style.transformBox = "fill-box";
-    el.style.transformOrigin = "50% 100%";
+    el.style.transformOrigin = "50% 50%";
+    const at = (ms: number) => ms / DUDOO.ms;
+    const out = "cubic-bezier(0.2, 0.7, 0.3, 1)";
+    const inOut = "cubic-bezier(0.45, 0, 0.55, 1)";
     all.push(
       el.animate(
         [
-          { opacity: 0, translate: `0 ${DUDOO.rise}px`, rotate: `${DUDOO.tilt}deg` },
           {
-            offset: 0.35,
-            opacity: 1,
-            easing: "cubic-bezier(0.3, 0.6, 0.4, 1)",
+            offset: 0,
+            opacity: 0,
+            translate: `0 ${DUDOO.from.y}px`,
+            rotate: `${DUDOO.from.tilt}deg`,
+            easing: out,
           },
-          { offset: 0.7, translate: "0 0", rotate: `${DUDOO.past}deg` },
-          { translate: "0 0", rotate: "0deg" },
+          { offset: at(140), opacity: 1 },
+          { offset: at(320), translate: "0 0", rotate: `${DUDOO.past}deg`, easing: inOut },
+          { offset: at(460), translate: "0 0", rotate: "0deg", easing: out },
+          { offset: at(610), translate: `0 ${-DUDOO.hop}px`, rotate: "0deg", easing: "ease-in" },
+          { offset: at(740), translate: "0 0", rotate: "0deg", easing: out },
+          { offset: 1, opacity: 1, translate: "0 0", rotate: "0deg" },
         ],
-        {
-          duration: time(DUDOO.ms),
-          delay: time(popAt),
-          easing: "cubic-bezier(0.2, 0.7, 0.3, 1)",
-          fill: "backwards",
-        },
+        { duration: time(DUDOO.ms), delay: time(popAt), fill: "backwards" },
       ),
     );
     dudooAt = time(popAt + DUDOO.ms);
