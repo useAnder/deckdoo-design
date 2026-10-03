@@ -45,6 +45,7 @@ import {
   type SceneObject,
 } from "@deckdoo/design";
 import markUrl from "../../src/brand/deckdoo-mark.svg";
+import { DrawOn } from "./draw.js";
 import { MOODS } from "./moods.js";
 import {
   INTENSITY,
@@ -906,24 +907,79 @@ function InChat() {
 
 function Doodles() {
   const pieces = [
-    { kind: "rabisco", name: "Traço", note: "Tinta, ponta redonda, curva sem ser exata." },
-    { kind: "laco", name: "Laço", note: "Liga uma coisa à outra: a ideia ao slide." },
-    { kind: "brilho", name: "Brilho", note: "O ✦ da IA, solto na cena. Tinta ou uma cor." },
-    { kind: "enfase", name: "Ênfase", note: "Três traços: olha aqui, aconteceu." },
-    { kind: "mancha", name: "Mancha", note: "A cor chapada, fora de registro do traço." },
-    { kind: "cartao", name: "Cartão", note: "O slide, a página: o objeto da suíte." },
+    {
+      kind: "rabisco",
+      name: "Traço",
+      note: "Tinta, ponta redonda, curva sem ser exata.",
+      motion: "Sai da ponta da caneta, na velocidade da mão.",
+    },
+    {
+      kind: "laco",
+      name: "Laço",
+      note: "Liga uma coisa à outra: a ideia ao slide.",
+      motion: "Escrito de uma vez, como letra cursiva.",
+    },
+    {
+      kind: "brilho",
+      name: "Brilho",
+      note: "O ✦ da IA, solto na cena. Tinta ou uma cor.",
+      motion: "Salta com um giro, um de cada vez, quando o resto está pronto.",
+    },
+    {
+      kind: "enfase",
+      name: "Ênfase",
+      note: "Três traços: olha aqui, aconteceu.",
+      motion: "Os traços primeiro, o ponto salta no fim.",
+    },
+    {
+      kind: "mancha",
+      name: "Mancha",
+      note: "A cor chapada, fora de registro do traço.",
+      motion: "Cai depois do traço, deslizando até o registro.",
+    },
+    {
+      kind: "cartao",
+      name: "Cartão",
+      note: "O slide, a página: o objeto da suíte.",
+      motion: "O papel acende com o contorno; as linhas vêm depois.",
+    },
   ] as const;
+  const [replay, setReplay] = useState(0);
+  const [one, setOne] = useState<Record<string, number>>({});
+  const [slow, setSlow] = useState(false);
+  const reduced = usePrefersReducedMotion();
+  const speed = slow ? 0.3 : 1;
   return (
     <Section
       id="rabiscos"
       title="Rabiscos"
       note="O traço de quem pensa desenhando, que dá nome ao DuDoo. Das referências, fica o desenho em linha com a cor deslocada; sai a pessoa desenhada: o personagem é ele."
     >
+      <Group gap="md" mb="md">
+        <Button
+          variant="default"
+          leftSection={<ArrowCounterClockwise size={16} />}
+          onClick={() => setReplay((r) => r + 1)}
+        >
+          Desenhar de novo
+        </Button>
+        <Switch label="Devagar" checked={slow} onChange={(e) => setSlow(e.currentTarget.checked)} />
+        <Text size="sm" className="dd-muted">
+          Clique numa peça para ver só ela.
+          {reduced && " Seu sistema pede movimento reduzido: as peças aparecem prontas."}
+        </Text>
+      </Group>
       <SimpleGrid cols={{ base: 2, sm: 3, lg: 6 }} spacing="md">
         {pieces.map((p) => (
-          <Panel key={p.kind} className="at-card">
+          <Panel
+            key={p.kind}
+            className="at-card at-replayable"
+            onClick={() => setOne((o) => ({ ...o, [p.kind]: (o[p.kind] ?? 0) + 1 }))}
+          >
             <Block className="at-kit">
-              <KitPiece kind={p.kind} />
+              <DrawOn replay={replay + (one[p.kind] ?? 0) * 1000} still={reduced} speed={speed}>
+                <KitPiece kind={p.kind} />
+              </DrawOn>
             </Block>
             <Text fw={600} mt="sm">
               {p.name}
@@ -931,8 +987,29 @@ function Doodles() {
             <Text size="sm" className="dd-muted">
               {p.note}
             </Text>
+            <Text size="xs" className="dd-faint" mt={6}>
+              {p.motion}
+            </Text>
           </Panel>
         ))}
+      </SimpleGrid>
+
+      <Title order={3} mt={40} mb="xs">
+        Juntas, numa cena
+      </Title>
+      <Text className="dd-muted" mb="md" maw={760}>
+        A ordem é a do código, que é a de quem desenha: primeiro o objeto, depois os enfeites; a cor
+        cai quando o traço termina e o brilho salta por último. A cena desenha uma vez e para.
+      </Text>
+      <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
+        <Panel
+          className="at-card at-replayable"
+          onClick={() => setOne((o) => ({ ...o, juntas: (o.juntas ?? 0) + 1 }))}
+        >
+          <DrawOn replay={replay + (one.juntas ?? 0) * 1000} still={reduced} speed={speed}>
+            <SceneNoOrders />
+          </DrawOn>
+        </Panel>
       </SimpleGrid>
     </Section>
   );

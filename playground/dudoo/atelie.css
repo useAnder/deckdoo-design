@@ -213,6 +213,11 @@
   }
 }
 
+/* Clicar na peça desenha de novo. */
+.at-replayable {
+  cursor: pointer;
+}
+
 /* ——— Cenas ——— */
 
 .at-scene {
