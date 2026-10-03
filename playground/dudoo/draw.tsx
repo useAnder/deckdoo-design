@@ -40,7 +40,7 @@ type Role = "traco" | "fundo" | "ponto" | "mancha" | "brilho" | "dudoo";
 
 /** A velocidade da mão, em unidades do viewBox por ms (uma linha de 260 leva ~470 ms). */
 const HAND = 0.55;
-const STROKE_MS = { min: 110, max: 520 };
+const STROKE_MS = { min: 170, max: 520 };
 /** A caneta levanta para o próximo traço antes de o anterior acabar de assentar. */
 const PEN_LIFT = -50;
 const HAND_EASE = "cubic-bezier(0.45, 0, 0.25, 1)";
@@ -54,11 +54,12 @@ const BLOB = { ms: 380, from: [-9, -7] as const, ease: "cubic-bezier(0.2, 0.7, 0
 const POP = { ms: 420, stagger: 80, ease: "cubic-bezier(0.3, 1.7, 0.5, 1)" };
 /** Depois que o ponto salta, quanto a mão espera para o próximo traço. */
 const DOT_LEAD = 180;
-const DUDOO = { ms: 320, rise: 6, ease: "cubic-bezier(0.2, 0.7, 0.3, 1)" };
+/** O DuDoo entra inclinado, girando pela base, passa um pouco do prumo e assenta. */
+const DUDOO = { ms: 520, rise: 8, tilt: -14, past: 3 };
 /** Quanto o DuDoo fica na cena antes de fazer a cara dela: chega, olha, reage. */
 const DUDOO_REACT = 380;
 /** O loop: depois de desenhado, segura assim, apaga neste tempo e espera para recomeçar. */
-const LOOP = { hold: 1100, fade: 320, gap: 260 };
+const LOOP = { hold: 1100, fade: 320, gap: 260, /** O slide se montando sem pressa. */ ink: 1000 };
 
 const svgNS = "http://www.w3.org/2000/svg";
 
@@ -102,8 +103,34 @@ interface Piece {
   loop: boolean;
 }
 
+/**
+ * Um traço com vários pedaços (as linhas de texto do cartão são um `path` só) se desenharia com
+ * os pedaços juntos: o tracejado recomeça em cada um. Para a mão ir de um ao outro, cada pedaço
+ * vira uma cópia ao lado do original, que fica escondido até a cena acabar de se desenhar.
+ */
+function split(el: SVGElement, made: Split[]): SVGElement[] {
+  const d = el.getAttribute("d");
+  if (!d || /m/.test(d)) return [el];
+  const parts = d.split(/(?=M)/).filter((part) => part.trim());
+  if (parts.length < 2) return [el];
+  const copies = parts.map((part) => {
+    const copy = el.cloneNode() as SVGElement;
+    copy.setAttribute("d", part);
+    return copy;
+  });
+  el.after(...copies);
+  el.style.visibility = "hidden";
+  made.push({ original: el, copies });
+  return copies;
+}
+
+interface Split {
+  original: SVGElement;
+  copies: SVGElement[];
+}
+
 /** Os elementos da cena, na ordem do código; o DuDoo (um `svg` dentro) conta como um só. */
-function pieces(root: SVGSVGElement): Piece[] {
+function pieces(root: SVGSVGElement, made: Split[]): Piece[] {
   const out: Piece[] = [];
   const walk = (node: Element, loop: boolean) => {
     for (const child of Array.from(node.children)) {
@@ -115,7 +142,8 @@ function pieces(root: SVGSVGElement): Piece[] {
       )
         continue;
       const role = roleOf(child, root);
-      if (role) out.push({ el: child, role, loop });
+      if (role === "traco") for (const el of split(child, made)) out.push({ el, role, loop });
+      else if (role) out.push({ el: child, role, loop });
       else if (child instanceof SVGGElement)
         walk(child, loop || child.getAttribute("data-dd-draw") === "loop");
     }
@@ -131,6 +159,8 @@ const strokeMs = (el: SVGElement) => {
 
 export interface DrawResult {
   animations: Animation[];
+  /** Para a cena e devolve o SVG como estava (os traços divididos voltam a ser um). */
+  stop: () => void;
   /** Quando o DuDoo termina de chegar, em ms desde o começo (já com a velocidade). */
   dudooAt: number;
 }
@@ -142,7 +172,8 @@ export interface DrawResult {
 export function drawOn(root: SVGSVGElement, { delay = 0, speed = 1 } = {}): DrawResult {
   const all: Animation[] = [];
   const time = (ms: number) => ms / speed;
-  const list = pieces(root);
+  const made: Split[] = [];
+  const list = pieces(root, made);
   const once = list.filter((p) => !p.loop);
   const looping = list.filter((p) => p.loop);
 
@@ -166,6 +197,9 @@ export function drawOn(root: SVGSVGElement, { delay = 0, speed = 1 } = {}): Draw
           ? INK_MS.max / rawInk
           : 1;
 
+  // O loop é a espera: a mão monta o slide devagar, por mais curto que ele seja.
+  const loopPace = loopInk > 0 ? Math.max(pace, LOOP.ink / loopInk) : pace;
+
   // 1. O traço e o ponto, na ordem do código. O papel do cartão acende enquanto o contorno é
   // desenhado, devagar no começo: quando o contorno fecha, o papel está lá.
   let t = delay;
@@ -176,7 +210,7 @@ export function drawOn(root: SVGSVGElement, { delay = 0, speed = 1 } = {}): Draw
       // O loop começa na vez dele e ocupa a mão o tempo da primeira volta.
       if (loopAt === undefined) {
         loopAt = t;
-        t += loopInk * pace;
+        t += loopInk * loopPace;
       }
       continue;
     }
@@ -236,22 +270,56 @@ export function drawOn(root: SVGSVGElement, { delay = 0, speed = 1 } = {}): Draw
   let dudooAt = 0;
   for (const { el, role } of once) {
     if (role !== "dudoo") continue;
+    // Gira pela base, como quem se inclina para entrar. Só gira: o corpo não estica.
+    el.style.transformBox = "fill-box";
+    el.style.transformOrigin = "50% 100%";
     all.push(
       el.animate(
         [
-          { opacity: 0, transform: `translateY(${DUDOO.rise}px)` },
-          { opacity: 1, transform: "translateY(0)" },
+          { opacity: 0, translate: `0 ${DUDOO.rise}px`, rotate: `${DUDOO.tilt}deg` },
+          {
+            offset: 0.35,
+            opacity: 1,
+            easing: "cubic-bezier(0.3, 0.6, 0.4, 1)",
+          },
+          { offset: 0.7, translate: "0 0", rotate: `${DUDOO.past}deg` },
+          { translate: "0 0", rotate: "0deg" },
         ],
-        { duration: time(DUDOO.ms), delay: time(popAt), easing: DUDOO.ease, fill: "backwards" },
+        {
+          duration: time(DUDOO.ms),
+          delay: time(popAt),
+          easing: "cubic-bezier(0.2, 0.7, 0.3, 1)",
+          fill: "backwards",
+        },
       ),
     );
     dudooAt = time(popAt + DUDOO.ms);
   }
 
   // 5. O loop: desenha, a mancha cai, segura, apaga e recomeça, sem parar.
-  if (loopAt !== undefined) all.push(...loopOn(looping, loopAt, pace, time));
+  if (loopAt !== undefined) all.push(...loopOn(looping, loopAt, loopPace, time));
 
-  return { animations: all, dudooAt };
+  // Desenhada, a cena volta a ser o SVG de antes; o loop só para quando alguém para a cena.
+  let stopped = false;
+  const restore = () => {
+    for (const { original, copies } of made) {
+      copies.forEach((c) => c.remove());
+      original.style.visibility = "";
+    }
+    made.length = 0;
+  };
+  const stop = () => {
+    stopped = true;
+    all.forEach((a) => a.cancel());
+    restore();
+  };
+  const finite = all.filter((a) => a.effect?.getTiming().iterations !== Infinity);
+  if (loopAt === undefined)
+    Promise.all(finite.map((a) => a.finished))
+      .then(() => !stopped && restore())
+      .catch(() => {});
+
+  return { animations: all, stop, dudooAt };
 }
 
 function pop(el: SVGElement, delay: number, time: (ms: number) => number) {
@@ -259,18 +327,24 @@ function pop(el: SVGElement, delay: number, time: (ms: number) => number) {
   el.style.transformOrigin = "center";
   return el.animate(
     [
-      { opacity: 0, transform: "scale(0) rotate(-40deg)" },
-      { opacity: 1, transform: "scale(1) rotate(0deg)" },
+      { opacity: 0, scale: "0", rotate: "-40deg" },
+      { opacity: 1, scale: "1", rotate: "0deg" },
     ],
     { duration: time(POP.ms), delay, easing: POP.ease, fill: "backwards" },
   );
 }
 
+/**
+ * A mancha deslizando até o registro. Pelo `translate` à parte, não pelo `transform`: a mancha
+ * pode ter a própria rotação (a do `SceneDone`), e o `transform` a trocaria até o fim, num salto.
+ */
+const SLIDE_FROM = `${BLOB.from[0]}px ${BLOB.from[1]}px`;
+
 function blob(el: SVGElement, delay: number, duration: number) {
   return el.animate(
     [
-      { opacity: 0, transform: `translate(${BLOB.from[0]}px, ${BLOB.from[1]}px)` },
-      { opacity: 1, transform: "translate(0, 0)" },
+      { opacity: 0, translate: SLIDE_FROM },
+      { opacity: 1, translate: "0 0" },
     ],
     { duration, delay, easing: BLOB.ease, fill: "backwards" },
   );
@@ -319,18 +393,18 @@ function loopOn(looping: Piece[], at: number, pace: number, time: (ms: number) =
       ),
     );
   });
-  const from = `translate(${BLOB.from[0]}px, ${BLOB.from[1]}px)`;
+  const from = SLIDE_FROM;
   for (const { el, role } of looping) {
     if (role !== "mancha") continue;
     out.push(
       el.animate(
         [
-          { offset: 0, opacity: 0, transform: from },
-          { offset: o(blobStart), opacity: 0, transform: from, easing: BLOB.ease },
-          { offset: o(blobStart + BLOB.ms), opacity: 1, transform: "translate(0, 0)" },
-          { offset: o(fadeStart), opacity: 1, transform: "translate(0, 0)" },
-          { offset: o(fadeEnd), opacity: 0, transform: "translate(0, 0)" },
-          { offset: 1, opacity: 0, transform: from },
+          { offset: 0, opacity: 0, translate: from },
+          { offset: o(blobStart), opacity: 0, translate: from, easing: BLOB.ease },
+          { offset: o(blobStart + BLOB.ms), opacity: 1, translate: "0 0" },
+          { offset: o(fadeStart), opacity: 1, translate: "0 0" },
+          { offset: o(fadeEnd), opacity: 0, translate: "0 0" },
+          { offset: 1, opacity: 0, translate: from },
         ],
         timing,
       ),
@@ -403,16 +477,16 @@ export function DrawOn({
   children: ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const running = useRef<Animation[]>([]);
+  const running = useRef<() => void>(() => {});
   const seen = useRef(false);
   const [stage, setStage] = useState<Stage>({ run: 0, arriveAt: 0, still });
 
   const play = () => {
     const svg = ref.current?.querySelector("svg");
-    running.current.forEach((a) => a.cancel());
+    running.current();
     if (!svg || still) return;
-    const { animations, dudooAt } = drawOn(svg, { delay, speed });
-    running.current = animations;
+    const { stop, dudooAt } = drawOn(svg, { delay, speed });
+    running.current = stop;
     setStage((s) => ({ run: s.run + 1, arriveAt: dudooAt, still: false }));
   };
 
@@ -421,7 +495,7 @@ export function DrawOn({
     const el = ref.current;
     if (!el) return;
     if (still) {
-      running.current.forEach((a) => a.cancel());
+      running.current();
       el.style.visibility = "";
       setStage((s) => ({ ...s, still: true }));
       return;
@@ -445,7 +519,7 @@ export function DrawOn({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [replay, still]);
 
-  useEffect(() => () => running.current.forEach((a) => a.cancel()), []);
+  useEffect(() => () => running.current(), []);
 
   return (
     <DrawStage.Provider value={stage}>
