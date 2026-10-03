@@ -153,6 +153,66 @@
   border-radius: var(--dd-r-panel);
 }
 
+/* ——— Movimento ——— */
+
+.at-replay {
+  min-height: 420px;
+}
+
+/* A fala entra subindo um pouco: Trabalho, rápido e sem passar do ponto. */
+.at-replay .dd-chat-row {
+  animation: at-enter 220ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+@keyframes at-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.at-typing {
+  display: inline-flex;
+  gap: 4px;
+  padding-block: 6px;
+}
+
+.at-typing > span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.3;
+  animation: at-typing 1s ease-in-out infinite;
+}
+
+.at-typing > span:nth-child(2) {
+  animation-delay: 150ms;
+}
+
+.at-typing > span:nth-child(3) {
+  animation-delay: 300ms;
+}
+
+@keyframes at-typing {
+  30% {
+    opacity: 0.9;
+    transform: translateY(-2px);
+  }
+}
+
+.at-replay[data-reduced] .dd-chat-row,
+.at-replay[data-reduced] .at-typing > span {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .at-replay .dd-chat-row,
+  .at-typing > span {
+    animation: none;
+  }
+}
+
 /* ——— Cenas ——— */
 
 .at-scene {

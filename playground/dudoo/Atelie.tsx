@@ -36,14 +36,23 @@ import {
   SceneNoResults,
   Status,
   buildTheme,
+  dudooExpression,
   type Accent,
   type Corners,
   type DuDooExpression,
   type DuDooEye,
+  type DuDooMood,
   type SceneObject,
 } from "@deckdoo/design";
 import markUrl from "../../src/brand/deckdoo-mark.svg";
 import { MOODS } from "./moods.js";
+import {
+  INTENSITY,
+  REDUCED_TIMING,
+  TIMING,
+  useDuDooMotion,
+  usePrefersReducedMotion,
+} from "./motion.js";
 import { KitPiece, SceneNoOrders } from "./Doodles.js";
 import "../kitchen.css";
 import "./atelie.css";
@@ -92,6 +101,7 @@ function Atelie() {
       <Anatomy />
       <Lab />
       <Catalog />
+      <Motion />
       <InChat />
       <Doodles />
       <Scenes />
@@ -525,6 +535,317 @@ function Catalog() {
   );
 }
 
+/* ——— Movimento ——— */
+
+/** O que cada mood faz parado, depois que a troca assenta. */
+const IDLE_NOTE: Partial<Record<DuDooMood, string>> = {
+  neutro: "De vez em quando, uma olhada de lado, e volta.",
+  pensando: "A pupila salta de um ponto a outro, sempre para cima.",
+  focado: "Lê, da esquerda para a direita.",
+  esperando: "O olhar escorrega pelo chão.",
+  dormindo: "O olho respira, devagar. Fechado, não pisca.",
+  feliz: "Ri de vez em quando: o “^” dá dois soquinhos. Olho fechado não pisca.",
+  piscada:
+    "É um gesto rápido (170 ms para fechar, 220 ms fechado, 150 ms para abrir); depois fica como o neutro. Na fala antiga do chat, fica fechado, como o desenho.",
+  olhando: "Fica no alvo, reajustando de leve, como quem confere.",
+  curioso: "Olha para você, esperando a resposta, e volta para o assunto.",
+  "de-canto": "A segunda olhada: volta para você um instante e torna a olhar de lado.",
+  empolgado: "Não para quieto: o olhar pula de um ponto a outro.",
+  confuso: "O olhar vaga, sem achar onde parar.",
+};
+
+function Motion() {
+  const [mood, setMoodNow] = useState<DuDooMood>("neutro");
+  const [prev, setPrev] = useState<DuDooMood>("neutro");
+  const setMood = (m: DuDooMood) => {
+    if (m === mood) return;
+    setPrev(mood);
+    setMoodNow(m);
+  };
+  // Volta ao mood de antes e, assentado, faz a troca de novo.
+  const replay = () => {
+    const to = mood;
+    setMoodNow(prev);
+    window.setTimeout(() => setMoodNow(to), 900 / Number(speed));
+  };
+  const [blink, setBlink] = useState(true);
+  const [idle, setIdle] = useState(true);
+  const systemReduced = usePrefersReducedMotion();
+  const [reduced, setReduced] = useState(systemReduced);
+  const [speed, setSpeed] = useState("1");
+  const e = useDuDooMotion(mood, { blink, idle, reduced, speed: Number(speed) });
+  const info = MOODS.find((m) => m.mood === mood)!;
+  const intensity = INTENSITY[mood];
+
+  return (
+    <Section
+      id="movimento"
+      title="Movimento"
+      note="Protótipo. Só os olhos mexem, e o ritmo vem da intensidade: Trabalho é rápido e para no ponto, Festa tem mola, Neutro é calmo. Troque de expressão e repare na ordem: o olhar chega primeiro, a pálpebra vem atrás."
+    >
+      <Panel className="at-lab">
+        <div className="at-lab-stage">
+          <Block className="at-lab-big">
+            <DuDooFace size={200} mood={e} />
+          </Block>
+          <Group gap="md" justify="center" align="center" wrap="wrap">
+            {[24, 32, 48].map((s) => (
+              <Stack key={s} gap={4} align="center">
+                <DuDoo size={s} mood={e} />
+                <Text size="xs" className="dd-faint dd-num">
+                  {s}
+                </Text>
+              </Stack>
+            ))}
+            <div className="at-lab-chip dd-accent">
+              <DuDooFace size={28} mood={e} />
+            </div>
+            <div className="at-lab-chip dd-inverse">
+              <DuDooFace size={28} mood={e} />
+            </div>
+          </Group>
+        </div>
+
+        <Stack gap="md" className="at-lab-controls">
+          <div>
+            <Text size="sm" fw={600} mb={6}>
+              Trocar para
+            </Text>
+            <Group gap={6}>
+              {MOODS.map((p) => (
+                <Button
+                  key={p.mood}
+                  size="compact-sm"
+                  variant={p.mood === mood ? "filled" : "default"}
+                  onClick={() => setMood(p.mood)}
+                >
+                  {p.name}
+                </Button>
+              ))}
+            </Group>
+          </div>
+
+          <Block>
+            <Group gap={8} mb={6} wrap="nowrap">
+              <Text fw={600}>{info.name}</Text>
+              <Status tone={TONE[intensity].tone}>{TONE[intensity].label}</Status>
+            </Group>
+            <Text size="sm" className="dd-muted">
+              <b>A troca:</b>{" "}
+              {mood === "piscada"
+                ? "o gesto, rápido e com mola"
+                : (reduced ? REDUCED_TIMING : TIMING[intensity]).label}
+              .
+            </Text>
+            <Text size="sm" className="dd-muted">
+              <b>Parado:</b> {IDLE_NOTE[mood] ?? "Pisca de vez em quando."}
+            </Text>
+            {prev !== mood && (
+              <Button
+                mt="sm"
+                size="compact-sm"
+                variant="default"
+                leftSection={<ArrowCounterClockwise size={14} />}
+                onClick={replay}
+              >
+                Repetir a troca ({MOODS.find((m) => m.mood === prev)!.name} → {info.name})
+              </Button>
+            )}
+          </Block>
+
+          <Stack gap={10}>
+            <Switch
+              size="sm"
+              label="Piscar de vez em quando"
+              checked={blink}
+              onChange={(ev) => setBlink(ev.currentTarget.checked)}
+            />
+            <Switch
+              size="sm"
+              label="Vida própria (olhar solto, respiração)"
+              checked={idle}
+              onChange={(ev) => setIdle(ev.currentTarget.checked)}
+            />
+            <Switch
+              size="sm"
+              label="Movimento reduzido (troca curta e sem mola; sai o olhar solto)"
+              checked={reduced}
+              onChange={(ev) => setReduced(ev.currentTarget.checked)}
+            />
+            <Labeled label="Velocidade">
+              <SegmentedControl
+                size="xs"
+                value={speed}
+                onChange={setSpeed}
+                data={[
+                  { value: "1", label: "Real" },
+                  { value: "0.4", label: "Devagar" },
+                  { value: "0.15", label: "Bem devagar" },
+                ]}
+              />
+            </Labeled>
+          </Stack>
+        </Stack>
+      </Panel>
+
+      <Title order={3} mt={40} mb="xs">
+        Olha antes de falar
+      </Title>
+      <Text className="dd-muted" mb="md" maw={760}>
+        A coruja atenta, em sequência: ele lê a sua fala (o olhar vai até ela), pensa enquanto
+        escreve e responde com a cara do que diz. Só o rosto da última fala está vivo; os de cima
+        param na expressão do que disseram, como em “No chat”.
+      </Text>
+      <ChatReplay reduced={reduced} />
+    </Section>
+  );
+}
+
+/** Lendo a sua fala: o olhar vai para cima e para a direita, onde ela está. */
+const READING = dudooExpression({ look: [0.85, -0.6] });
+
+interface ReplayMsg {
+  from: "you" | "dudoo";
+  /** Sem texto, a fala do DuDoo é os três pontos: ele está escrevendo. */
+  text?: string;
+  mood?: DuDooMood | DuDooExpression;
+}
+
+const SCRIPT: [number, ReplayMsg[]][] = (() => {
+  const you = (text: string): ReplayMsg => ({ from: "you", text });
+  const dd = (mood: ReplayMsg["mood"], text?: string): ReplayMsg => ({ from: "dudoo", text, mood });
+  const ask1 = you("Monta um deck do resultado do trimestre para a diretoria.");
+  const ans1 = dd("pensando", "Montando a estrutura… agora os gráficos.");
+  const ans2 = dd("feliz", "Pronto: 12 slides. Quer revisar o roteiro antes de exportar?");
+  const ask2 = you("Revisa o slide 4.");
+  return [
+    [0, [ask1]],
+    [600, [ask1, dd(READING)]],
+    [1500, [ask1, dd("pensando")]],
+    [3400, [ask1, ans1]],
+    [5600, [ask1, ans1, ans2]],
+    [8200, [ask1, ans1, ans2, ask2]],
+    [8800, [ask1, ans1, ans2, ask2, dd(READING)]],
+    [9700, [ask1, ans1, ans2, ask2, dd("focado")]],
+    [
+      11800,
+      [
+        ask1,
+        ans1,
+        ans2,
+        ask2,
+        dd("de-canto", "O texto do slide 4 não coube. Encurto ou divido em dois?"),
+      ],
+    ],
+  ];
+})();
+
+function ChatReplay({ reduced }: { reduced: boolean }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [run, setRun] = useState(0);
+  const [step, setStep] = useState(-1);
+
+  // Começa quando aparece na tela, para ninguém perder o começo.
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setRun((r) => r || 1);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.4 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!run) return;
+    setStep(0);
+    const timers = SCRIPT.slice(1).map(([at], i) => window.setTimeout(() => setStep(i + 1), at));
+    return () => timers.forEach(clearTimeout);
+  }, [run]);
+
+  const msgs = step >= 0 ? SCRIPT[step]![1] : [];
+  const lastDuDoo = msgs.map((m) => m.from).lastIndexOf("dudoo");
+
+  return (
+    <div className="at-chat-grid">
+      <DuDooWall ref={ref} className="at-chat at-replay" data-reduced={reduced || undefined}>
+        {msgs.map((m, i) =>
+          m.from === "you" ? (
+            <ChatBubble key={`${run}-${i}`} from="you">
+              {m.text}
+            </ChatBubble>
+          ) : (
+            <LiveBubble
+              key={`${run}-${i}`}
+              mood={m.mood ?? "neutro"}
+              live={i === lastDuDoo}
+              reduced={reduced}
+            >
+              {m.text ?? (
+                <span className="at-typing" aria-label="Escrevendo">
+                  <span />
+                  <span />
+                  <span />
+                </span>
+              )}
+            </LiveBubble>
+          ),
+        )}
+      </DuDooWall>
+      <Stack gap="sm">
+        <Block>
+          <Text fw={600}>O olhar vai antes</Text>
+          <Text size="sm" className="dd-muted">
+            Antes de escrever, ele olha para a sua fala. Ninguém lê isso conscientemente, mas é o
+            que separa quem ouviu de quem só respondeu.
+          </Text>
+        </Block>
+        <Block>
+          <Text fw={600}>Um rosto vivo por vez</Text>
+          <Text size="sm" className="dd-muted">
+            As falas antigas param na expressão do que disseram, sem piscar nem olhar em volta. É a
+            regra de uma aparição por tela, no tempo.
+          </Text>
+        </Block>
+        <Group>
+          <Button
+            variant="default"
+            leftSection={<ArrowCounterClockwise size={16} />}
+            onClick={() => setRun((r) => r + 1)}
+          >
+            Repetir a conversa
+          </Button>
+        </Group>
+      </Stack>
+    </div>
+  );
+}
+
+function LiveBubble({
+  mood,
+  live,
+  reduced,
+  children,
+}: {
+  mood: DuDooMood | DuDooExpression;
+  live: boolean;
+  reduced: boolean;
+  children: ReactNode;
+}) {
+  const e = useDuDooMotion(mood, { blink: live, idle: live, reduced });
+  return (
+    <ChatBubble from="dudoo" mood={e}>
+      {children}
+    </ChatBubble>
+  );
+}
+
 /* ——— No chat ——— */
 
 function InChat() {
@@ -569,10 +890,10 @@ function InChat() {
             </Text>
           </Block>
           <Block>
-            <Text fw={600}>Depois, animado</Text>
+            <Text fw={600}>Animado</Text>
             <Text size="sm" className="dd-muted">
-              Piscar de vez em quando, olhar para o campo quando você digita, pupilas andando
-              enquanto gera. Os parâmetros daqui já são o que a animação interpola.
+              Piscar de vez em quando, olhar para a sua fala antes de responder, pupilas andando
+              enquanto gera: veja em Movimento, acima.
             </Text>
           </Block>
         </Stack>
