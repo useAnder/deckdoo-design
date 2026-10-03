@@ -74,10 +74,10 @@ export const REDUCED_TIMING: (typeof TIMING)[Intensity] = {
   pop: 0,
 };
 
-/** O gesto da piscadinha, mais rápido que a troca da Festa: fecha, segura e reabre. */
+/** O gesto da piscadinha, mais rápido que a troca da Festa: fecha e já reabre. */
 const WINK = {
   close: { ...TIMING.festa, ms: 170 },
-  hold: 220,
+  hold: 0,
   open: { ...TIMING.trabalho, ms: 150 },
 };
 

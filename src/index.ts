@@ -54,6 +54,7 @@ export {
   SceneCard,
   SceneDone,
   SceneDuDoo,
+  SceneDuDooFace,
   SceneEmpty,
   SceneGenerating,
   SceneLine,

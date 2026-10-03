@@ -1,4 +1,12 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   ActionIcon,
   Anchor,
@@ -547,7 +555,7 @@ const IDLE_NOTE: Partial<Record<DuDooMood, string>> = {
   dormindo: "O olho respira, devagar. Fechado, não pisca.",
   feliz: "Ri de vez em quando: o “^” dá dois soquinhos. Olho fechado não pisca.",
   piscada:
-    "É um gesto rápido (170 ms para fechar, 220 ms fechado, 150 ms para abrir); depois fica como o neutro. Na fala antiga do chat, fica fechado, como o desenho.",
+    "É um gesto rápido: fecha em 170 ms e já reabre, em 150 ms; depois fica como o neutro. Na fala antiga do chat, fica fechado, como o desenho.",
   olhando: "Fica no alvo, reajustando de leve, como quem confere.",
   curioso: "Olha para você, esperando a resposta, e volta para o assunto.",
   "de-canto": "A segunda olhada: volta para você um instante e torna a olhar de lado.",
@@ -1017,117 +1025,159 @@ function Doodles() {
 
 /* ——— Cenas ——— */
 
+/** O controle das cenas se desenhando: de novo, devagar, e o movimento reduzido do sistema. */
+const SceneDraw = createContext({ replay: 0, speed: 1, reduced: false });
+
+/** Uma cena que se desenha; clicar nela desenha de novo. No Sério, aparece pronta. */
+function Drawn({ serio = false, children }: { serio?: boolean; children: ReactNode }) {
+  const { replay, speed, reduced } = useContext(SceneDraw);
+  const [own, setOwn] = useState(0);
+  return (
+    <div className={serio ? undefined : "at-replayable"} onClick={() => setOwn((n) => n + 1)}>
+      <DrawOn replay={replay + own * 1000} still={reduced || serio} speed={speed}>
+        {children}
+      </DrawOn>
+    </div>
+  );
+}
+
 function Scenes() {
+  const [replay, setReplay] = useState(0);
+  const [slow, setSlow] = useState(false);
+  const reduced = usePrefersReducedMotion();
   return (
     <Section
       id="cenas"
       title="Cenas"
       note="Estado vazio, espera e marco. O DuDoo só entra onde há uma ação dele; no resto, os rabiscos sem ele, e no Sério nem cor."
     >
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
-        <SceneShowcase
-          tone="festa"
-          dudoo
-          code={'<SceneEmpty object="slide" dudoo />'}
-          art={<SceneEmpty object="slide" dudoo />}
-          title="Nenhum deck ainda"
-          text="Tem uma ideia? Me conta que eu monto o deck com você."
-          action={<Button leftSection={<Sparkle size={16} weight="fill" />}>Gerar com IA</Button>}
-        />
-        <SceneShowcase
-          tone="trabalho"
-          dudoo
-          code="<SceneGenerating />"
-          art={<SceneGenerating />}
-          title="Montando o deck"
-          text="Montando a estrutura… agora os gráficos."
-        />
-        <SceneShowcase
-          tone="festa"
-          dudoo
-          code="<SceneDone />"
-          art={<SceneDone />}
-          title="Pronto: 12 slides"
-          text="Quer revisar o roteiro antes de exportar?"
-          action={<Button>Revisar roteiro</Button>}
-        />
-        <SceneShowcase
-          tone="trabalho"
-          code="<SceneNoResults />"
-          art={<SceneNoResults color={BRAND.cyan} />}
-          title="Nada com “margem bruta”"
-          text="Tente outra palavra ou procure em todos os espaços."
-          action={<Button variant="default">Buscar em tudo</Button>}
-        />
-        <SceneShowcase
-          tone="trabalho"
-          code="<SceneAllClear />"
-          art={<SceneAllClear />}
-          title="Nenhuma pendência"
-          text="Quando um slide pedir atenção, ele aparece aqui."
-        />
-        <SceneShowcase
-          tone="serio"
-          code="<SceneLocked />"
-          art={<SceneLocked />}
-          title="Você não tem acesso a este espaço"
-          text="Peça a quem administra."
-          action={<Button variant="default">Pedir acesso</Button>}
-        />
-      </SimpleGrid>
+      <Group gap="md" mb="md">
+        <Button
+          variant="default"
+          leftSection={<ArrowCounterClockwise size={16} />}
+          onClick={() => setReplay((r) => r + 1)}
+        >
+          Desenhar de novo
+        </Button>
+        <Switch label="Devagar" checked={slow} onChange={(e) => setSlow(e.currentTarget.checked)} />
+        <Text size="sm" className="dd-muted">
+          Clique numa cena para ver só ela.
+          {reduced && " Seu sistema pede movimento reduzido: as cenas aparecem prontas."}
+        </Text>
+      </Group>
+      <SceneDraw.Provider value={{ replay, speed: slow ? 0.3 : 1, reduced }}>
+        <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
+          <SceneShowcase
+            tone="festa"
+            dudoo
+            code={'<SceneEmpty object="slide" dudoo />'}
+            art={<SceneEmpty object="slide" dudoo />}
+            title="Nenhum deck ainda"
+            text="Tem uma ideia? Me conta que eu monto o deck com você."
+            motion="O slide se desenha, a cor cai, e o DuDoo chega e olha para ele."
+            action={<Button leftSection={<Sparkle size={16} weight="fill" />}>Gerar com IA</Button>}
+          />
+          <SceneShowcase
+            tone="trabalho"
+            dudoo
+            code="<SceneGenerating />"
+            art={<SceneGenerating />}
+            title="Montando o deck"
+            text="Montando a estrutura… agora os gráficos."
+            motion="O slide da frente se monta em loop enquanto ele pensa, olhando em volta."
+          />
+          <SceneShowcase
+            tone="festa"
+            dudoo
+            code="<SceneDone />"
+            art={<SceneDone />}
+            title="Pronto: 12 slides"
+            text="Quer revisar o roteiro antes de exportar?"
+            motion="O trabalho se desenha, o visto fecha, e ele chega com a piscadinha."
+            action={<Button>Revisar roteiro</Button>}
+          />
+          <SceneShowcase
+            tone="trabalho"
+            code="<SceneNoResults />"
+            art={<SceneNoResults color={BRAND.cyan} />}
+            title="Nada com “margem bruta”"
+            text="Tente outra palavra ou procure em todos os espaços."
+            motion="Desenha uma vez e para."
+            action={<Button variant="default">Buscar em tudo</Button>}
+          />
+          <SceneShowcase
+            tone="trabalho"
+            code="<SceneAllClear />"
+            art={<SceneAllClear />}
+            title="Nenhuma pendência"
+            text="Quando um slide pedir atenção, ele aparece aqui."
+            motion="Desenha uma vez e para."
+          />
+          <SceneShowcase
+            tone="serio"
+            code="<SceneLocked />"
+            art={<SceneLocked />}
+            title="Você não tem acesso a este espaço"
+            text="Peça a quem administra."
+            motion="Sério: aparece pronta, sem movimento."
+            action={<Button variant="default">Pedir acesso</Button>}
+          />
+        </SimpleGrid>
 
-      <EmptyObjects />
+        <EmptyObjects />
 
-      <Title order={3} mt={40} mb="xs">
-        Desenhada no app
-      </Title>
-      <Text className="dd-muted" mb="md" maw={760}>
-        O exemplo da receita (<Code>docs/ilustracao.md</Code>): uma cena que só um app usa, feita
-        com as peças do pacote. Se um segundo app quiser, ela sobe para cá.
-      </Text>
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
-        <SceneShowcase
-          tone="trabalho"
-          code="<SceneNoOrders />"
-          art={<SceneNoOrders />}
-          title="Nenhum pedido ainda"
-          text="Quando um cliente comprar, o pedido aparece aqui."
-        />
-      </SimpleGrid>
+        <Title order={3} mt={40} mb="xs">
+          Desenhada no app
+        </Title>
+        <Text className="dd-muted" mb="md" maw={760}>
+          O exemplo da receita (<Code>docs/ilustracao.md</Code>): uma cena que só um app usa, feita
+          com as peças do pacote. Se um segundo app quiser, ela sobe para cá.
+        </Text>
+        <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
+          <SceneShowcase
+            tone="trabalho"
+            code="<SceneNoOrders />"
+            art={<SceneNoOrders />}
+            title="Nenhum pedido ainda"
+            text="Quando um cliente comprar, o pedido aparece aqui."
+            motion="Feita com a receita, se desenha sem fazer nada."
+          />
+        </SimpleGrid>
 
-      <Title order={3} mt={40} mb="xs">
-        Espiando
-      </Title>
-      <Text className="dd-muted" mb="md" maw={760}>
-        O jeito mais barato de usar o DuDoo: só os olhos, por cima da borda de um cartão, olhando
-        para o que ele sugere. Não pede cena, cabe em qualquer tela e não gasta o personagem.
-      </Text>
-      <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
-        <div className="at-peek">
-          <DuDooFace className="at-peek-face" size={76} mood="olhando" />
-          <Block className="at-peek-card">
-            <Text fw={600}>O slide 4 está apertado</Text>
-            <Text size="sm" className="dd-muted" mb="sm">
-              Quer que eu divida em dois? O gráfico de margem ganha um slide só dele.
-            </Text>
-            <Group gap="xs">
-              <Button size="xs">Dividir em dois</Button>
-              <Button size="xs" variant="default">
-                Agora não
-              </Button>
-            </Group>
-          </Block>
-        </div>
-        <div className="at-peek at-peek-left">
-          <DuDooFace className="at-peek-face" size={76} mood="piscada" />
-          <Panel className="at-peek-card">
-            <Text fw={600}>Atalho</Text>
-            <Text size="sm" className="dd-muted">
-              Escreva <Code>/</Code> no slide e me peça o que quiser, sem sair do lugar.
-            </Text>
-          </Panel>
-        </div>
-      </SimpleGrid>
+        <Title order={3} mt={40} mb="xs">
+          Espiando
+        </Title>
+        <Text className="dd-muted" mb="md" maw={760}>
+          O jeito mais barato de usar o DuDoo: só os olhos, por cima da borda de um cartão, olhando
+          para o que ele sugere. Não pede cena, cabe em qualquer tela e não gasta o personagem.
+        </Text>
+        <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+          <div className="at-peek">
+            <DuDooFace className="at-peek-face" size={76} mood="olhando" />
+            <Block className="at-peek-card">
+              <Text fw={600}>O slide 4 está apertado</Text>
+              <Text size="sm" className="dd-muted" mb="sm">
+                Quer que eu divida em dois? O gráfico de margem ganha um slide só dele.
+              </Text>
+              <Group gap="xs">
+                <Button size="xs">Dividir em dois</Button>
+                <Button size="xs" variant="default">
+                  Agora não
+                </Button>
+              </Group>
+            </Block>
+          </div>
+          <div className="at-peek at-peek-left">
+            <DuDooFace className="at-peek-face" size={76} mood="piscada" />
+            <Panel className="at-peek-card">
+              <Text fw={600}>Atalho</Text>
+              <Text size="sm" className="dd-muted">
+                Escreva <Code>/</Code> no slide e me peça o que quiser, sem sair do lugar.
+              </Text>
+            </Panel>
+          </div>
+        </SimpleGrid>
+      </SceneDraw.Provider>
     </Section>
   );
 }
@@ -1140,6 +1190,7 @@ function SceneShowcase({
   title,
   text,
   action,
+  motion,
 }: {
   tone: "festa" | "trabalho" | "serio";
   dudoo?: boolean;
@@ -1148,6 +1199,8 @@ function SceneShowcase({
   title: string;
   text: string;
   action?: ReactNode;
+  /** Como a cena se desenha. */
+  motion?: string;
 }) {
   const label = { festa: "Festa", trabalho: "Trabalho", serio: "Sério" }[tone];
   return (
@@ -1158,9 +1211,14 @@ function SceneShowcase({
         </Status>
         <Status tone="neutral">{dudoo ? "Com DuDoo" : "Sem DuDoo"}</Status>
       </Group>
-      <EmptyState art={art} title={title} action={action}>
+      <EmptyState art={<Drawn serio={tone === "serio"}>{art}</Drawn>} title={title} action={action}>
         {text}
       </EmptyState>
+      {motion && (
+        <Text size="xs" className="dd-faint" ta="center" mb={6}>
+          {motion}
+        </Text>
+      )}
       <Code className="at-scene-code">{code}</Code>
     </Panel>
   );
@@ -1194,7 +1252,9 @@ function EmptyObjects() {
       <SimpleGrid cols={{ base: 2, sm: 3, lg: 6 }} spacing="md">
         {objects.map(([object, title]) => (
           <Panel key={object} className="at-card">
-            <SceneEmpty object={object} dudoo={dudoo} />
+            <Drawn key={String(dudoo)}>
+              <SceneEmpty object={object} dudoo={dudoo} />
+            </Drawn>
             <Text size="sm" fw={600} ta="center" mt="xs">
               {title}
             </Text>

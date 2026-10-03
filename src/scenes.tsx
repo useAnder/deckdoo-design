@@ -1,4 +1,10 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  type ComponentPropsWithoutRef,
+  type ComponentType,
+  type ReactNode,
+} from "react";
 import {
   DUDOO_MOODS,
   DuDooFace,
@@ -113,6 +119,15 @@ export function SceneCard({
   );
 }
 
+/**
+ * O rosto do DuDoo nas cenas. Quem anima a cena troca o `DuDooFace` parado por um que se mexe
+ * (chega neutro e, assentado, faz a cara da cena); sem nada, é o desenho parado.
+ */
+export const SceneDuDooFace = createContext<ComponentType<{
+  mood: DuDooMood | DuDooExpression;
+  size: number;
+}> | null>(null);
+
 /** O DuDoo dentro da cena: o canto de cima à esquerda e a altura. Em tinta, ou contorno no escuro. */
 export function SceneDuDoo({
   x,
@@ -125,9 +140,10 @@ export function SceneDuDoo({
   size: number;
   mood?: DuDooMood | DuDooExpression;
 }) {
+  const Face = useContext(SceneDuDooFace);
   return (
     <g transform={`translate(${x} ${y})`}>
-      <DuDooFace size={size} mood={mood} title="" />
+      {Face ? <Face size={size} mood={mood} /> : <DuDooFace size={size} mood={mood} title="" />}
     </g>
   );
 }
@@ -364,25 +380,28 @@ export function SceneGenerating({ color = ACCENT }: SceneProps) {
           <SceneCard s={s} x={150} y={24} w={80} h={56} rot={10} />
           <SceneCard s={s} x={138} y={38} w={80} h={56} rot={2} />
           <SceneCard s={s} x={126} y={54} w={80} h={56} rot={-7}>
-            {/* O gráfico entrando: a mancha ainda pela metade. */}
-            <path d={s.blob(140, 88, 34, 12, 4)} fill={color} />
-            <SceneLine
-              d={s.lines(
-                [
-                  [138, 70],
-                  [172, 70],
-                ],
-                [
-                  [138, 79],
-                  [186, 79],
-                ],
-                [
-                  [138, 94],
-                  [194, 94],
-                ],
-              )}
-              width={2}
-            />
+            {/* O slide se montando. Quem anima a cena desenha este grupo em loop. */}
+            <g data-dd-draw="loop">
+              {/* O gráfico entrando: a mancha ainda pela metade. */}
+              <path d={s.blob(140, 88, 34, 12, 4)} fill={color} />
+              <SceneLine
+                d={s.lines(
+                  [
+                    [138, 70],
+                    [172, 70],
+                  ],
+                  [
+                    [138, 79],
+                    [186, 79],
+                  ],
+                  [
+                    [138, 94],
+                    [194, 94],
+                  ],
+                )}
+                width={2}
+              />
+            </g>
           </SceneCard>
           {/* Sai da cabeça dele e vira laço até os slides. */}
           <SceneLine d={`M84,70c6-26,18-36,32-30${curl(116, 40, 1, 1).replace(/^M[^c]+/, "")}`} />
