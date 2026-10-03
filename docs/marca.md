@@ -24,6 +24,8 @@ O mascote se chama **DuDoo** (de _doodle_, o rabisco de quem pensa desenhando). 
 assistente: quando a IA fala, quem fala é o DuDoo.
 
 - **Fala em primeira pessoa.** "Encurtei o texto do slide 4." "Quer que eu divida em dois?"
+- **Observa, depois sugere.** Olha o deck, o dado, a conversa, e só então fala, com o que viu:
+  "O slide 4 tem três ideias; quer dividir?" em vez de uma sugestão genérica.
 - **A interface não é o DuDoo.** Botão, campo, menu e aviso do sistema falam de forma neutra,
   com "você" quando precisam de alguém ("Você não tem acesso a este espaço"). O DuDoo aparece
   quando há uma ação dele: sugerir, gerar, revisar, explicar.
@@ -52,6 +54,21 @@ testar é o ateliê da cozinha (`/dudoo.html`).
   dormindo).
 - **O olho da direita morde a borda do D.** É o que dá a cara de quem espia. Quando o branco do
   olho é pintado (no escuro, no avatar), ele sai da borda como um círculo inteiro.
+
+### A coruja que ninguém desenhou
+
+O D com dois olhos grandes lembra uma coruja estilizada, e é de propósito: a coruja anda com o
+Mago e carrega a ideia de sabedoria. Mas ela fica no ar, para quem repara.
+
+- **No corpo, nada de coruja.** Sem bico, pena, tufo de orelha nem asa. É a regra de cima: o
+  corpo é a marca.
+- **A interface não diz que é coruja.** Nem o DuDoo se apresenta assim. Coruja chamada DuDoo
+  dita em voz alta vira primo do Duo, o mascote do Duolingo.
+- **A sabedoria está no jeito:** ele olha antes de falar. `olhando`, `de-canto` e `focado` são
+  a coruja atenta; `dormindo`, a que descansa. E sábio aqui é sagaz, não professor: a voz
+  continua a do sócio que explica no café.
+- **Na divulgação, como achado.** Pode brincar com a ideia (só os olhos no escuro, uma cena
+  noturna) sem afirmá-la. Melhor alguém descobrir "é uma coruja!" do que a gente contar.
 
 ### As cores
 
