@@ -116,6 +116,9 @@ espera, marco.
   vira linha como o resto.
 - **No Sério,** só traço e mancha cinza: sem DuDoo, sem brilho, sem cor da paleta.
 
+As cenas prontas, a receita para desenhar uma nova e onde cada cena mora estão em
+[ilustracao.md](ilustracao.md).
+
 ## Tom de voz
 
 A voz se resume na assinatura **"DeckDoo It!"**: fazer, sem rodeio.

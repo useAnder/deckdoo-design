@@ -46,3 +46,19 @@ export {
   type DuDooMood,
 } from "./dudoo.js";
 export { curl, sketch, sparkle, type SketchPoint } from "./sketch.js";
+export {
+  EmptyState,
+  SCENE_STROKE,
+  Scene,
+  SceneAllClear,
+  SceneCard,
+  SceneDone,
+  SceneDuDoo,
+  SceneEmpty,
+  SceneGenerating,
+  SceneLine,
+  SceneLocked,
+  SceneNoResults,
+  type SceneObject,
+  type Sketch,
+} from "./scenes.js";

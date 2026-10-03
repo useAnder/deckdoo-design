@@ -164,10 +164,14 @@
   margin-bottom: 8px;
 }
 
-.at-scene-art {
-  max-width: 300px;
-  width: 100%;
-  margin: 0 auto;
+.at-scene .dd-empty {
+  flex: 1;
+  padding-inline: 0;
+}
+
+.at-scene-code {
+  align-self: center;
+  font-size: 11px;
 }
 
 /* Espiando: o rosto atrás do cartão, com só os olhos acima da borda. */

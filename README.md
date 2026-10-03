@@ -149,6 +149,8 @@ DeckDoo; sem `--bg`, limão; a tinta sai do contraste (ou `--ink`).
 | `DuDoo`, `ChatBubble`, `DuDooWall` | O assistente: rosto (com `mood`), fala do chat, papel de parede |
 | `DuDooFace`, `DUDOO_MOODS`, `dudooExpression` | O mascote com expressão, para ilustração; o vocabulário; expressão sob medida |
 | `sketch`, `sparkle`, `curl` | O rabisco: traço à mão em vetor, o brilho, o laço |
+| `EmptyState`, `SceneEmpty`, `SceneNoResults`, `SceneAllClear`, `SceneLocked`, `SceneGenerating`, `SceneDone` | O estado vazio e as cenas prontas |
+| `Scene`, `SceneLine`, `SceneCard`, `SceneDuDoo` | As peças para desenhar uma cena nova |
 | `styles.css` | `--dd-*` claro e escuro, `.dd-root`, `.dd-nobreak`, `.dd-num`, a moldura (`.dd-frame`…) e as classes das peças (`.dd-panel`, `.dd-inverse`, `.dd-accent`, `.dd-table`, `.dd-rows`…) |
 
 ### Moldura do app
@@ -178,6 +180,33 @@ O `NavItem` é botão; para navegar de verdade, passe o link:
 
 O `NavLink` do roteador marca `aria-current="page"`, e isso já acende o item: não precisa de
 `active`.
+
+### O DuDoo
+
+```tsx
+<DuDoo mood="pensando" />                          // o rosto, com expressão
+<ChatBubble from="dudoo" mood="feliz">Pronto: 12 slides.</ChatBubble>
+<DuDooFace size={76} mood="olhando" />             // o mascote solto, para ilustração
+```
+
+`mood` é uma das 12 expressões (`neutro` é o padrão) ou uma sob medida com
+`dudooExpression({ look: [0.5, -0.5], both: { top: 0.2 } })`. As cores vêm do fundo, sozinhas.
+Quando usar cada expressão: [docs/marca.md](docs/marca.md#o-dudoo-desenhado).
+
+### Estado vazio e cenas
+
+```tsx
+<EmptyState
+  art={<SceneEmpty object="arquivo" />}
+  title="Nenhum arquivo ainda"
+  action={<Button>Enviar arquivo</Button>}
+>
+  Arraste um arquivo para cá ou escolha do computador.
+</EmptyState>
+```
+
+As cenas prontas, os objetos do `SceneEmpty`, a receita para desenhar uma nova e onde ela mora
+(no app ou aqui): [docs/ilustracao.md](docs/ilustracao.md).
 
 ### Tabela
 

@@ -26,25 +26,25 @@ import {
   DuDoo,
   DuDooFace,
   DuDooWall,
+  EmptyState,
   Panel,
+  SceneAllClear,
+  SceneDone,
+  SceneEmpty,
+  SceneGenerating,
+  SceneLocked,
+  SceneNoResults,
   Status,
   buildTheme,
   type Accent,
   type Corners,
   type DuDooExpression,
   type DuDooEye,
+  type SceneObject,
 } from "@deckdoo/design";
 import markUrl from "../../src/brand/deckdoo-mark.svg";
 import { MOODS } from "./moods.js";
-import {
-  KitPiece,
-  SceneAllClear,
-  SceneDone,
-  SceneFirstDeck,
-  SceneGenerating,
-  SceneLocked,
-  SceneNoResults,
-} from "./Doodles.js";
+import { KitPiece, SceneNoOrders } from "./Doodles.js";
 import "../kitchen.css";
 import "./atelie.css";
 
@@ -627,48 +627,73 @@ function Scenes() {
       note="Estado vazio, espera e marco. O DuDoo só entra onde há uma ação dele; no resto, os rabiscos sem ele, e no Sério nem cor."
     >
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
-        <SceneCard
+        <SceneShowcase
           tone="festa"
           dudoo
-          art={<SceneFirstDeck />}
+          code={'<SceneEmpty object="slide" dudoo />'}
+          art={<SceneEmpty object="slide" dudoo />}
           title="Nenhum deck ainda"
           text="Tem uma ideia? Me conta que eu monto o deck com você."
           action={<Button leftSection={<Sparkle size={16} weight="fill" />}>Gerar com IA</Button>}
         />
-        <SceneCard
+        <SceneShowcase
           tone="trabalho"
           dudoo
+          code="<SceneGenerating />"
           art={<SceneGenerating />}
           title="Montando o deck"
           text="Montando a estrutura… agora os gráficos."
         />
-        <SceneCard
+        <SceneShowcase
           tone="festa"
           dudoo
+          code="<SceneDone />"
           art={<SceneDone />}
           title="Pronto: 12 slides"
           text="Quer revisar o roteiro antes de exportar?"
           action={<Button>Revisar roteiro</Button>}
         />
-        <SceneCard
+        <SceneShowcase
           tone="trabalho"
-          art={<SceneNoResults />}
+          code="<SceneNoResults />"
+          art={<SceneNoResults color={BRAND.cyan} />}
           title="Nada com “margem bruta”"
           text="Tente outra palavra ou procure em todos os espaços."
           action={<Button variant="default">Buscar em tudo</Button>}
         />
-        <SceneCard
+        <SceneShowcase
           tone="trabalho"
+          code="<SceneAllClear />"
           art={<SceneAllClear />}
           title="Nenhuma pendência"
           text="Quando um slide pedir atenção, ele aparece aqui."
         />
-        <SceneCard
+        <SceneShowcase
           tone="serio"
+          code="<SceneLocked />"
           art={<SceneLocked />}
           title="Você não tem acesso a este espaço"
           text="Peça a quem administra."
           action={<Button variant="default">Pedir acesso</Button>}
+        />
+      </SimpleGrid>
+
+      <EmptyObjects />
+
+      <Title order={3} mt={40} mb="xs">
+        Desenhada no app
+      </Title>
+      <Text className="dd-muted" mb="md" maw={760}>
+        O exemplo da receita (<Code>docs/ilustracao.md</Code>): uma cena que só um app usa, feita
+        com as peças do pacote. Se um segundo app quiser, ela sobe para cá.
+      </Text>
+      <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
+        <SceneShowcase
+          tone="trabalho"
+          code="<SceneNoOrders />"
+          art={<SceneNoOrders />}
+          title="Nenhum pedido ainda"
+          text="Quando um cliente comprar, o pedido aparece aqui."
         />
       </SimpleGrid>
 
@@ -709,9 +734,10 @@ function Scenes() {
   );
 }
 
-function SceneCard({
+function SceneShowcase({
   tone,
   dudoo,
+  code,
   art,
   title,
   text,
@@ -719,6 +745,7 @@ function SceneCard({
 }: {
   tone: "festa" | "trabalho" | "serio";
   dudoo?: boolean;
+  code: string;
   art: ReactNode;
   title: string;
   text: string;
@@ -733,19 +760,53 @@ function SceneCard({
         </Status>
         <Status tone="neutral">{dudoo ? "Com DuDoo" : "Sem DuDoo"}</Status>
       </Group>
-      <div className="at-scene-art">{art}</div>
-      <Text fw={600} ta="center" mt="sm">
-        {title}
-      </Text>
-      <Text size="sm" className="dd-muted" ta="center">
+      <EmptyState art={art} title={title} action={action}>
         {text}
-      </Text>
-      {action && (
-        <Group justify="center" mt="md">
-          {action}
-        </Group>
-      )}
+      </EmptyState>
+      <Code className="at-scene-code">{code}</Code>
     </Panel>
+  );
+}
+
+/** O estado vazio com cada objeto: "Nenhum arquivo ainda" é `object="arquivo"`. */
+function EmptyObjects() {
+  const [dudoo, setDudoo] = useState(false);
+  const objects: [SceneObject, string][] = [
+    ["slide", "Nenhum deck ainda"],
+    ["arquivo", "Nenhum arquivo ainda"],
+    ["pasta", "Nenhuma pasta ainda"],
+    ["lista", "Nenhum cliente ainda"],
+    ["grafico", "Nenhum relatório ainda"],
+    ["mensagem", "Nenhuma conversa ainda"],
+  ];
+  return (
+    <>
+      <Group justify="space-between" mt={40} mb="xs" wrap="wrap">
+        <Title order={3}>O que falta</Title>
+        <Switch
+          label="Com o DuDoo (só se a ação é dele)"
+          checked={dudoo}
+          onChange={(e) => setDudoo(e.currentTarget.checked)}
+        />
+      </Group>
+      <Text className="dd-muted" mb="md" maw={760}>
+        O estado vazio muda o objeto, não a cena. A mancha é o acento do app; o texto diz o que
+        falta e o que fazer.
+      </Text>
+      <SimpleGrid cols={{ base: 2, sm: 3, lg: 6 }} spacing="md">
+        {objects.map(([object, title]) => (
+          <Panel key={object} className="at-card">
+            <SceneEmpty object={object} dudoo={dudoo} />
+            <Text size="sm" fw={600} ta="center" mt="xs">
+              {title}
+            </Text>
+            <Text ta="center">
+              <Code className="dd-nobreak">{object}</Code>
+            </Text>
+          </Panel>
+        ))}
+      </SimpleGrid>
+    </>
   );
 }
 
@@ -781,8 +842,8 @@ function Rules() {
   return (
     <Section
       id="regras"
-      title="Regras (proposta)"
-      note="Para virar seção da marca quando a gente fechar."
+      title="Regras"
+      note="O resumo. Completas em docs/marca.md (o DuDoo desenhado) e docs/ilustracao.md (as cenas)."
     >
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
         {rules.map(([t, d]) => (
