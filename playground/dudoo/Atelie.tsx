@@ -1420,12 +1420,24 @@ function Rules() {
       "Uma cor da paleta por cena",
       "A do acento do app ou a do assunto. O DuDoo da cena é em tinta; o do avatar, limão no marinho.",
     ],
+    [
+      "O movimento segue a voz",
+      "Trabalho rápido e no ponto, Festa com mola, Neutro calmo. No Sério, nada se mexe.",
+    ],
+    [
+      "Desenha uma vez e para",
+      "Na ordem de quem desenha: objeto, enfeites, a cor, o brilho e, por último, o DuDoo pousando. Loop só na espera.",
+    ],
+    [
+      "Reduzido não é parado",
+      "Com movimento reduzido, o DuDoo troca curto e pisca; sai o que mexe sem parar. As cenas aparecem prontas.",
+    ],
   ];
   return (
     <Section
       id="regras"
       title="Regras"
-      note="O resumo. Completas em docs/marca.md (o DuDoo desenhado) e docs/ilustracao.md (as cenas)."
+      note="O resumo. Completas em docs/marca.md (o DuDoo desenhado e o movimento) e docs/ilustracao.md (as cenas)."
     >
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
         {rules.map(([t, d]) => (

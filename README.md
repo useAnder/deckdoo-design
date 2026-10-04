@@ -151,6 +151,9 @@ DeckDoo; sem `--bg`, limão; a tinta sai do contraste (ou `--ink`).
 | `sketch`, `sparkle`, `curl` | O rabisco: traço à mão em vetor, o brilho, o laço |
 | `EmptyState`, `SceneEmpty`, `SceneNoResults`, `SceneAllClear`, `SceneLocked`, `SceneGenerating`, `SceneDone` | O estado vazio e as cenas prontas |
 | `Scene`, `SceneLine`, `SceneCard`, `SceneDuDoo` | As peças para desenhar uma cena nova |
+| `useDuDooMotion`, `DuDooMotion`, `usePrefersReducedMotion` | O DuDoo em movimento: a expressão quadro a quadro (hook e motor) |
+| `DrawOn`, `drawOn`, `SceneDuDooFace` | A cena se desenhando, com o DuDoo pousando; o rosto que se mexe nas cenas |
+| `DUDOO_INTENSITY`, `DUDOO_TIMING`, `DUDOO_REDUCED_TIMING` | A intensidade de cada expressão e o ritmo da troca |
 | `styles.css` | `--dd-*` claro e escuro, `.dd-root`, `.dd-nobreak`, `.dd-num`, a moldura (`.dd-frame`…) e as classes das peças (`.dd-panel`, `.dd-inverse`, `.dd-accent`, `.dd-table`, `.dd-rows`…) |
 
 ### Moldura do app
@@ -193,6 +196,19 @@ O `NavLink` do roteador marca `aria-current="page"`, e isso já acende o item: n
 `dudooExpression({ look: [0.5, -0.5], both: { top: 0.2 } })`. As cores vêm do fundo, sozinhas.
 Quando usar cada expressão: [docs/marca.md](docs/marca.md#o-dudoo-desenhado).
 
+Em movimento, o hook devolve a expressão quadro a quadro: troca com o ritmo da intensidade, pisca
+e tem a vida própria de cada mood.
+
+```tsx
+const face = useDuDooMotion(gerando ? "pensando" : "feliz");
+<ChatBubble from="dudoo" mood={face}>…</ChatBubble>
+
+// A fala antiga do chat: parada na expressão do que disse.
+const antiga = useDuDooMotion("feliz", { blink: false, idle: false });
+```
+
+As regras de movimento: [docs/marca.md](docs/marca.md#movimento).
+
 ### Estado vazio e cenas
 
 ```tsx
@@ -205,8 +221,10 @@ Quando usar cada expressão: [docs/marca.md](docs/marca.md#o-dudoo-desenhado).
 </EmptyState>
 ```
 
-As cenas prontas, os objetos do `SceneEmpty`, a receita para desenhar uma nova e onde ela mora
-(no app ou aqui): [docs/ilustracao.md](docs/ilustracao.md).
+Para a cena se desenhar ao aparecer, `<DrawOn><SceneEmpty object="arquivo" /></DrawOn>`.
+
+As cenas prontas, os objetos do `SceneEmpty`, a receita para desenhar uma nova, onde ela mora
+(no app ou aqui) e a cena em movimento: [docs/ilustracao.md](docs/ilustracao.md).
 
 ### Tabela
 
@@ -244,6 +262,9 @@ marque. `Badge` em célula não corta o rótulo.
   mascote marinho no fundo claro, marinho com o mascote limão no escuro. O chat é `ChatBubble`
   (com `mood`) sobre `DuDooWall`. Expressões, cores, ilustração e voz em
   [docs/marca.md](docs/marca.md); a bancada é o ateliê (`/dudoo.html` na cozinha).
+- **Movimento:** segue a intensidade da voz (Trabalho rápido, Festa com mola, Sério parado). Só
+  os olhos do DuDoo mexem; a cena se desenha uma vez e para; com movimento reduzido, reduz sem
+  congelar. Regras em [docs/marca.md](docs/marca.md#movimento).
 - **Marca:** `<Logo variant="type" | "mark" />` escolhe sozinha o desenho normal ou o inverso
   pelo fundo (tema escuro, `.dd-inverse`, `.dd-accent`). Sobre cor da paleta ou foto, diga o
   fundo com `on="dark" | "light"`.

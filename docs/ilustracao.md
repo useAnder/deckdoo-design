@@ -114,6 +114,7 @@ mexer no desenho.
 - [ ] Sem gente desenhada, sem texto dentro da cena.
 - [ ] `label` dizendo o que a cena mostra.
 - [ ] Título e texto na voz da marca.
+- [ ] Vista se desenhando no ateliê: a ordem do código é a do desenho.
 
 ## 4. Onde a cena mora
 
@@ -129,3 +130,39 @@ mexer no desenho.
 
 Para pedir uma cena aqui, diga a tela, o momento (vazio, espera, marco), o texto que vai junto e
 se a ação é do DuDoo.
+
+## 5. Em movimento
+
+A cena se desenha quando aparece na tela: envolva com o `DrawOn`.
+
+```tsx
+import { DrawOn, EmptyState, SceneDone } from "@deckdoo/design";
+
+<EmptyState
+  art={
+    <DrawOn>
+      <SceneDone />
+    </DrawOn>
+  }
+  title="Pronto: 12 slides"
+>
+  Quer revisar o roteiro antes de exportar?
+</EmptyState>;
+```
+
+Nada muda no desenho: o `DrawOn` lê o SVG e dá a cada peça o seu papel, na ordem do código. O
+traço sai da ponta da caneta, o papel do cartão acende com o contorno, a mancha cai depois do
+traço, o brilho e o ponto saltam, e o DuDoo pousa por último e só então faz a cara da cena. Por
+isso a ordem do código importa: desenhe o objeto antes dos enfeites.
+
+Dois grupos mudam o tempo de uma parte:
+
+| Grupo                      | Para                                                           |
+| -------------------------- | -------------------------------------------------------------- |
+| `<g data-dd-draw="dudoo">` | A reação dele (os risquinhos): se desenha depois que ele pousa |
+| `<g data-dd-draw="loop">`  | A espera: se desenha, assenta, apaga e recomeça                |
+
+- **No Sério, parada:** `<DrawOn still>`. O `SceneLocked` aparece pronto.
+- **`replay`** desenha de novo quando o número muda (ao mostrar o estado vazio outra vez, por
+  exemplo).
+- **Movimento reduzido** já vem do sistema: a cena aparece pronta, sem fazer nada.

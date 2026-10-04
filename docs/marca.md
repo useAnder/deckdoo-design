@@ -136,6 +136,58 @@ espera, marco.
 As cenas prontas, a receita para desenhar uma nova e onde cada cena mora estão em
 [ilustracao.md](ilustracao.md).
 
+## Movimento
+
+O movimento é a voz em outro meio: segue as mesmas intensidades. A personalidade se mexe no
+DuDoo e no rabisco; a interface (botão, campo, aba) se mexe pouco e neutra. A bancada é o ateliê
+(`/dudoo.html`): Movimento, Rabiscos e Cenas.
+
+| Intensidade | Ritmo                                                           |
+| ----------- | --------------------------------------------------------------- |
+| Trabalho    | Rápido (240 ms) e para no ponto                                 |
+| Neutro      | Calmo (340 ms)                                                  |
+| Festa       | Com mola (560 ms): passa do ponto e volta, e o olho dá um salto |
+| Sério       | Nada se mexe: a cena aparece pronta, e o DuDoo não está lá      |
+
+### O DuDoo em movimento
+
+- **Só os olhos mexem, também aqui.** O corpo não estica nem quica. A única exceção é a chegada
+  numa cena: ele gira e anda, inteiro.
+- **O olhar chega primeiro, a pálpebra vem atrás.** É quem vira o olho antes de mudar de cara.
+- **Olho fechado nasce da fresta.** Para virar "^" ou "‿", a pálpebra fecha até a fresta e só
+  então vira curva: a troca é uma piscada.
+- **Parado, ele vive.** Pisca de vez em quando, e cada expressão tem o seu jeito: no `pensando`
+  a pupila salta de um ponto a outro, no `de-canto` ele dá a segunda olhada, no `feliz` o "^" ri,
+  no `dormindo` o olho respira.
+- **A piscadinha é um gesto:** fecha e já reabre. Só fica fechada onde ela é desenho parado (a
+  fala antiga do chat).
+- **Olha antes de falar.** No chat, o olhar vai até a sua fala antes de a resposta aparecer.
+- **Um rosto vivo por vez.** Só o rosto da última fala pisca e olha em volta; os de cima param
+  na expressão do que disseram.
+- **Espiando,** ele sobe de trás do cartão até os olhos passarem da borda e olha para o que
+  sugere; com o mouse num botão, o olhar vai até ele.
+
+No código: `useDuDooMotion(mood)` devolve a expressão quadro a quadro para o `DuDoo`, o
+`DuDooFace` ou o `ChatBubble`.
+
+### O rabisco em movimento
+
+- **Desenha uma vez e para,** na ordem de quem desenha: o objeto, os enfeites, a cor cai quando o
+  traço acaba (deslizando até o registro), o brilho salta por último.
+- **A mão tem ritmo:** linha longa demora mais, linhas de texto vêm uma de cada vez, e o traço do
+  desenho inteiro fica entre 0,6 e 1,6 s. Peça sozinha não acaba num piscar.
+- **O DuDoo pousa por último,** como a coruja: vem de baixo e da esquerda, inclinado, num arco
+  que gira até o prumo. Só então faz a cara da cena, e a reação dele (os risquinhos) vem depois.
+- **Loop só na espera** (`SceneGenerating`): o slide se monta, assenta, apaga e recomeça.
+
+No código: `<DrawOn>` em volta da cena (ver [ilustracao.md](ilustracao.md#5-em-movimento)).
+
+### Movimento reduzido
+
+Reduz, não congela. Com `prefers-reduced-motion`, o DuDoo troca de expressão curto e sem mola e
+continua piscando; sai o que mexe sem parar (o olhar solto, a respiração, o riso). As cenas
+aparecem prontas.
+
 ## Tom de voz
 
 A voz se resume na assinatura **"DeckDoo It!"**: fazer, sem rodeio.
