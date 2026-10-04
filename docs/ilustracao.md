@@ -43,11 +43,54 @@ está acontecendo e o que fazer, sem "Ops!".
 | `<SceneNoResults />` | Busca ou filtro sem resultado                | Não                       |
 | `<SceneAllClear />`  | Lista em dia, nenhuma pendência              | Não                       |
 | `<SceneLocked />`    | Sem acesso (Sério: sem cor, sem brilho)      | Não                       |
-| `<SceneGenerating />`| Esperando o DuDoo gerar                      | Pensando                  |
-| `<SceneDone />`      | Pronto, marco alcançado                      | Piscando                  |
+| `<SceneGenerating />`| Esperando o DuDoo gerar; `object` diz o quê  | Pensando                  |
+| `<SceneDone />`      | Pronto, marco alcançado; `object` diz o quê  | Piscando                  |
 
-Os objetos do `SceneEmpty`: `slide`, `arquivo`, `pasta`, `lista` (clientes, pedidos, pessoas),
-`grafico` (relatório, painel) e `mensagem` (conversa, comentário).
+O `object` vale nas três cenas que têm objeto: o que falta (`SceneEmpty`), o que o DuDoo está
+montando (`SceneGenerating`, padrão `slide`) e o que ficou pronto (`SceneDone`, padrão o cartão
+com o visto; com `object`, o objeto pronto com o selo).
+
+| `object`     | O que é                                  | Apps            |
+| ------------ | ---------------------------------------- | --------------- |
+| `slide`      | O slide, com o "+"                       | Slides          |
+| `arquivo`    | A página de texto                        | Todos           |
+| `pasta`      | A pasta                                  | Todos           |
+| `lista`      | Clientes, pedidos, pessoas               | Todos, CRM      |
+| `grafico`    | Relatório, painel                        | Todos, CRM      |
+| `mensagem`   | Conversa, comentário, resposta           | Todos, CRM      |
+| `site`       | A janela do navegador com a página       | Pages           |
+| `post`       | O post: a imagem, a curtida, a legenda   | Marketing       |
+| `carrossel`  | O card da frente entre dois, e as bolinhas | Marketing     |
+| `calendario` | O mês: planejamento, agenda, tarefas     | Marketing e CRM |
+| `funil`      | O funil de vendas, com as etapas         | CRM             |
+
+Na espera e no pronto, a cor entra no trabalho: a imagem do post, os dias com post no
+calendário, o marca-texto na conversa, a barra que se destaca no gráfico.
+
+### Por app
+
+| App       | Tela                         | Cena                                     | Texto                                                |
+| --------- | ---------------------------- | ---------------------------------------- | ---------------------------------------------------- |
+| Pages     | Nenhum site ainda            | `<SceneEmpty object="site" dudoo />`     | "Me conta do seu negócio que eu monto a primeira página." |
+| Pages     | Criando o site               | `<SceneGenerating object="site" />`      | "Montando as seções… agora as imagens."              |
+| Pages     | Site pronto                  | `<SceneDone object="site" />`            | "Pronto: 5 seções. Quer revisar os textos antes de publicar?" |
+| Marketing | Nenhum post ainda            | `<SceneEmpty object="post" dudoo />`     | "Me diga o assunto que eu escrevo os primeiros posts." |
+| Marketing | Criando os posts             | `<SceneGenerating object="post" />`      | "Escrevendo as legendas… agora as imagens."          |
+| Marketing | Criando o carrossel          | `<SceneGenerating object="carrossel" />` | "Dividindo a ideia em 6 cards… agora a capa."        |
+| Marketing | Fazendo o planejamento       | `<SceneGenerating object="calendario" />`| "Distribuindo 12 posts no mês… agora os horários."   |
+| Marketing | Planejamento pronto          | `<SceneDone object="calendario" />`      | "Pronto: 12 posts no mês."                           |
+| Marketing | Nenhum post agendado         | `<SceneEmpty object="calendario" />`     | "Quando você agendar um post, ele aparece no dia dele." |
+| CRM       | Nenhum negócio no funil      | `<SceneEmpty object="funil" />`          | "Quando você criar um negócio, ele entra na primeira etapa." |
+| CRM       | Nenhum cliente ainda         | `<SceneEmpty object="lista" />`          | "Importe uma planilha ou cadastre o primeiro."       |
+| CRM       | Nenhuma tarefa ainda         | `<SceneEmpty object="calendario" />`     | "Crie uma tarefa para lembrar de ligar…"             |
+| CRM       | Nenhuma tarefa para hoje     | `<SceneAllClear />`                      | "Tudo em dia. A próxima é amanhã às 9h."             |
+| CRM       | Resumindo a conversa         | `<SceneGenerating object="mensagem" />`  | "Lendo as 14 mensagens… agora os próximos passos."   |
+| CRM       | Analisando o funil           | `<SceneGenerating object="funil" />`     | "Olhando os 32 negócios abertos… agora os parados."  |
+| CRM       | Montando o relatório         | `<SceneGenerating object="grafico" />`   | "Analisando o trimestre… agora a margem por mês."    |
+
+O vazio leva o DuDoo só quando o botão é dele ("Criar com IA", "Gerar com IA"); "Agendar
+post", "Novo negócio" e "Nova tarefa" são da interface, e a cena vai sem ele. No CRM, negócio
+fechado e valor são dinheiro (Sério): sem `SceneDone`, sem festa.
 
 A mancha de cor é o acento do app. Para a cor do assunto, `color`:
 `<SceneNoResults color={BRAND.cyan} />`. Uma cor da paleta por cena.
@@ -120,7 +163,8 @@ mexer no desenho.
 
 - **No pacote:** as cenas que todo app usa (as da tabela acima). Mudou o desenho, mudou em
   todos os apps na próxima versão.
-- **No app:** a cena que só faz sentido nele ("nenhum pedido" no CRM). O app desenha com as
+- **No app:** a cena que só faz sentido nele ("nenhum pedido" no CRM, o `SceneNoOrders` do
+  ateliê). O app desenha com as
   peças e a receita acima, sem esperar ninguém.
 - **Cena com o DuDoo** se faz aqui, no ateliê, mesmo que seja de um app só. Ele é o personagem
   da suíte inteira, e é o que mais desanda feito às pressas.
