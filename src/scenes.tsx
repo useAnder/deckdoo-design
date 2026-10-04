@@ -150,30 +150,516 @@ export function SceneDuDoo({
 
 /* ——— Os objetos do estado vazio ——— */
 
-/** O que falta na tela vazia: "Nenhum arquivo ainda" é `"arquivo"`. */
-export type SceneObject = "slide" | "arquivo" | "pasta" | "lista" | "grafico" | "mensagem";
+/**
+ * O objeto da cena: o que falta na tela vazia ("Nenhum arquivo ainda" é `"arquivo"`), o que o
+ * DuDoo está montando (`SceneGenerating`) e o que ficou pronto (`SceneDone`).
+ *
+ * Da suíte toda: `slide`, `arquivo`, `pasta`, `lista`, `grafico`, `mensagem`. Do site (Pages):
+ * `site`. Das redes (Marketing): `post`, `carrossel`. Do planejamento e da agenda (Marketing e
+ * CRM): `calendario`. Do funil de vendas (CRM): `funil`.
+ */
+export type SceneObject =
+  | "slide"
+  | "arquivo"
+  | "pasta"
+  | "lista"
+  | "grafico"
+  | "mensagem"
+  | "site"
+  | "post"
+  | "carrossel"
+  | "calendario"
+  | "funil";
 
-const PORTRAIT: SceneObject[] = ["arquivo"];
+/** Largura e altura de cada objeto; o que não está aqui é paisagem, 112 × 78. */
+const SIZE: Partial<Record<SceneObject, [number, number]>> = {
+  arquivo: [82, 104],
+  post: [84, 100],
+  calendario: [104, 88],
+  funil: [112, 84],
+};
+const sizeOf = (kind: SceneObject) => SIZE[kind] ?? [112, 78];
+
+/** A caixa da mancha atrás do objeto: deslocada dele, e só onde ele tem corpo (o funil afina). */
+function blobBox(kind: SceneObject, x: number, y: number, w: number, h: number) {
+  if (kind === "funil") return [x + 12, y + 8, w - 8, h * 0.6] as const;
+  // Só atrás dos cards: as bolinhas ficam no papel.
+  if (kind === "carrossel") return [x + 10, y + 12, w, h * 0.72] as const;
+  return [x + 10, y + 9, w, h] as const;
+}
 
 /** Empolgado, olhando para o objeto em cima, à direita. */
 const LOOKING_UP = dudooExpression({ look: [0.9, -0.55], pupil: 0.8, both: { size: 1.1 } });
 
-function ObjectArt({
-  s,
-  kind,
-  x,
-  y,
-  w,
-  h,
-}: {
+/**
+ * O trabalho no objeto: a cor dele (a mancha que entra) e se está se fazendo (`loop`, a espera)
+ * ou pronto. Sem trabalho, o objeto é o do estado vazio.
+ */
+interface Work {
+  color: string;
+  loop: boolean;
+}
+
+interface ObjectProps {
   s: Sketch;
   kind: SceneObject;
   x: number;
   y: number;
   w: number;
   h: number;
-}) {
-  const fill = "var(--dd-surface)";
+  work?: Work;
+}
+
+/** O trabalho entrando no objeto: em loop na espera, parado no pronto. */
+function Doing({ work, children }: { work: Work; children: ReactNode }) {
+  return work.loop ? <g data-dd-draw="loop">{children}</g> : <>{children}</>;
+}
+
+/** O coração da curtida, à mão: fecha passando um tico do ponto. Para traço. */
+function heart(cx: number, cy: number, r: number) {
+  return `M${cx},${cy + r}C${cx - r * 1.9},${cy - r * 0.1} ${cx - r * 0.9},${cy - r * 1.6} ${cx},${cy - r * 0.45}C${cx + r * 0.9},${cy - r * 1.6} ${cx + r * 1.9},${cy - r * 0.1} ${cx + r * 0.25},${cy + r * 1.1}`;
+}
+
+/* As folhas dos objetos que não são cartão: papel e contorno, na ordem em que a mão desenha. */
+
+function filePaper(s: Sketch, x: number, y: number, w: number, h: number) {
+  const k = 16;
+  const outline: [number, number][] = [
+    [x, y],
+    [x + w - k, y],
+    [x + w, y + k],
+    [x + w, y + h],
+    [x, y + h],
+    [x, y - 1],
+  ];
+  return (
+    <>
+      <path d={`M${outline.map((p) => p.join(",")).join("L")}Z`} fill="var(--dd-surface)" />
+      <SceneLine d={s.poly(outline)} />
+      <SceneLine
+        d={s.poly([
+          [x + w - k, y],
+          [x + w - k, y + k],
+          [x + w, y + k],
+        ])}
+      />
+    </>
+  );
+}
+
+function folderPaper(s: Sketch, x: number, y: number, w: number, h: number) {
+  const tab: [number, number][] = [
+    [x, y + 12],
+    [x, y],
+    [x + w * 0.36, y],
+    [x + w * 0.44, y + 12],
+  ];
+  return (
+    <>
+      <path
+        d={`M${x},${y}h${w * 0.36}l${w * 0.08},12h${w * 0.56}v${h - 12}h${-w}Z`}
+        fill="var(--dd-surface)"
+      />
+      <SceneLine d={s.poly(tab)} />
+      <SceneLine d={s.rect(x, y + 12, w, h - 12, 6)} />
+    </>
+  );
+}
+
+function bubblePaper(s: Sketch, x: number, y: number, w: number, h: number) {
+  return (
+    <>
+      <rect x={x + 1} y={y + 1} width={w - 2} height={h - 14} rx={7} fill="var(--dd-surface)" />
+      <SceneLine d={s.rect(x, y, w, h - 14, 10)} />
+      <SceneLine
+        d={s.poly([
+          [x + 22, y + h - 14],
+          [x + 18, y + h],
+          [x + 38, y + h - 14],
+        ])}
+      />
+    </>
+  );
+}
+
+/** O site: a janela do navegador (a barra e as três bolinhas) com a página dentro. */
+function SiteArt({ s, x, y, w, h, work }: ObjectProps) {
+  const bar = y + 16;
+  const img = { x: x + w - 42, y: bar + 11, w: 28, h: h - 38 };
+  const page = (
+    <>
+      {work && <path d={s.blob(img.x + 3, img.y + 3, img.w - 6, img.h - 6, 5)} fill={work.color} />}
+      <SceneLine d={s.rect(img.x, img.y, img.w, img.h, 5)} width={2} />
+      <SceneLine d={s.line([x + 14, bar + 17], [x + w * 0.56, bar + 17])} width={3} />
+      <SceneLine d={s.line([x + 14, bar + 28], [x + w * 0.46, bar + 28])} width={2} />
+      <SceneLine d={s.rect(x + 14, bar + 38, 30, 12, 6)} width={2} />
+    </>
+  );
+  return (
+    <SceneCard s={s} x={x} y={y} w={w} h={h}>
+      <SceneLine d={s.line([x, bar], [x + w, bar])} width={2} />
+      {[0, 1, 2].map((i) => (
+        <circle key={i} cx={x + 11 + i * 8} cy={y + 8.5} r={2.2} fill={INK} />
+      ))}
+      {work ? <Doing work={work}>{page}</Doing> : page}
+    </SceneCard>
+  );
+}
+
+/** O post: a imagem (o sol e o morro), a curtida e a legenda. */
+function PostArt({ s, x, y, w, h, work }: ObjectProps) {
+  const f = { x: x + 8, y: y + 8, w: w - 16, h: h * 0.54 };
+  const base = f.y + f.h;
+  const [like, caption] = [y + h * 0.75, y + h * 0.87];
+  const post = (
+    <>
+      {work && <path d={s.blob(f.x + 3, f.y + 3, f.w - 6, f.h - 6, 5)} fill={work.color} />}
+      <SceneLine d={s.rect(f.x, f.y, f.w, f.h, 5)} width={2} />
+      <SceneLine d={s.circle(f.x + f.w - 13, f.y + 13, 5)} width={2} />
+      <SceneLine
+        d={s.poly([
+          [f.x + 4, base - 5],
+          [f.x + f.w * 0.32, f.y + f.h * 0.45],
+          [f.x + f.w * 0.54, f.y + f.h * 0.72],
+          [f.x + f.w * 0.7, f.y + f.h * 0.56],
+          [f.x + f.w - 4, base - 6],
+        ])}
+        width={2}
+      />
+      <SceneLine d={heart(x + 15, like, 4.5)} width={2} />
+      <SceneLine
+        d={s.lines(
+          [
+            [x + 27, like],
+            [x + w - 12, like],
+          ],
+          [
+            [x + 11, caption],
+            [x + w - 28, caption],
+          ],
+        )}
+        width={2}
+      />
+    </>
+  );
+  return (
+    <SceneCard s={s} x={x} y={y} w={w} h={h}>
+      {work ? <Doing work={work}>{post}</Doing> : post}
+    </SceneCard>
+  );
+}
+
+/** O carrossel: o card da frente entre os dois vizinhos, e as bolinhas de onde você está. */
+function CarouselArt({ s, x, y, w, h, work }: ObjectProps) {
+  const side = Math.round(h * 0.6);
+  const c = Math.round(h * 0.8);
+  const fx = x + (w - c) / 2;
+  const dots = y + h - 4;
+  const mid = x + w / 2;
+  const front = (
+    <>
+      {work && <path d={s.blob(fx + 7, y + 9, c - 20, 14, 4)} fill={work.color} />}
+      <SceneLine d={s.line([fx + 10, y + 16], [fx + c - 16, y + 16])} width={3} />
+      <SceneLine
+        d={s.lines(
+          [
+            [fx + 10, y + 31],
+            [fx + c - 10, y + 31],
+          ],
+          [
+            [fx + 10, y + 42],
+            [fx + c - 24, y + 42],
+          ],
+        )}
+        width={2}
+      />
+    </>
+  );
+  const next = (
+    <SceneLine d={`${s.circle(mid, dots, 2.4)}${s.circle(mid + 9, dots, 2.4)}`} width={1.8} />
+  );
+  return (
+    <g>
+      <SceneCard s={s} x={x} y={y + (c - side) / 2} w={side} h={side} rot={-5} />
+      <SceneCard s={s} x={x + w - side} y={y + (c - side) / 2} w={side} h={side} rot={5} />
+      <SceneCard s={s} x={fx} y={y} w={c} h={c}>
+        {work ? <Doing work={work}>{front}</Doing> : front}
+      </SceneCard>
+      <circle cx={mid - 9} cy={dots} r={2.6} fill={INK} />
+      {work ? <Doing work={work}>{next}</Doing> : next}
+    </g>
+  );
+}
+
+/**
+ * O calendário: as argolas, o cabeçalho e a grade da semana. Com trabalho, os dias ganham post
+ * (a cor e a linha): o planejamento, a agenda.
+ */
+function CalendarArt({ s, x, y, w, h, work }: ObjectProps) {
+  const top = y + 22;
+  const cw = w / 4;
+  const ch = (h - 22) / 3;
+  const days: [number, number][] = [
+    [0, 0],
+    [2, 0],
+    [1, 1],
+    [3, 1],
+    [2, 2],
+  ];
+  return (
+    <SceneCard s={s} x={x} y={y} w={w} h={h}>
+      <SceneLine
+        d={s.lines(
+          [
+            [x + 24, y - 7],
+            [x + 24, y + 9],
+          ],
+          [
+            [x + w - 24, y - 7],
+            [x + w - 24, y + 9],
+          ],
+        )}
+        width={3}
+      />
+      <SceneLine d={s.line([x, top], [x + w, top])} width={2} />
+      <SceneLine
+        d={s.lines(
+          [
+            [x + 4, top + ch],
+            [x + w - 4, top + ch],
+          ],
+          [
+            [x + 4, top + 2 * ch],
+            [x + w - 4, top + 2 * ch],
+          ],
+          ...[1, 2, 3].map((i): [[number, number], [number, number]] => [
+            [x + i * cw, top + 4],
+            [x + i * cw, y + h - 4],
+          ]),
+        )}
+        width={2}
+      />
+      {work && (
+        <Doing work={work}>
+          {days.map(([c, r]) => (
+            <path
+              key={`${c}${r}`}
+              d={s.blob(x + c * cw + 4, top + r * ch + 4, cw - 8, ch - 8, 4)}
+              fill={work.color}
+            />
+          ))}
+          <SceneLine
+            d={s.lines(
+              ...days.map(([c, r]): [[number, number], [number, number]] => [
+                [x + c * cw + 7, top + r * ch + ch / 2],
+                [x + c * cw + cw - 8, top + r * ch + ch / 2],
+              ]),
+            )}
+            width={2}
+          />
+        </Doing>
+      )}
+    </SceneCard>
+  );
+}
+
+/**
+ * O funil de vendas: a boca larga, as etapas e o bico. Com trabalho, os contatos entram por cima
+ * e o negócio sai por baixo.
+ */
+function FunnelArt({ s, x, y, w, h, work }: ObjectProps) {
+  const neck = w * 0.12;
+  const mid = x + w / 2;
+  const cone = y + h * 0.62;
+  const outline: [number, number][] = [
+    [x, y],
+    [x + w, y],
+    [mid + neck, cone],
+    [mid + neck, y + h],
+    [mid - neck, y + h],
+    [mid - neck, cone],
+    [x, y - 1],
+  ];
+  /** A largura do funil numa altura: `f` de 0 (a boca) a 1 (o começo do bico). */
+  const band = (f: number): [[number, number], [number, number]] => {
+    const half = w / 2 - f * (w / 2 - neck);
+    const by = y + f * (cone - y);
+    return [
+      [mid - half + 4, by],
+      [mid + half - 4, by],
+    ];
+  };
+  return (
+    <g>
+      <path d={`M${outline.map((p) => p.join(",")).join("L")}Z`} fill="var(--dd-surface)" />
+      <SceneLine d={s.poly(outline)} />
+      <SceneLine d={s.lines(band(0.34), band(0.68))} width={2} />
+      {work && (
+        <Doing work={work}>
+          <path
+            d={s.blob(x + w * 0.17, y + 5, w * 0.66, (cone - y) * 0.34 - 9, 5)}
+            fill={work.color}
+          />
+          <SceneLine
+            d={`${s.circle(mid - 24, y - 13, 4)}${s.circle(mid + 2, y - 21, 4)}${s.circle(mid + 26, y - 11, 4)}`}
+            width={2}
+          />
+          <SceneLine d={s.circle(mid, y + h + 10, 4)} width={2} />
+        </Doing>
+      )}
+    </g>
+  );
+}
+
+/** Os objetos de sempre com trabalho: a cor entra como marca-texto, gráfico, rótulo. */
+function ClassicWork({ s, kind, x, y, w, h, work }: ObjectProps & { work: Work }) {
+  /** O marca-texto atrás de uma linha de texto. */
+  const mark = (x1: number, ly: number, len: number) => (
+    <path d={s.blob(x1 - 4, ly - 6, len + 8, 12, 4)} fill={work.color} />
+  );
+  switch (kind) {
+    case "slide":
+      return (
+        <SceneCard s={s} x={x} y={y} w={w} h={h}>
+          <Doing work={work}>
+            <path d={s.blob(x + 16, y + h - 34, w * 0.34, 15, 4)} fill={work.color} />
+            <SceneLine
+              d={s.lines(
+                [
+                  [x + 14, y + 18],
+                  [x + w * 0.5, y + 18],
+                ],
+                [
+                  [x + 14, y + 30],
+                  [x + w * 0.66, y + 30],
+                ],
+                [
+                  [x + 14, y + h - 26],
+                  [x + w - 16, y + h - 26],
+                ],
+              )}
+              width={2}
+            />
+          </Doing>
+        </SceneCard>
+      );
+    case "arquivo":
+      return (
+        <g>
+          {filePaper(s, x, y, w, h)}
+          <Doing work={work}>
+            {mark(x + 14, y + 34, w - 36)}
+            <SceneLine
+              d={s.lines(
+                [
+                  [x + 14, y + 34],
+                  [x + w - 22, y + 34],
+                ],
+                [
+                  [x + 14, y + 46],
+                  [x + w - 14, y + 46],
+                ],
+                [
+                  [x + 14, y + 58],
+                  [x + w - 34, y + 58],
+                ],
+              )}
+              width={2}
+            />
+          </Doing>
+        </g>
+      );
+    case "pasta":
+      return (
+        <g>
+          {folderPaper(s, x, y, w, h)}
+          <Doing work={work}>
+            <path d={s.blob(x + w * 0.3, y + h * 0.42, w * 0.4, 20, 5)} fill={work.color} />
+            <SceneLine
+              d={s.line([x + w * 0.36, y + h * 0.42 + 10], [x + w * 0.62, y + h * 0.42 + 10])}
+              width={2}
+            />
+          </Doing>
+        </g>
+      );
+    case "lista":
+      return (
+        <SceneCard s={s} x={x} y={y} w={w} h={h}>
+          <Doing work={work}>
+            {mark(x + 32, y + 18, w - 50)}
+            {[0, 1, 2].map((i) => {
+              const ry = y + 18 + i * ((h - 30) / 2);
+              return (
+                <g key={i}>
+                  <SceneLine d={s.circle(x + 18, ry, 5)} width={2} />
+                  <SceneLine d={s.line([x + 32, ry], [x + w - 18 - (i % 2) * 22, ry])} width={2} />
+                </g>
+              );
+            })}
+          </Doing>
+        </SceneCard>
+      );
+    case "grafico": {
+      const bars = [0.45, 0.7, 0.3, 0.85].map((v, i): [[number, number], [number, number]] => {
+        const bx = x + 22 + i * ((w - 44) / 3);
+        return [
+          [bx, y + h - 14],
+          [bx, y + h - 14 - v * (h - 30)],
+        ];
+      });
+      return (
+        <SceneCard s={s} x={x} y={y} w={w} h={h}>
+          <SceneLine d={s.line([x + 12, y + h - 14], [x + w - 12, y + h - 14])} width={2} />
+          <Doing work={work}>
+            <SceneLine d={s.lines(...bars.slice(0, 3))} width={6} />
+            <SceneLine d={s.line(...bars[3]!)} width={6} color={work.color} />
+          </Doing>
+        </SceneCard>
+      );
+    }
+    case "mensagem":
+      return (
+        <g>
+          {bubblePaper(s, x, y, w, h)}
+          <Doing work={work}>
+            {mark(x + 16, y + 22, w - 38)}
+            <SceneLine
+              d={s.lines(
+                [
+                  [x + 16, y + 22],
+                  [x + w - 22, y + 22],
+                ],
+                [
+                  [x + 16, y + 36],
+                  [x + w - 40, y + 36],
+                ],
+              )}
+              width={2}
+            />
+          </Doing>
+        </g>
+      );
+    default:
+      // Os objetos novos desenham o próprio trabalho (`ObjectArt`).
+      return null;
+  }
+}
+
+function ObjectArt(props: ObjectProps) {
+  const { s, kind, x, y, w, h, work } = props;
+  switch (kind) {
+    case "site":
+      return <SiteArt {...props} />;
+    case "post":
+      return <PostArt {...props} />;
+    case "carrossel":
+      return <CarouselArt {...props} />;
+    case "calendario":
+      return <CalendarArt {...props} />;
+    case "funil":
+      return <FunnelArt {...props} />;
+  }
+  if (work) return <ClassicWork {...props} work={work} />;
   switch (kind) {
     case "slide":
       return (
@@ -193,27 +679,10 @@ function ObjectArt({
           />
         </SceneCard>
       );
-    case "arquivo": {
-      const k = 16;
-      const outline: [number, number][] = [
-        [x, y],
-        [x + w - k, y],
-        [x + w, y + k],
-        [x + w, y + h],
-        [x, y + h],
-        [x, y - 1],
-      ];
+    case "arquivo":
       return (
         <g>
-          <path d={`M${outline.map((p) => p.join(",")).join("L")}Z`} fill={fill} />
-          <SceneLine d={s.poly(outline)} />
-          <SceneLine
-            d={s.poly([
-              [x + w - k, y],
-              [x + w - k, y + k],
-              [x + w, y + k],
-            ])}
-          />
+          {filePaper(s, x, y, w, h)}
           <SceneLine
             d={s.lines(
               [
@@ -233,25 +702,8 @@ function ObjectArt({
           />
         </g>
       );
-    }
-    case "pasta": {
-      const tab: [number, number][] = [
-        [x, y + 12],
-        [x, y],
-        [x + w * 0.36, y],
-        [x + w * 0.44, y + 12],
-      ];
-      return (
-        <g>
-          <path
-            d={`M${x},${y}h${w * 0.36}l${w * 0.08},12h${w * 0.56}v${h - 12}h${-w}Z`}
-            fill={fill}
-          />
-          <SceneLine d={s.poly(tab)} />
-          <SceneLine d={s.rect(x, y + 12, w, h - 12, 6)} />
-        </g>
-      );
-    }
+    case "pasta":
+      return <g>{folderPaper(s, x, y, w, h)}</g>;
     case "lista":
       return (
         <SceneCard s={s} x={x} y={y} w={w} h={h}>
@@ -287,15 +739,7 @@ function ObjectArt({
     case "mensagem":
       return (
         <g>
-          <rect x={x + 1} y={y + 1} width={w - 2} height={h - 14} rx={7} fill={fill} />
-          <SceneLine d={s.rect(x, y, w, h - 14, 10)} />
-          <SceneLine
-            d={s.poly([
-              [x + 22, y + h - 14],
-              [x + 18, y + h],
-              [x + 38, y + h - 14],
-            ])}
-          />
+          {bubblePaper(s, x, y, w, h)}
           <SceneLine
             d={s.lines(
               [
@@ -332,9 +776,7 @@ export function SceneEmpty({
   color = ACCENT,
   label,
 }: SceneProps & { object?: SceneObject; dudoo?: boolean; label?: string }) {
-  const portrait = PORTRAIT.includes(object);
-  const w = portrait ? 82 : 112;
-  const h = portrait ? 104 : 78;
+  const [w, h] = sizeOf(object);
   const [ocx, ocy] = dudoo ? [170, 72] : [130, 84];
   const x = ocx - w / 2;
   const y = ocy - h / 2;
@@ -344,7 +786,7 @@ export function SceneEmpty({
       {(s) => (
         <>
           <path
-            d={s.blob(x + 10, y + 9, w, h)}
+            d={s.blob(...blobBox(object, x, y, w, h))}
             fill={color}
             transform={`rotate(-3 ${ocx} ${ocy})`}
           />
@@ -374,8 +816,43 @@ export function SceneEmpty({
   );
 }
 
-/** Gerando: o DuDoo pensa e o laço monta os slides. Para a espera de uma ação dele. */
-export function SceneGenerating({ color = ACCENT }: SceneProps) {
+/** O que o DuDoo monta, para o leitor de tela: enquanto "o site se monta", com "o site pronto". */
+const WORK_LABEL: Record<SceneObject, { making: string; done: string }> = {
+  slide: { making: "os slides se montam", done: "os slides prontos" },
+  arquivo: { making: "o texto se escreve", done: "o texto pronto" },
+  pasta: { making: "a pasta se organiza", done: "a pasta organizada" },
+  lista: { making: "a lista se organiza", done: "a lista pronta" },
+  grafico: { making: "o relatório se monta", done: "o relatório pronto" },
+  mensagem: { making: "a resposta se escreve", done: "a resposta pronta" },
+  site: { making: "o site se monta", done: "o site pronto" },
+  post: { making: "os posts se montam", done: "os posts prontos" },
+  carrossel: { making: "o carrossel se monta", done: "o carrossel pronto" },
+  calendario: { making: "o planejamento se monta", done: "o planejamento pronto" },
+  funil: { making: "o funil se organiza", done: "o funil organizado" },
+};
+
+/** Quantas cópias atrás do objeto que se monta: os posts são vários, o funil é um só. */
+const STACK: Partial<Record<SceneObject, number>> = {
+  arquivo: 2,
+  post: 2,
+  site: 1,
+  lista: 1,
+  grafico: 1,
+};
+
+/** O pensamento: sai da cabeça do DuDoo e vira laço até o que se monta. */
+const THOUGHT = `M84,70c6-26,18-36,32-30${curl(116, 40, 1, 1).replace(/^M[^c]+/, "")}`;
+
+/**
+ * Gerando: o DuDoo pensa e o laço monta o trabalho. Para a espera de uma ação dele. `object`
+ * diz o que se monta (padrão: os slides): `"site"` é "Criando o site", `"calendario"` é "Fazendo
+ * o planejamento".
+ */
+export function SceneGenerating({
+  object = "slide",
+  color = ACCENT,
+}: SceneProps & { object?: SceneObject }) {
+  if (object !== "slide") return <GeneratingObject object={object} color={color} />;
   return (
     <Scene seed={23} label="O DuDoo pensando enquanto os slides se montam">
       {(s) => (
@@ -407,7 +884,7 @@ export function SceneGenerating({ color = ACCENT }: SceneProps) {
             </g>
           </SceneCard>
           {/* Sai da cabeça dele e vira laço até os slides. */}
-          <SceneLine d={`M84,70c6-26,18-36,32-30${curl(116, 40, 1, 1).replace(/^M[^c]+/, "")}`} />
+          <SceneLine d={THOUGHT} />
           <SceneDuDoo x={22} y={78} size={92} mood="pensando" />
         </>
       )}
@@ -415,8 +892,39 @@ export function SceneGenerating({ color = ACCENT }: SceneProps) {
   );
 }
 
-/** Pronto: o DuDoo pisca, inclinado, com o trabalho feito ao lado. Para o marco. */
-export function SceneDone({ color = ACCENT }: SceneProps) {
+function GeneratingObject({ object, color }: { object: SceneObject; color: string }) {
+  const [w, h] = sizeOf(object);
+  // O alto do objeto fica logo abaixo do laço; o mais alto desce.
+  const [ocx, ocy] = [180, 84 + (h - 78) / 2];
+  const x = ocx - w / 2;
+  const y = ocy - h / 2;
+  const stack = STACK[object] ?? 0;
+  return (
+    <Scene seed={23} label={`O DuDoo pensando enquanto ${WORK_LABEL[object].making}`}>
+      {(s) => (
+        <>
+          {Array.from({ length: stack }, (_, i) => stack - i).map((k) => (
+            <SceneCard key={k} s={s} x={x + 12 * k} y={y - 12 * k} w={w} h={h} rot={-6 + 8 * k} />
+          ))}
+          {/* O trabalho se montando: quem anima a cena desenha a parte dele em loop. */}
+          <g transform={`rotate(-6 ${ocx} ${ocy})`}>
+            <ObjectArt s={s} kind={object} x={x} y={y} w={w} h={h} work={{ color, loop: true }} />
+          </g>
+          <SceneLine d={THOUGHT} />
+          <SceneDuDoo x={22} y={78} size={92} mood="pensando" />
+        </>
+      )}
+    </Scene>
+  );
+}
+
+/**
+ * Pronto: o DuDoo pisca, inclinado, com o trabalho feito ao lado. Para o marco. Sem `object`, o
+ * trabalho é o cartão com o visto; com, é o objeto pronto com o selo ("Pronto: 5 seções" é
+ * `"site"`).
+ */
+export function SceneDone({ object, color = ACCENT }: SceneProps & { object?: SceneObject }) {
+  if (object) return <DoneObject object={object} color={color} />;
   return (
     <Scene seed={37} label="O DuDoo piscando ao lado do trabalho pronto">
       {(s) => (
@@ -451,6 +959,60 @@ export function SceneDone({ color = ACCENT }: SceneProps) {
           <path d={sparkle(232, 30, 10)} fill={INK} />
           <path d={sparkle(120, 132, 6)} fill={INK} />
           <path d={sparkle(244, 128, 6)} fill={color} />
+          <SceneDuDoo x={30} y={60} size={98} mood={{ ...DUDOO_MOODS.piscada, lean: -8 }} />
+        </>
+      )}
+    </Scene>
+  );
+}
+
+function DoneObject({ object, color }: { object: SceneObject; color: string }) {
+  const [w, h] = sizeOf(object);
+  const [ocx, ocy] = [180, 82];
+  const x = ocx - w / 2;
+  const y = ocy - h / 2;
+  /** O selo de pronto, no canto de baixo do objeto. */
+  const [bx, by, br] = [x + w - 4, y + h - 2, 14];
+  return (
+    <Scene seed={37} label={`O DuDoo piscando, com ${WORK_LABEL[object].done} ao lado`}>
+      {(s) => (
+        <>
+          <path
+            d={s.blob(...blobBox(object, x, y, w, h))}
+            fill={color}
+            transform={`rotate(6 ${ocx} ${ocy})`}
+          />
+          <g transform={`rotate(4 ${ocx} ${ocy})`}>
+            <ObjectArt s={s} kind={object} x={x} y={y} w={w} h={h} work={{ color, loop: false }} />
+            <circle cx={bx} cy={by} r={br - 1} fill="var(--dd-surface)" />
+            <SceneLine d={s.circle(bx, by, br)} />
+            <SceneLine
+              d={s.poly([
+                [bx - 6, by],
+                [bx - 1.5, by + 4.5],
+                [bx + 6.5, by - 5],
+              ])}
+              width={3}
+            />
+          </g>
+          <SceneLine
+            d={s.lines(
+              [
+                [x - 20, y - 12],
+                [x - 14, y - 20],
+              ],
+              [
+                [x - 6, y - 20],
+                [x - 4, y - 30],
+              ],
+              [
+                [x + 8, y - 12],
+                [x + 16, y - 18],
+              ],
+            )}
+          />
+          <path d={sparkle(x + w + 4, y - 12, 10)} fill={INK} />
+          <path d={sparkle(120, 140, 6)} fill={INK} />
           <SceneDuDoo x={30} y={60} size={98} mood={{ ...DUDOO_MOODS.piscada, lean: -8 }} />
         </>
       )}

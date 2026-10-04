@@ -1133,6 +1133,8 @@ function Scenes() {
 
         <EmptyObjects />
 
+        <ByApp />
+
         <Title order={3} mt={40} mb="xs">
           Desenhada no app
         </Title>
@@ -1358,6 +1360,11 @@ function EmptyObjects() {
     ["lista", "Nenhum cliente ainda"],
     ["grafico", "Nenhum relatório ainda"],
     ["mensagem", "Nenhuma conversa ainda"],
+    ["site", "Nenhum site ainda"],
+    ["post", "Nenhum post ainda"],
+    ["carrossel", "Nenhum carrossel ainda"],
+    ["calendario", "Nenhum post agendado"],
+    ["funil", "Nenhum negócio no funil"],
   ];
   return (
     <>
@@ -1388,6 +1395,187 @@ function EmptyObjects() {
           </Panel>
         ))}
       </SimpleGrid>
+    </>
+  );
+}
+
+/** As cenas de cada app da suíte: o vazio, a espera e o marco de cada tela. */
+function ByApp() {
+  const ai = <Sparkle size={16} weight="fill" />;
+  const apps: { app: string; note: string; scenes: Parameters<typeof SceneShowcase>[0][] }[] = [
+    {
+      app: "Pages",
+      note: "Criação de sites. O vazio já é convite para o DuDoo montar a primeira página.",
+      scenes: [
+        {
+          tone: "festa",
+          dudoo: true,
+          code: '<SceneEmpty object="site" dudoo />',
+          art: <SceneEmpty object="site" dudoo />,
+          title: "Nenhum site ainda",
+          text: "Me conta do seu negócio que eu monto a primeira página.",
+          action: <Button leftSection={ai}>Criar com IA</Button>,
+        },
+        {
+          tone: "trabalho",
+          dudoo: true,
+          code: '<SceneGenerating object="site" />',
+          art: <SceneGenerating object="site" />,
+          title: "Criando o site",
+          text: "Montando as seções… agora as imagens.",
+        },
+        {
+          tone: "festa",
+          dudoo: true,
+          code: '<SceneDone object="site" />',
+          art: <SceneDone object="site" />,
+          title: "Pronto: 5 seções",
+          text: "Quer revisar os textos antes de publicar?",
+          action: <Button>Revisar textos</Button>,
+        },
+      ],
+    },
+    {
+      app: "Marketing",
+      note: "Posts, carrosséis e o planejamento do mês. Agendar é da interface: o calendário vazio vai sem o DuDoo.",
+      scenes: [
+        {
+          tone: "festa",
+          dudoo: true,
+          code: '<SceneEmpty object="post" dudoo />',
+          art: <SceneEmpty object="post" dudoo />,
+          title: "Nenhum post ainda",
+          text: "Me diga o assunto que eu escrevo os primeiros posts.",
+          action: <Button leftSection={ai}>Gerar com IA</Button>,
+        },
+        {
+          tone: "trabalho",
+          dudoo: true,
+          code: '<SceneGenerating object="post" />',
+          art: <SceneGenerating object="post" />,
+          title: "Criando os posts",
+          text: "Escrevendo as legendas… agora as imagens.",
+        },
+        {
+          tone: "trabalho",
+          dudoo: true,
+          code: '<SceneGenerating object="carrossel" />',
+          art: <SceneGenerating object="carrossel" />,
+          title: "Criando o carrossel",
+          text: "Dividindo a ideia em 6 cards… agora a capa.",
+        },
+        {
+          tone: "trabalho",
+          dudoo: true,
+          code: '<SceneGenerating object="calendario" />',
+          art: <SceneGenerating object="calendario" />,
+          title: "Fazendo o planejamento",
+          text: "Distribuindo 12 posts no mês… agora os horários.",
+        },
+        {
+          tone: "festa",
+          dudoo: true,
+          code: '<SceneDone object="calendario" />',
+          art: <SceneDone object="calendario" />,
+          title: "Pronto: 12 posts no mês",
+          text: "Quer revisar a primeira semana antes de agendar?",
+          action: <Button>Revisar a semana</Button>,
+        },
+        {
+          tone: "trabalho",
+          code: '<SceneEmpty object="calendario" />',
+          art: <SceneEmpty object="calendario" />,
+          title: "Nenhum post agendado",
+          text: "Quando você agendar um post, ele aparece no dia dele.",
+          action: <Button variant="default">Agendar post</Button>,
+        },
+      ],
+    },
+    {
+      app: "CRM",
+      note: "Clientes, funil, agenda e conversas. O DuDoo entra para resumir e analisar; o dinheiro do negócio é Sério, sem festa.",
+      scenes: [
+        {
+          tone: "trabalho",
+          code: '<SceneEmpty object="funil" />',
+          art: <SceneEmpty object="funil" />,
+          title: "Nenhum negócio no funil",
+          text: "Quando você criar um negócio, ele entra na primeira etapa.",
+          action: <Button>Novo negócio</Button>,
+        },
+        {
+          tone: "trabalho",
+          code: '<SceneEmpty object="lista" />',
+          art: <SceneEmpty object="lista" />,
+          title: "Nenhum cliente ainda",
+          text: "Importe uma planilha ou cadastre o primeiro.",
+          action: (
+            <Group gap="xs" justify="center">
+              <Button variant="default">Importar planilha</Button>
+              <Button>Novo cliente</Button>
+            </Group>
+          ),
+        },
+        {
+          tone: "trabalho",
+          code: '<SceneEmpty object="calendario" />',
+          art: <SceneEmpty object="calendario" />,
+          title: "Nenhuma tarefa ainda",
+          text: "Crie uma tarefa para lembrar de ligar, enviar a proposta ou cobrar a resposta.",
+          action: <Button variant="default">Nova tarefa</Button>,
+        },
+        {
+          tone: "trabalho",
+          dudoo: true,
+          code: '<SceneGenerating object="mensagem" />',
+          art: <SceneGenerating object="mensagem" />,
+          title: "Resumindo a conversa",
+          text: "Lendo as 14 mensagens… agora os próximos passos.",
+        },
+        {
+          tone: "trabalho",
+          dudoo: true,
+          code: '<SceneGenerating object="funil" />',
+          art: <SceneGenerating object="funil" />,
+          title: "Analisando o funil",
+          text: "Olhando os 32 negócios abertos… agora os que estão parados.",
+        },
+        {
+          tone: "trabalho",
+          dudoo: true,
+          code: '<SceneGenerating object="grafico" />',
+          art: <SceneGenerating object="grafico" />,
+          title: "Montando o relatório",
+          text: "Analisando o trimestre… agora a margem por mês.",
+        },
+      ],
+    },
+  ];
+  return (
+    <>
+      <Title order={3} mt={40} mb="xs">
+        Por app
+      </Title>
+      <Text className="dd-muted" mb="md" maw={760}>
+        As mesmas cenas com o objeto de cada app: <Code>object</Code> vale no{" "}
+        <Code>SceneEmpty</Code>, no <Code>SceneGenerating</Code> e no <Code>SceneDone</Code>. A
+        mancha é o acento do app (aqui, o da cozinha).
+      </Text>
+      {apps.map(({ app, note, scenes }) => (
+        <div key={app}>
+          <Group gap="sm" mt="lg" mb={4}>
+            <Title order={4}>{app}</Title>
+          </Group>
+          <Text size="sm" className="dd-muted" mb="sm" maw={760}>
+            {note}
+          </Text>
+          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
+            {scenes.map((scene) => (
+              <SceneShowcase key={scene.code + scene.title} {...scene} />
+            ))}
+          </SimpleGrid>
+        </div>
+      ))}
     </>
   );
 }
