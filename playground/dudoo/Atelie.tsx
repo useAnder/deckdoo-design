@@ -31,7 +31,9 @@ import {
   BRAND,
   Block,
   ChatBubble,
+  DUDOO_INTENSITY,
   DUDOO_MOODS,
+  DrawOn,
   DuDoo,
   DuDooFace,
   DuDooWall,
@@ -46,6 +48,8 @@ import {
   Status,
   buildTheme,
   dudooExpression,
+  useDuDooMotion,
+  usePrefersReducedMotion,
   type Accent,
   type Corners,
   type DuDooExpression,
@@ -54,15 +58,7 @@ import {
   type SceneObject,
 } from "@deckdoo/design";
 import markUrl from "../../src/brand/deckdoo-mark.svg";
-import { DrawOn } from "./draw.js";
 import { MOODS } from "./moods.js";
-import {
-  INTENSITY,
-  REDUCED_TIMING,
-  TIMING,
-  useDuDooMotion,
-  usePrefersReducedMotion,
-} from "./motion.js";
 import { KitPiece, SceneNoOrders } from "./Doodles.js";
 import "../kitchen.css";
 import "./atelie.css";
@@ -547,6 +543,14 @@ function Catalog() {
 
 /* ——— Movimento ——— */
 
+/** O ritmo da troca, em palavras (os números são o `DUDOO_TIMING` do pacote). */
+const RHYTHM = {
+  trabalho: "240 ms, sem passar do ponto",
+  neutro: "340 ms, calmo",
+  festa: "560 ms, com mola e o olho saltando",
+  reduzido: "120 ms, sem mola nem salto (movimento reduzido)",
+};
+
 /** O que cada mood faz parado, depois que a troca assenta. */
 const IDLE_NOTE: Partial<Record<DuDooMood, string>> = {
   neutro: "De vez em quando, uma olhada de lado, e volta.",
@@ -585,7 +589,7 @@ function Motion() {
   const [speed, setSpeed] = useState("1");
   const e = useDuDooMotion(mood, { blink, idle, reduced, speed: Number(speed) });
   const info = MOODS.find((m) => m.mood === mood)!;
-  const intensity = INTENSITY[mood];
+  const intensity = DUDOO_INTENSITY[mood];
 
   return (
     <Section
@@ -644,7 +648,9 @@ function Motion() {
               <b>A troca:</b>{" "}
               {mood === "piscada"
                 ? "o gesto, rápido e com mola"
-                : (reduced ? REDUCED_TIMING : TIMING[intensity]).label}
+                : reduced
+                  ? RHYTHM.reduzido
+                  : RHYTHM[intensity]}
               .
             </Text>
             <Text size="sm" className="dd-muted">

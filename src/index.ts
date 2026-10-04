@@ -45,6 +45,17 @@ export {
   type DuDooFaceProps,
   type DuDooMood,
 } from "./dudoo.js";
+export {
+  DUDOO_INTENSITY,
+  DUDOO_REDUCED_TIMING,
+  DUDOO_TIMING,
+  DuDooMotion,
+  useDuDooMotion,
+  usePrefersReducedMotion,
+  type DuDooIntensity,
+  type DuDooMotionOptions,
+} from "./motion.js";
+export { DrawOn, drawOn, type DrawResult } from "./draw.js";
 export { curl, sketch, sparkle, type SketchPoint } from "./sketch.js";
 export {
   EmptyState,

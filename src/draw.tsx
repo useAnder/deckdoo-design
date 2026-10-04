@@ -7,17 +7,12 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import {
-  DUDOO_MOODS,
-  DuDooFace,
-  SceneDuDooFace,
-  type DuDooExpression,
-  type DuDooMood,
-} from "@deckdoo/design";
+import { DUDOO_MOODS, DuDooFace, type DuDooExpression, type DuDooMood } from "./dudoo.js";
+import { SceneDuDooFace } from "./scenes.js";
 import { useDuDooMotion, usePrefersReducedMotion } from "./motion.js";
 
 /**
- * O rabisco se desenhando: protótipo do ateliê. Envolve uma cena pronta (ou uma peça do kit) e
+ * O rabisco se desenhando. Envolve uma cena pronta (ou uma peça do kit) e
  * anima o SVG que já está na tela, sem mudar como a cena é desenhada. Cada elemento vira um papel,
  * na ordem do código, que é a ordem em que alguém desenharia:
  *

@@ -5,11 +5,11 @@ import {
   type DuDooEye,
   type DuDooExpression,
   type DuDooMood,
-} from "@deckdoo/design";
+} from "./dudoo.js";
 
 /**
- * O DuDoo em movimento: protótipo do ateliê. Devolve, quadro a quadro, a expressão que o
- * `DuDooFace` desenha; nada no desenho muda. Três camadas, uma por cima da outra:
+ * O DuDoo em movimento. Devolve, quadro a quadro, a expressão que o `DuDooFace` desenha; nada
+ * no desenho muda. Regras em `docs/marca.md` (Movimento); a bancada é o ateliê. Três camadas, uma por cima da outra:
  *
  * 1. **A troca de mood.** Interpola os números de uma expressão até a outra. O olhar chega
  *    primeiro e as pálpebras vêm atrás, como quem vira o olho antes de mudar de cara. O olho
@@ -24,9 +24,9 @@ import {
  * mola, a piscada e a piscadinha ficam, e sai o que mexe sem parar (olhar solto, respiração, riso).
  */
 
-export type Intensity = "neutro" | "trabalho" | "festa";
+export type DuDooIntensity = "neutro" | "trabalho" | "festa";
 
-export const INTENSITY: Record<DuDooMood, Intensity> = {
+export const DUDOO_INTENSITY: Record<DuDooMood, DuDooIntensity> = {
   neutro: "neutro",
   esperando: "neutro",
   dormindo: "neutro",
@@ -49,36 +49,38 @@ const easeIn: Ease = (t) => t ** 2;
 /** A mola: passa uns 25% do ponto, volta um pouco aquém e assenta. */
 const spring: Ease = (t) => (t >= 1 ? 1 : 1 - Math.exp(-4.2 * t) * Math.cos(Math.PI * 3 * t));
 
-export const TIMING: Record<
-  Intensity,
+/**
+ * O ritmo da troca por intensidade: Trabalho rápido e no ponto, Neutro calmo, Festa com mola e o
+ * olho saltando (`pop`, quanto ele cresce no meio da troca).
+ */
+export const DUDOO_TIMING: Record<
+  DuDooIntensity,
   {
     ms: number;
     ease: Ease;
-    label: string;
     /** Quanto o olho cresce no meio da troca. */ pop: number;
   }
 > = {
-  trabalho: { ms: 240, ease: easeOut, label: "240 ms, sem passar do ponto", pop: 0 },
-  neutro: { ms: 340, ease: easeInOut, label: "340 ms, calmo", pop: 0 },
-  festa: { ms: 560, ease: spring, label: "560 ms, com mola e o olho saltando", pop: 0.1 },
+  trabalho: { ms: 240, ease: easeOut, pop: 0 },
+  neutro: { ms: 340, ease: easeInOut, pop: 0 },
+  festa: { ms: 560, ease: spring, pop: 0.1 },
 };
 
 /**
  * Movimento reduzido não é DuDoo parado: a troca continua, curta e sem mola nem salto, e a
  * piscada fica (é pequena e rara). Sai o que mexe sem parar: o olhar solto, a respiração, o riso.
  */
-export const REDUCED_TIMING: (typeof TIMING)[Intensity] = {
+export const DUDOO_REDUCED_TIMING: (typeof DUDOO_TIMING)[DuDooIntensity] = {
   ms: 120,
   ease: easeOut,
-  label: "120 ms, sem mola nem salto (movimento reduzido)",
   pop: 0,
 };
 
 /** O gesto da piscadinha, mais rápido que a troca da Festa: fecha e já reabre. */
 const WINK = {
-  close: { ...TIMING.festa, ms: 170 },
+  close: { ...DUDOO_TIMING.festa, ms: 170 },
   hold: 0,
-  open: { ...TIMING.trabalho, ms: 150 },
+  open: { ...DUDOO_TIMING.trabalho, ms: 150 },
 };
 
 /** O olhar chega nesta fração do tempo da troca; o resto vem depois. */
@@ -261,15 +263,20 @@ export interface DuDooMotionOptions {
   /** Multiplica o tempo, para ver de perto; 1 é o ritmo de verdade. */
   speed?: number;
   /** Força o ritmo da troca; sem isso, vale a intensidade do mood. */
-  intensity?: Intensity;
+  intensity?: DuDooIntensity;
 }
 
 export function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(
-    () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false,
+    () =>
+      typeof window !== "undefined" &&
+      (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false),
   );
   useEffect(() => {
-    const q = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    const q =
+      typeof window !== "undefined"
+        ? window.matchMedia?.("(prefers-reduced-motion: reduce)")
+        : undefined;
     if (!q) return;
     const on = () => setReduced(q.matches);
     q.addEventListener("change", on);
@@ -315,12 +322,14 @@ export class DuDooMotion {
   }
 
   /** Mood novo: a troca parte de onde ele está agora, não do mood anterior. */
-  set(mood: DuDooMood | DuDooExpression, intensity?: Intensity) {
+  set(mood: DuDooMood | DuDooExpression, intensity?: DuDooIntensity) {
     const name = typeof mood === "string" ? mood : undefined;
     this.name = name;
     this.winked = false;
     const timing =
-      name === "piscada" ? WINK.close : TIMING[intensity ?? (name ? INTENSITY[name] : "trabalho")];
+      name === "piscada"
+        ? WINK.close
+        : DUDOO_TIMING[intensity ?? (name ? DUDOO_INTENSITY[name] : "trabalho")];
     this.tween(resolve(mood), timing);
     this.nextChuckle = this.clock + this.ms + rand(...CHUCKLE_EVERY);
   }
@@ -329,8 +338,8 @@ export class DuDooMotion {
   reduced = false;
 
   /** A troca em si: de onde ele está agora até `target`, sem mudar o nome do mood. */
-  private tween(target: DuDooExpression, chosen: (typeof TIMING)[Intensity]) {
-    const timing = this.reduced ? REDUCED_TIMING : chosen;
+  private tween(target: DuDooExpression, chosen: (typeof DUDOO_TIMING)[DuDooIntensity]) {
+    const timing = this.reduced ? DUDOO_REDUCED_TIMING : chosen;
     this.from = this.last;
     this.to = toFrame(target);
     this.start = this.clock;
