@@ -2,6 +2,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -1149,36 +1150,153 @@ function Scenes() {
         </Title>
         <Text className="dd-muted" mb="md" maw={760}>
           O jeito mais barato de usar o DuDoo: só os olhos, por cima da borda de um cartão, olhando
-          para o que ele sugere. Não pede cena, cabe em qualquer tela e não gasta o personagem.
+          para o que ele sugere. Não pede cena, cabe em qualquer tela e não gasta o personagem. Ele
+          sobe de trás do cartão, olha para o que sugere e acompanha com o olhar o botão em que você
+          passa o mouse.
         </Text>
         <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
-          <div className="at-peek">
-            <DuDooFace className="at-peek-face" size={76} mood="olhando" />
+          <Peek>
             <Block className="at-peek-card">
               <Text fw={600}>O slide 4 está apertado</Text>
               <Text size="sm" className="dd-muted" mb="sm">
                 Quer que eu divida em dois? O gráfico de margem ganha um slide só dele.
               </Text>
               <Group gap="xs">
-                <Button size="xs">Dividir em dois</Button>
-                <Button size="xs" variant="default">
+                <Button size="xs" data-peek-target>
+                  Dividir em dois
+                </Button>
+                <Button size="xs" variant="default" data-peek-target="hover">
                   Agora não
                 </Button>
               </Group>
             </Block>
-          </div>
-          <div className="at-peek at-peek-left">
-            <DuDooFace className="at-peek-face" size={76} mood="piscada" />
+          </Peek>
+          <Peek side="left" gesture="piscada">
             <Panel className="at-peek-card">
               <Text fw={600}>Atalho</Text>
               <Text size="sm" className="dd-muted">
-                Escreva <Code>/</Code> no slide e me peça o que quiser, sem sair do lugar.
+                Escreva <Code data-peek-target>/</Code> no slide e me peça o que quiser, sem sair do
+                lugar.
               </Text>
             </Panel>
-          </div>
+          </Peek>
         </SimpleGrid>
       </SceneDraw.Provider>
     </Section>
+  );
+}
+
+/** Quanto o DuDoo desce para sumir atrás da borda do cartão. */
+const PEEK_DEPTH = 48;
+const PEEK = {
+  ms: 560,
+  ease: "cubic-bezier(0.25, 0.8, 0.35, 1)",
+  /** Assentado, olha. */ look: 160,
+};
+
+/**
+ * O DuDoo espiando: sobe de trás do cartão até os olhos passarem da borda e olha para o que
+ * sugere (o primeiro `data-peek-target`). Com o mouse num alvo, o olhar vai até ele e volta
+ * quando sai. `gesture` faz um gesto ao chegar (a piscadinha), antes de olhar.
+ */
+function Peek({
+  side = "right",
+  gesture,
+  children,
+}: {
+  side?: "right" | "left";
+  gesture?: DuDooMood;
+  children: ReactNode;
+}) {
+  const { replay, reduced } = useContext(SceneDraw);
+  const box = useRef<HTMLDivElement>(null);
+  const face = useRef<HTMLSpanElement>(null);
+  const [mood, setMood] = useState<DuDooMood | DuDooExpression>("neutro");
+  const seen = useRef(false);
+
+  /** O olhar que aponta do rosto para o meio de um elemento. */
+  const lookAt = (target: Element | null): DuDooExpression | undefined => {
+    const f = face.current?.getBoundingClientRect();
+    const t = target?.getBoundingClientRect();
+    if (!f || !t) return undefined;
+    const dx = t.left + t.width / 2 - (f.left + f.width / 2);
+    const dy = t.top + t.height / 2 - (f.top + f.height * 0.35);
+    const len = Math.hypot(dx, dy) || 1;
+    return dudooExpression({ look: [dx / len, dy / len] });
+  };
+  const home = () => lookAt(box.current?.querySelector("[data-peek-target]") ?? null);
+
+  useLayoutEffect(() => {
+    const el = face.current;
+    const root = box.current;
+    if (!el || !root) return;
+    const timers: number[] = [];
+    let anim: Animation | undefined;
+    const play = () => {
+      if (reduced) {
+        setMood(home() ?? "olhando");
+        return;
+      }
+      setMood("neutro");
+      anim = el.animate([{ translate: `0 ${PEEK_DEPTH}px` }, { translate: "0 0" }], {
+        duration: PEEK.ms,
+        easing: PEEK.ease,
+        fill: "backwards",
+      });
+      const at = PEEK.ms + PEEK.look;
+      if (gesture) {
+        timers.push(window.setTimeout(() => setMood(gesture), at));
+        timers.push(window.setTimeout(() => setMood(home() ?? "olhando"), at + 700));
+      } else timers.push(window.setTimeout(() => setMood(home() ?? "olhando"), at));
+    };
+    if (seen.current) play();
+    else {
+      el.style.translate = `0 ${PEEK_DEPTH}px`;
+      const io = new IntersectionObserver(
+        ([entry]) => {
+          if (!entry?.isIntersecting) return;
+          io.disconnect();
+          seen.current = true;
+          el.style.translate = "";
+          play();
+        },
+        { threshold: 0.6 },
+      );
+      io.observe(root);
+      return () => {
+        io.disconnect();
+        anim?.cancel();
+        timers.forEach((id) => window.clearTimeout(id));
+      };
+    }
+    return () => {
+      anim?.cancel();
+      timers.forEach((id) => window.clearTimeout(id));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [replay, reduced]);
+
+  const e = useDuDooMotion(mood, { reduced });
+  return (
+    <div
+      ref={box}
+      className={side === "left" ? "at-peek at-peek-left" : "at-peek"}
+      onPointerOver={(ev) => {
+        const target = (ev.target as Element).closest("[data-peek-target]");
+        const look = target && lookAt(target);
+        if (look) setMood(look);
+      }}
+      onPointerOut={(ev) => {
+        const from = (ev.target as Element).closest("[data-peek-target]");
+        const to = (ev.relatedTarget as Element | null)?.closest?.("[data-peek-target]");
+        if (from && from !== to) setMood(home() ?? "olhando");
+      }}
+    >
+      <span ref={face} className="at-peek-face">
+        <DuDooFace size={76} mood={e} />
+      </span>
+      {children}
+    </div>
   );
 }
 

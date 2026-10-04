@@ -31,6 +31,9 @@ import { useDuDooMotion, usePrefersReducedMotion } from "./motion.js";
  * - **DuDoo**: chega por último, como a coruja pousando (vem num arco, girando até o prumo), e
  *   só então faz a cara da cena. O corpo não estica.
  *
+ * O que está num grupo `data-dd-draw="dudoo"` é a reação dele (os risquinhos de quem se
+ * empolgou): se desenha quando ele pousa e faz a cara da cena.
+ *
  * O que está num grupo `data-dd-draw="loop"` se desenha, assenta, apaga e recomeça: a espera do
  * `SceneGenerating`. O resto desenha uma vez e para. Com movimento reduzido, a cena já aparece
  * pronta.
@@ -109,9 +112,14 @@ function fillRatio(el: SVGGeometryElement): number {
 interface Piece {
   el: SVGElement;
   role: Role;
-  /** Está num grupo `data-dd-draw="loop"`. */
-  loop: boolean;
+  /**
+   * O grupo `data-dd-draw` em que está: `loop` (a espera, que recomeça) ou `dudoo` (a reação
+   * dele, que espera ele pousar).
+   */
+  group?: Group;
 }
+
+type Group = "loop" | "dudoo";
 
 /**
  * Um traço com vários pedaços (as linhas de texto do cartão são um `path` só) se desenharia com
@@ -142,7 +150,7 @@ interface Split {
 /** Os elementos da cena, na ordem do código; o DuDoo (um `svg` dentro) conta como um só. */
 function pieces(root: SVGSVGElement, made: Split[]): Piece[] {
   const out: Piece[] = [];
-  const walk = (node: Element, loop: boolean) => {
+  const walk = (node: Element, group: Group | undefined) => {
     for (const child of Array.from(node.children)) {
       if (!(child instanceof SVGElement) || child.namespaceURI !== svgNS) continue;
       if (
@@ -152,13 +160,15 @@ function pieces(root: SVGSVGElement, made: Split[]): Piece[] {
       )
         continue;
       const role = roleOf(child, root);
-      if (role === "traco") for (const el of split(child, made)) out.push({ el, role, loop });
-      else if (role) out.push({ el: child, role, loop });
-      else if (child instanceof SVGGElement)
-        walk(child, loop || child.getAttribute("data-dd-draw") === "loop");
+      if (role === "traco") for (const el of split(child, made)) out.push({ el, role, group });
+      else if (role) out.push({ el: child, role, group });
+      else if (child instanceof SVGGElement) {
+        const mark = child.getAttribute("data-dd-draw");
+        walk(child, group ?? (mark === "loop" || mark === "dudoo" ? mark : undefined));
+      }
     }
   };
-  walk(root, false);
+  walk(root, undefined);
   return out;
 }
 
@@ -184,8 +194,9 @@ export function drawOn(root: SVGSVGElement, { delay = 0, speed = 1 } = {}): Draw
   const time = (ms: number) => ms / speed;
   const made: Split[] = [];
   const list = pieces(root, made);
-  const once = list.filter((p) => !p.loop);
-  const looping = list.filter((p) => p.loop);
+  const once = list.filter((p) => !p.group);
+  const looping = list.filter((p) => p.group === "loop");
+  const reaction = list.filter((p) => p.group === "dudoo");
 
   // O ritmo da mão: a soma do traço cabe entre o mínimo e o máximo do desenho inteiro.
   const loopInk = looping
@@ -215,8 +226,9 @@ export function drawOn(root: SVGSVGElement, { delay = 0, speed = 1 } = {}): Draw
   let t = delay;
   let pendingFundo: SVGElement[] = [];
   let loopAt: number | undefined;
-  for (const { el, role, loop } of list) {
-    if (loop) {
+  for (const { el, role, group } of list) {
+    if (group === "dudoo") continue;
+    if (group === "loop") {
       // O loop começa na vez dele e ocupa a mão o tempo da primeira volta.
       if (loopAt === undefined) {
         loopAt = t;
@@ -247,16 +259,7 @@ export function drawOn(root: SVGSVGElement, { delay = 0, speed = 1 } = {}): Draw
       );
     }
     pendingFundo = [];
-    const dash = `${len} ${len}`;
-    all.push(
-      el.animate(
-        [
-          { strokeDasharray: dash, strokeDashoffset: len },
-          { strokeDasharray: dash, strokeDashoffset: 0 },
-        ],
-        { duration: time(ms), delay: time(t), easing: HAND_EASE, fill: "backwards" },
-      ),
-    );
+    all.push(stroke(el, len, time(t), time(ms)));
     t += ms + PEN_LIFT * pace;
   }
   const inked = t - PEN_LIFT * pace;
@@ -307,6 +310,19 @@ export function drawOn(root: SVGSVGElement, { delay = 0, speed = 1 } = {}): Draw
       ),
     );
     dudooAt = time(popAt + DUDOO.ms);
+
+    // A reação dele (a ênfase de quem se empolgou) se desenha quando ele faz a cara da cena.
+    let r = popAt + DUDOO.ms + DUDOO_REACT;
+    for (const p of reaction) {
+      if (p.role === "traco") {
+        const { len, ms: raw } = strokeMs(p.el);
+        all.push(stroke(p.el, len, time(r), time(raw * pace)));
+        r += raw * pace + PEN_LIFT * pace;
+      } else if (p.role === "brilho" || p.role === "ponto") {
+        all.push(pop(p.el, time(r), time));
+        r += POP.stagger;
+      }
+    }
   }
 
   // 5. O loop: desenha, a mancha cai, segura, apaga e recomeça, sem parar.
@@ -333,6 +349,18 @@ export function drawOn(root: SVGSVGElement, { delay = 0, speed = 1 } = {}): Draw
       .catch(() => {});
 
   return { animations: all, stop, dudooAt };
+}
+
+/** Um traço saindo da ponta da caneta. */
+function stroke(el: SVGElement, len: number, delay: number, duration: number) {
+  const dash = `${len} ${len}`;
+  return el.animate(
+    [
+      { strokeDasharray: dash, strokeDashoffset: len },
+      { strokeDasharray: dash, strokeDashoffset: 0 },
+    ],
+    { duration, delay, easing: HAND_EASE, fill: "backwards" },
+  );
 }
 
 function pop(el: SVGElement, delay: number, time: (ms: number) => number) {

@@ -249,6 +249,8 @@
   position: absolute;
   top: 0;
   right: 28px;
+  display: block;
+  line-height: 0;
   color: var(--dd-ink);
 }
 

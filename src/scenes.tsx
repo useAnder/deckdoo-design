@@ -356,7 +356,10 @@ export function SceneEmpty({
           {dudoo ? (
             <>
               <SceneLine d={curl(150, 150, 3, 1)} />
-              <SceneLine d={s.ticks(36, 80, -110, 4, 9, 30)} />
+              {/* A empolgação dele: quem anima a cena desenha isto depois que ele chega. */}
+              <g data-dd-draw="dudoo">
+                <SceneLine d={s.ticks(36, 80, -110, 4, 9, 30)} />
+              </g>
               <SceneDuDoo x={22} y={88} size={82} mood={LOOKING_UP} />
             </>
           ) : (
