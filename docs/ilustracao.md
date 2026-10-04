@@ -16,8 +16,9 @@ Quase nunca é a primeira opção. Uma cena cabe em três momentos:
 | Marco (primeiro deck, pronto)              | Festa       | Sim                                     |
 | Erro, cobrança, permissão, exclusão        | Sério       | Nunca; só `SceneLocked` ou nada         |
 
-Se o avatar do DuDoo já está na tela (o chat ao lado), a cena vai sem ele. Uma aparição por
-tela.
+Uma aparição por tela: se o DuDoo já está desenhado nela (outra cena, ele espiando), a cena vai
+sem ele. A marca e o avatar do chat não contam: com o chat ao lado, a cena da geração ainda leva
+o DuDoo. Ver [marca.md](marca.md#onde-e-quanto).
 
 ## 2. Use a pronta
 

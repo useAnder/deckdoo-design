@@ -825,8 +825,8 @@ function ChatReplay({ reduced }: { reduced: boolean }) {
         <Block>
           <Text fw={600}>Um rosto vivo por vez</Text>
           <Text size="sm" className="dd-muted">
-            As falas antigas param na expressão do que disseram, sem piscar nem olhar em volta. É a
-            regra de uma aparição por tela, no tempo.
+            As falas antigas param na expressão do que disseram, sem piscar nem olhar em volta. Só a
+            última está viva, para o olho saber quem está falando agora.
           </Text>
         </Block>
         <Group>
@@ -1598,7 +1598,7 @@ function Rules() {
     ],
     [
       "Uma aparição por tela",
-      "Se o avatar já está no chat, a cena vazia ao lado não leva o DuDoo de novo.",
+      "Conta o DuDoo desenhado (a cena, o espiando). A marca e o avatar do chat ficam fora da conta.",
     ],
     [
       "No Sério, nem DuDoo nem cor",

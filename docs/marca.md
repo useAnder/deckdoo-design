@@ -111,8 +111,11 @@ Expressão nova se monta com `dudooExpression({ … })` e se prova no ateliê an
 - **O DuDoo entra quando há uma ação dele** (sugerir, gerar, revisar, explicar). Busca vazia
   e lista em dia ficam com rabisco sem ele; cobrança, permissão, erro e exclusão, nem rabisco
   colorido.
-- **Uma aparição por tela.** Se o avatar já está no chat, o estado vazio ao lado não leva o
-  DuDoo de novo.
+- **Uma aparição por tela.** Conta o DuDoo desenhado: a cena com ele e o DuDoo espiando. Duas
+  cenas com ele na mesma tela, não; o espiando e uma cena, também não. A marca e o chat ficam
+  fora da conta: o logotipo e o mascote da marca são assinatura, e o avatar (nas falas do chat,
+  no cabeçalho dele, no cartão do assistente) é quem fala. A cena da geração no palco vai com o
+  DuDoo mesmo com o chat ao lado.
 - **Espiar é o jeito barato:** só os olhos por cima da borda de um cartão, olhando para o que
   ele sugere. Não pede cena e não gasta o personagem. A cena inteira fica para poucos
   momentos: o primeiro uso, a geração, o deck pronto.
