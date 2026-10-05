@@ -226,7 +226,7 @@ Para a cena se desenhar ao aparecer, `<DrawOn><SceneEmpty object="arquivo" /></D
 O `object` diz o assunto também na espera e no marco: `<SceneGenerating object="site" />`
 ("Criando o site", no Pages), `<SceneGenerating object="calendario" />` ("Fazendo o
 planejamento", no Marketing), `<SceneDone object="post" />`. Há objeto para cada app: `site`,
-`post`, `carrossel`, `calendario`, `funil`, além dos de sempre.
+`post`, `carrossel`, `persona`, `voz`, `calendario`, `funil`, além dos de sempre.
 
 As cenas prontas, os objetos do `SceneEmpty`, a receita para desenhar uma nova, onde ela mora
 (no app ou aqui) e a cena em movimento: [docs/ilustracao.md](docs/ilustracao.md).

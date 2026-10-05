@@ -1365,6 +1365,8 @@ function EmptyObjects() {
     ["carrossel", "Nenhum carrossel ainda"],
     ["calendario", "Nenhum post agendado"],
     ["funil", "Nenhum negócio no funil"],
+    ["persona", "Nenhuma persona ainda"],
+    ["voz", "Nenhuma voz ainda"],
   ];
   return (
     <>
@@ -1480,6 +1482,40 @@ function ByApp() {
           title: "Pronto: 12 posts no mês",
           text: "Quer revisar a primeira semana antes de agendar?",
           action: <Button>Revisar a semana</Button>,
+        },
+        {
+          tone: "trabalho",
+          dudoo: true,
+          code: '<SceneGenerating object="persona" />',
+          art: <SceneGenerating object="persona" />,
+          title: "Montando a persona",
+          text: "Juntando o perfil… agora o que ela busca.",
+        },
+        {
+          tone: "festa",
+          dudoo: true,
+          code: '<SceneDone object="persona" />',
+          art: <SceneDone object="persona" />,
+          title: "Persona pronta",
+          text: "Quer ajustar o perfil antes de usar nos posts?",
+          action: <Button>Revisar perfil</Button>,
+        },
+        {
+          tone: "trabalho",
+          dudoo: true,
+          code: '<SceneGenerating object="voz" />',
+          art: <SceneGenerating object="voz" />,
+          title: "Escolhendo a voz",
+          text: "Ouvindo o tom da marca… agora o jeito de falar.",
+        },
+        {
+          tone: "festa",
+          dudoo: true,
+          code: '<SceneDone object="voz" />',
+          art: <SceneDone object="voz" />,
+          title: "Voz escolhida",
+          text: "Quer ver como ela soa num post?",
+          action: <Button>Ver num post</Button>,
         },
         {
           tone: "trabalho",

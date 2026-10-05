@@ -62,6 +62,8 @@ com o visto; com `object`, o objeto pronto com o selo).
 | `site`       | A janela do navegador com a página       | Pages           |
 | `post`       | O post: a imagem, a curtida, a legenda   | Marketing       |
 | `carrossel`  | O card da frente entre dois, e as bolinhas | Marketing     |
+| `persona`    | O cartão de perfil: retrato e linhas     | Marketing       |
+| `voz`        | O alto-falante com as ondas de som       | Marketing       |
 | `calendario` | O mês: planejamento, agenda, tarefas     | Marketing e CRM |
 | `funil`      | O funil de vendas, com as etapas         | CRM             |
 

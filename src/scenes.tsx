@@ -155,8 +155,8 @@ export function SceneDuDoo({
  * DuDoo está montando (`SceneGenerating`) e o que ficou pronto (`SceneDone`).
  *
  * Da suíte toda: `slide`, `arquivo`, `pasta`, `lista`, `grafico`, `mensagem`. Do site (Pages):
- * `site`. Das redes (Marketing): `post`, `carrossel`. Do planejamento e da agenda (Marketing e
- * CRM): `calendario`. Do funil de vendas (CRM): `funil`.
+ * `site`. Das redes (Marketing): `post`, `carrossel`; da marca (Marketing): `persona`, `voz`.
+ * Do planejamento e da agenda (Marketing e CRM): `calendario`. Do funil de vendas (CRM): `funil`.
  */
 export type SceneObject =
   | "slide"
@@ -169,7 +169,9 @@ export type SceneObject =
   | "post"
   | "carrossel"
   | "calendario"
-  | "funil";
+  | "funil"
+  | "persona"
+  | "voz";
 
 /** Largura e altura de cada objeto; o que não está aqui é paisagem, 112 × 78. */
 const SIZE: Partial<Record<SceneObject, [number, number]>> = {
@@ -177,6 +179,7 @@ const SIZE: Partial<Record<SceneObject, [number, number]>> = {
   post: [84, 100],
   calendario: [104, 88],
   funil: [112, 84],
+  persona: [88, 100],
 };
 const sizeOf = (kind: SceneObject) => SIZE[kind] ?? [112, 78];
 
@@ -511,6 +514,75 @@ function FunnelArt({ s, x, y, w, h, work }: ObjectProps) {
   );
 }
 
+/**
+ * A persona: o cartão de perfil, com o retrato (cabeça e ombros, sem rosto) e as linhas de nome
+ * e de descrição. Com trabalho, a mancha entra atrás do retrato.
+ */
+function PersonaArt({ s, x, y, w, h, work }: ObjectProps) {
+  const mid = x + w / 2;
+  const head = y + 27;
+  const base = y + 60;
+  const persona = (
+    <>
+      {work && <path d={s.blob(mid - 17, y + 11, 34, 34, 10)} fill={work.color} />}
+      <SceneLine d={s.circle(mid, head, 11)} />
+      <SceneLine d={`M${mid - 20},${base}c0-12 8-18 20-18s20 6 20 18`} />
+      <SceneLine d={s.line([x + 14, y + h - 26], [x + w - 28, y + h - 26])} width={3} />
+      <SceneLine
+        d={s.lines(
+          [
+            [x + 14, y + h - 14],
+            [x + w - 14, y + h - 14],
+          ],
+          [
+            [x + 14, y + h - 7],
+            [x + w - 34, y + h - 7],
+          ],
+        )}
+        width={2}
+      />
+    </>
+  );
+  return (
+    <SceneCard s={s} x={x} y={y} w={w} h={h}>
+      {work ? <Doing work={work}>{persona}</Doing> : persona}
+    </SceneCard>
+  );
+}
+
+/**
+ * A voz: o alto-falante com as ondas de som saindo dele (a mensagem é o balão; esta é a fala em
+ * si). Com trabalho, a mancha entra atrás das ondas e a última onda se desenha.
+ */
+function VoiceArt({ s, x, y, h, work }: ObjectProps) {
+  const cy = y + h / 2;
+  const outline: [number, number][] = [
+    [x + 6, cy - 10],
+    [x + 24, cy - 10],
+    [x + 44, cy - 26],
+    [x + 44, cy + 26],
+    [x + 24, cy + 10],
+    [x + 6, cy + 10],
+    [x + 6, cy - 11],
+  ];
+  const outer = (
+    <>
+      {work && <path d={s.blob(x + 54, cy - 28, 38, 56, 8)} fill={work.color} />}
+      <SceneLine d={`M${x + 68},${cy - 21}q16,21 0,42`} />
+      <SceneLine d={`M${x + 80},${cy - 31}q22,31 0,62`} />
+    </>
+  );
+  return (
+    <g>
+      <path d={`M${outline.map((p) => p.join(",")).join("L")}Z`} fill="var(--dd-surface)" />
+      <SceneLine d={s.poly(outline)} />
+      <SceneLine d={s.line([x + 24, cy - 10], [x + 24, cy + 10])} width={2} />
+      <SceneLine d={`M${x + 56},${cy - 11}q9,11 0,22`} />
+      {work ? <Doing work={work}>{outer}</Doing> : outer}
+    </g>
+  );
+}
+
 /** Os objetos de sempre com trabalho: a cor entra como marca-texto, gráfico, rótulo. */
 function ClassicWork({ s, kind, x, y, w, h, work }: ObjectProps & { work: Work }) {
   /** O marca-texto atrás de uma linha de texto. */
@@ -658,6 +730,10 @@ function ObjectArt(props: ObjectProps) {
       return <CalendarArt {...props} />;
     case "funil":
       return <FunnelArt {...props} />;
+    case "persona":
+      return <PersonaArt {...props} />;
+    case "voz":
+      return <VoiceArt {...props} />;
   }
   if (work) return <ClassicWork {...props} work={work} />;
   switch (kind) {
@@ -829,12 +905,15 @@ const WORK_LABEL: Record<SceneObject, { making: string; done: string }> = {
   carrossel: { making: "o carrossel se monta", done: "o carrossel pronto" },
   calendario: { making: "o planejamento se monta", done: "o planejamento pronto" },
   funil: { making: "o funil se organiza", done: "o funil organizado" },
+  persona: { making: "a persona se desenha", done: "a persona pronta" },
+  voz: { making: "a voz se afina", done: "a voz escolhida" },
 };
 
 /** Quantas cópias atrás do objeto que se monta: os posts são vários, o funil é um só. */
 const STACK: Partial<Record<SceneObject, number>> = {
   arquivo: 2,
   post: 2,
+  persona: 1,
   site: 1,
   lista: 1,
   grafico: 1,
