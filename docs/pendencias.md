@@ -69,3 +69,11 @@ Coisas anotadas para ver depois, fora do trabalho em andamento.
 - **Pedido:** o contrato de `GET /api/me/services` manda `kind` como texto (o app valida `z.string()`), e o `SuiteService` do pacote aceita só `"app" | "external"`. O Marketing converte (o que não é `external` vira `app`) antes de passar a lista. Sugestão: `kind: "app" | "external" | (string & {})`, já que a peça só testa `=== "external"`.
 - **Estado:** feito em 2026-11-03 (v0.11.0). `kind: "app" | "external" | (string & {})`: as peças só testam `=== "external"`.
 - **Para o Marketing:** a conversão sai; a lista do `z.string()` passa direto.
+
+## Sublinhado no link da marca do `SuiteHeader`
+
+- **Origem:** Pages, 2026-11-04 (conferência no navegador).
+- **Pedido:** `.dd-suite-brand a` não tira o `text-decoration` do link. Com só o logotipo (máscara) o
+  sublinhado não aparece; com o nome do produto ao lado (o Pages põe "Pages"), aparece. O Pages
+  contorna com `text-decoration: none` no próprio `BrandMark`.
+- **Estado:** não iniciado.
