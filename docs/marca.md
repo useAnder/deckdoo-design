@@ -248,6 +248,16 @@ perdeu.
 - _"Acelera o pitch. DeckDoo It!"_
 - _"Falar é fácil. Fazer o deck também ficou."_
 
+**Do app de marketing** (proposta do Marketing, 2026-10-04, a validar):
+
+- _"Do plano ao post, numa conversa."_ (o principal; o mesmo molde do Slides)
+- _"Sua marca no ar toda semana, do jeito dela."_
+- _"Plano, conteúdo e arte. DeckDoo It!"_
+- _"Postar todo dia ficou fácil. Ter o que dizer também."_
+
+Na divulgação vale "post"; dentro do app, o que o plano agenda é "conteúdo" e o que se cria é
+"material".
+
 **Fora:** "Menos PowerPoint, mais Power" (usa marca registrada de terceiro) e "Da ideia à tela
 em segundos" (promessa que a geração não garante e que briga com o "numa conversa").
 
