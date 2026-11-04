@@ -14,7 +14,6 @@ import {
   NumberInput,
   Paper,
   PasswordInput,
-  Progress,
   SegmentedControl,
   Tabs,
   Textarea,
@@ -305,12 +304,10 @@ export function buildTheme({ accent = "lime", corners = "pilula" }: ThemeOptions
             ? { root: { "--switch-color": "var(--dd-inverse)" } }
             : { root: {} },
       }),
-      Progress: Progress.extend({
-        vars: (_theme, props) =>
-          props.color === INVERSE
-            ? { root: {}, section: { "--progress-section-color": "var(--dd-inverse)" } }
-            : { root: {}, section: {} },
-      }),
+      // O `Progress` com `color="inverse"` não passa por aqui: o `Progress` tira o `color` das props
+      // que repassa ao `Root`, e é o `Root` que resolve `vars` e `styles` do tema; a barra grava
+      // `--progress-section-color` no próprio estilo inline. Testado: nem `vars` nem `styles` do tema
+      // chegam a ela. O conserto é uma regra em `design.css` (`.mantine-Progress-section`).
       Avatar: Avatar.extend({
         vars: (_theme, props) =>
           props.color === INVERSE

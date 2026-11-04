@@ -149,8 +149,9 @@ DeckDoo; sem `--bg`, limão; a tinta sai do contraste (ou `--ink`).
 | `DuDoo`, `ChatBubble`, `DuDooWall` | O assistente: rosto (com `mood`), fala do chat, papel de parede |
 | `DuDooFace`, `DUDOO_MOODS`, `dudooExpression` | O mascote com expressão, para ilustração; o vocabulário; expressão sob medida |
 | `sketch`, `sparkle`, `curl` | O rabisco: traço à mão em vetor, o brilho, o laço |
-| `EmptyState`, `SceneEmpty`, `SceneNoResults`, `SceneAllClear`, `SceneLocked`, `SceneGenerating`, `SceneDone` | O estado vazio e as cenas prontas |
+| `EmptyState`, `SceneEmpty`, `SceneNoResults`, `SceneAllClear`, `SceneLocked`, `SceneGenerating`, `SceneDone` | O estado vazio e as cenas prontas (todas aceitam `label`, o texto para leitor de tela) |
 | `Scene`, `SceneLine`, `SceneCard`, `SceneDuDoo` | As peças para desenhar uma cena nova |
+| `SideRail`, `SidePanel`, `requestPanel`, `usePanelRequests` | As gavetas: a barra de ícones na borda direita e a gaveta aberta ao lado; o pedido de abrir uma de fora |
 | `useDuDooMotion`, `DuDooMotion`, `usePrefersReducedMotion` | O DuDoo em movimento: a expressão quadro a quadro (hook e motor) |
 | `DrawOn`, `drawOn`, `SceneDuDooFace` | A cena se desenhando, com o DuDoo pousando; o rosto que se mexe nas cenas |
 | `DUDOO_INTENSITY`, `DUDOO_TIMING`, `DUDOO_REDUCED_TIMING` | A intensidade de cada expressão e o ritmo da troca |
@@ -183,6 +184,33 @@ O `NavItem` é botão; para navegar de verdade, passe o link:
 
 O `NavLink` do roteador marca `aria-current="page"`, e isso já acende o item: não precisa de
 `active`.
+
+### Gavetas
+
+```tsx
+const ITEMS: RailItem<"inserir" | "tema" | "historico">[] = [
+  { key: "inserir", label: "Inserir", icon: <Plus size={20} /> },
+  { key: "tema", label: "Tema", icon: <Palette size={20} /> },
+  { key: "historico", label: "Histórico", icon: <ClockCounterClockwise size={20} />, off: "Salve o deck primeiro" },
+];
+
+const [open, setOpen] = useState<"inserir" | "tema" | "historico" | null>(null);
+usePanelRequests((key) => setOpen(key as "inserir" | "tema" | "historico"), "meuapp:abrir-gaveta");
+
+<div style={{ display: "flex", position: "relative" }}>
+  <main style={{ flex: 1 }}>{/* o palco */}</main>
+  {open && <SidePanel title="Tema" onClose={() => setOpen(null)}>…</SidePanel>}
+  <SideRail items={ITEMS} open={open} onToggle={(k) => setOpen(open === k ? null : k)} />
+</div>;
+
+requestPanel("tema", "meuapp:abrir-gaveta"); // de quem não tem a barra
+```
+
+O app decide qual gaveta está aberta; a barra só mostra e avisa o clique. `off` apaga o ícone e
+mostra o motivo numa dica; clicar na gaveta aberta fecha mesmo assim. O nome do evento é
+parâmetro (o padrão é `dd:abrir-gaveta`): é o mesmo nos dois lados. Abaixo de 62em a gaveta
+flutua por cima do palco; para isso o pai dela precisa ser `position: relative` e a barra ficar na
+borda direita dele.
 
 ### O DuDoo
 
@@ -282,9 +310,10 @@ marque. `Badge` em célula não corta o rótulo.
   embute SVG pequeno). `url(${x})` sem aspas quebra: sempre `url("${x}")`.
 - **Variante `light` do Mantine:** o texto padrão some no limão. O `variantColorResolver` do tema
   usa o tom 9 da cor (claro) ou o 3 (escuro) com `light-dark()`.
-- **`color="inverse"`** não é cor do Mantine: Button, ActionIcon, Switch, Progress, Avatar e
-  Tooltip leem os tokens `--dd-inverse*` pelo `vars` do tema. Componente novo que precise disso
-  ganha o mesmo tratamento em `theme.ts`.
+- **`color="inverse"`** não é cor do Mantine: Button, ActionIcon, Switch, Avatar e Tooltip leem
+  os tokens `--dd-inverse*` pelo `vars` do tema. Componente novo que precise disso ganha o mesmo
+  tratamento em `theme.ts`. O `Progress` é a exceção: a barra grava a cor no estilo inline, fora
+  do alcance do tema, e quem pinta é uma regra em `design.css` que casa esse estilo.
 - **Canto de campo é por componente:** o Mantine não herda o raio do `TextInput` para os
   outros campos. Cada campo de uma linha (senha, número, seleção, etiquetas, arquivo…) está
   listado em `theme.ts`; o que faltar ali sai com canto 14 ao lado de um campo em pílula.

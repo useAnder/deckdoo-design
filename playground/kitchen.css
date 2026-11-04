@@ -597,3 +597,20 @@ body {
     padding: 18px 16px 20px;
   }
 }
+
+/* ——— Gavetas ——— */
+
+/* A linha do palco com a gaveta e a barra. `relative`: em tela estreita a gaveta flutua. */
+.ks-drawers {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  height: 360px;
+}
+
+.ks-drawers-stage {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  place-items: center;
+}

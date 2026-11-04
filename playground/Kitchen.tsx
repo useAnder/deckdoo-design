@@ -43,6 +43,7 @@ import {
   ChartBar,
   ChatCircleDots,
   CheckCircle,
+  ClockCounterClockwise,
   Copy,
   DotsThree,
   Export,
@@ -61,6 +62,7 @@ import {
   Plus,
   Presentation,
   ShareNetwork,
+  SidebarSimple,
   Sparkle,
   Stack as StackIcon,
   Sun,
@@ -81,16 +83,22 @@ import {
   Dots,
   DuDoo,
   DuDooWall,
+  EmptyState,
   Logo,
   NavItem,
   Panel,
   PillTabs,
+  SceneDone,
+  SceneLocked,
+  SidePanel,
+  SideRail,
   Stat,
   Status,
   Steps,
   accentHex,
   buildTheme,
   type Accent,
+  type RailItem,
   type Brand as BrandIdentity,
   type Corners,
 } from "@deckdoo/design";
@@ -149,6 +157,7 @@ const SECTIONS = [
   { id: "campos", label: "Campos", icon: PencilSimple },
   { id: "estados", label: "Estados", icon: CheckCircle },
   { id: "navegacao", label: "Navegação", icon: StackIcon },
+  { id: "gavetas", label: "Gavetas", icon: SidebarSimple },
   { id: "cartoes", label: "Cartões", icon: ChartBar },
   { id: "conversa", label: "Conversa", icon: ChatCircleDots },
   { id: "tabela", label: "Tabela", icon: FileText },
@@ -297,6 +306,7 @@ function Kitchen({ controls }: { controls: Controls }) {
         <Fields />
         <States />
         <Navigation />
+        <Drawers />
         <Cards />
         <Conversation />
         <TableSection />
@@ -839,6 +849,70 @@ function States() {
             <Progress value={78} size="md" radius="xl" color="inverse" />
           </Stack>
         </Stack>
+      </Panel>
+    </Section>
+  );
+}
+
+/* ——— Gavetas ——— */
+
+type DrawerKey = "inserir" | "tema" | "historico";
+
+const RAIL: RailItem<DrawerKey>[] = [
+  { key: "inserir", label: "Inserir", icon: <Plus size={20} /> },
+  { key: "tema", label: "Tema", icon: <Palette size={20} /> },
+  {
+    key: "historico",
+    label: "Histórico",
+    icon: <ClockCounterClockwise size={20} />,
+    off: "Salve o deck para ver o histórico",
+  },
+];
+
+function Drawers() {
+  const [open, setOpen] = useState<DrawerKey | null>("tema");
+  const item = RAIL.find((i) => i.key === open);
+  return (
+    <Section
+      id="gavetas"
+      title="Gavetas"
+      note="A barra de ícones na borda direita e a gaveta aberta ao lado, que empurra o palco. Clicar na aberta fecha; o ícone apagado explica por quê."
+    >
+      <Panel>
+        <div className="ks-drawers">
+          <Block className="ks-drawers-stage">
+            <Text size="sm" className="dd-muted">
+              O palco: a gaveta aberta encaixa ao lado dele.
+            </Text>
+          </Block>
+          {item && (
+            <SidePanel title={item.label} width={300} onClose={() => setOpen(null)}>
+              <Text size="sm" className="dd-muted">
+                O conteúdo da gaveta rola dentro dela.
+              </Text>
+            </SidePanel>
+          )}
+          <SideRail
+            items={RAIL}
+            open={open}
+            onToggle={(key) => setOpen(open === key ? null : key)}
+            footer={
+              <Text size="xs" ta="center" className="dd-muted">
+                Pé
+              </Text>
+            }
+          />
+        </div>
+      </Panel>
+      <Panel title="Cena com rótulo próprio" style={{ marginTop: 16 }}>
+        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+          <EmptyState art={<SceneLocked label="A closed padlock" />} title="Sem acesso">
+            O rótulo da cena (para leitor de tela) vem do app: aqui, em inglês.
+          </EmptyState>
+          <EmptyState art={<SceneDone />} title="Pronto">
+            Sem `label`, a cena usa o rótulo em português.
+          </EmptyState>
+        </SimpleGrid>
       </Panel>
     </Section>
   );

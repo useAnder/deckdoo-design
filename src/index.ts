@@ -74,3 +74,12 @@ export {
   type SceneObject,
   type Sketch,
 } from "./scenes.js";
+export {
+  SidePanel,
+  SideRail,
+  requestPanel,
+  usePanelRequests,
+  type RailItem,
+  type SidePanelProps,
+  type SideRailProps,
+} from "./rail.js";

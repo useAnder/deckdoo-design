@@ -839,6 +839,8 @@ function ObjectArt(props: ObjectProps) {
 interface SceneProps {
   /** A cor da mancha. Padrão: o acento do app. Uma cor da paleta por cena. */
   color?: string;
+  /** O que a cena mostra, para leitor de tela. Sem ele, o rótulo em português de cada cena. */
+  label?: string;
 }
 
 /**
@@ -851,7 +853,7 @@ export function SceneEmpty({
   dudoo = false,
   color = ACCENT,
   label,
-}: SceneProps & { object?: SceneObject; dudoo?: boolean; label?: string }) {
+}: SceneProps & { object?: SceneObject; dudoo?: boolean }) {
   const [w, h] = sizeOf(object);
   const [ocx, ocy] = dudoo ? [170, 72] : [130, 84];
   const x = ocx - w / 2;
@@ -930,10 +932,11 @@ const THOUGHT = `M84,70c6-26,18-36,32-30${curl(116, 40, 1, 1).replace(/^M[^c]+/,
 export function SceneGenerating({
   object = "slide",
   color = ACCENT,
+  label,
 }: SceneProps & { object?: SceneObject }) {
-  if (object !== "slide") return <GeneratingObject object={object} color={color} />;
+  if (object !== "slide") return <GeneratingObject object={object} color={color} label={label} />;
   return (
-    <Scene seed={23} label="O DuDoo pensando enquanto os slides se montam">
+    <Scene seed={23} label={label ?? "O DuDoo pensando enquanto os slides se montam"}>
       {(s) => (
         <>
           <SceneCard s={s} x={150} y={24} w={80} h={56} rot={10} />
@@ -971,7 +974,15 @@ export function SceneGenerating({
   );
 }
 
-function GeneratingObject({ object, color }: { object: SceneObject; color: string }) {
+function GeneratingObject({
+  object,
+  color,
+  label,
+}: {
+  object: SceneObject;
+  color: string;
+  label?: string;
+}) {
   const [w, h] = sizeOf(object);
   // O alto do objeto fica logo abaixo do laço; o mais alto desce.
   const [ocx, ocy] = [180, 84 + (h - 78) / 2];
@@ -979,7 +990,7 @@ function GeneratingObject({ object, color }: { object: SceneObject; color: strin
   const y = ocy - h / 2;
   const stack = STACK[object] ?? 0;
   return (
-    <Scene seed={23} label={`O DuDoo pensando enquanto ${WORK_LABEL[object].making}`}>
+    <Scene seed={23} label={label ?? `O DuDoo pensando enquanto ${WORK_LABEL[object].making}`}>
       {(s) => (
         <>
           {Array.from({ length: stack }, (_, i) => stack - i).map((k) => (
@@ -1002,10 +1013,14 @@ function GeneratingObject({ object, color }: { object: SceneObject; color: strin
  * trabalho é o cartão com o visto; com, é o objeto pronto com o selo ("Pronto: 5 seções" é
  * `"site"`).
  */
-export function SceneDone({ object, color = ACCENT }: SceneProps & { object?: SceneObject }) {
-  if (object) return <DoneObject object={object} color={color} />;
+export function SceneDone({
+  object,
+  color = ACCENT,
+  label,
+}: SceneProps & { object?: SceneObject }) {
+  if (object) return <DoneObject object={object} color={color} label={label} />;
   return (
-    <Scene seed={37} label="O DuDoo piscando ao lado do trabalho pronto">
+    <Scene seed={37} label={label ?? "O DuDoo piscando ao lado do trabalho pronto"}>
       {(s) => (
         <>
           <path d={s.blob(148, 54, 84, 64)} fill={color} transform="rotate(8 188 84)" />
@@ -1045,7 +1060,15 @@ export function SceneDone({ object, color = ACCENT }: SceneProps & { object?: Sc
   );
 }
 
-function DoneObject({ object, color }: { object: SceneObject; color: string }) {
+function DoneObject({
+  object,
+  color,
+  label,
+}: {
+  object: SceneObject;
+  color: string;
+  label?: string;
+}) {
   const [w, h] = sizeOf(object);
   const [ocx, ocy] = [180, 82];
   const x = ocx - w / 2;
@@ -1053,7 +1076,7 @@ function DoneObject({ object, color }: { object: SceneObject; color: string }) {
   /** O selo de pronto, no canto de baixo do objeto. */
   const [bx, by, br] = [x + w - 4, y + h - 2, 14];
   return (
-    <Scene seed={37} label={`O DuDoo piscando, com ${WORK_LABEL[object].done} ao lado`}>
+    <Scene seed={37} label={label ?? `O DuDoo piscando, com ${WORK_LABEL[object].done} ao lado`}>
       {(s) => (
         <>
           <path
@@ -1100,9 +1123,9 @@ function DoneObject({ object, color }: { object: SceneObject; color: string }) {
 }
 
 /** Busca sem resultado: a lupa sobre a página vazia. Sem DuDoo: é a interface falando. */
-export function SceneNoResults({ color = ACCENT }: SceneProps) {
+export function SceneNoResults({ color = ACCENT, label }: SceneProps) {
   return (
-    <Scene seed={41} label="Uma lupa sobre uma página vazia">
+    <Scene seed={41} label={label ?? "Uma lupa sobre uma página vazia"}>
       {(s) => (
         <>
           <SceneCard s={s} x={70} y={30} w={100} h={124} rot={-4}>
@@ -1136,9 +1159,9 @@ export function SceneNoResults({ color = ACCENT }: SceneProps) {
 }
 
 /** Tudo em dia: a caixa aberta e vazia. Sem DuDoo. */
-export function SceneAllClear({ color = ACCENT }: SceneProps) {
+export function SceneAllClear({ color = ACCENT, label }: SceneProps) {
   return (
-    <Scene seed={53} label="Uma caixa aberta e vazia">
+    <Scene seed={53} label={label ?? "Uma caixa aberta e vazia"}>
       {(s) => (
         <>
           <path d={s.blob(90, 120, 98, 40, 4)} fill={color} />
@@ -1195,9 +1218,9 @@ export function SceneAllClear({ color = ACCENT }: SceneProps) {
 }
 
 /** Sem acesso: o cadeado, sóbrio. Intensidade Sério: sem DuDoo, sem brilho, sem cor da paleta. */
-export function SceneLocked() {
+export function SceneLocked({ label }: Pick<SceneProps, "label">) {
   return (
-    <Scene seed={67} label="Um cadeado fechado">
+    <Scene seed={67} label={label ?? "Um cadeado fechado"}>
       {(s) => (
         <>
           <path d={s.blob(105, 91, 60, 50, 9)} fill="var(--dd-sunken)" />
