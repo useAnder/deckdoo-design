@@ -152,6 +152,8 @@ DeckDoo; sem `--bg`, limão; a tinta sai do contraste (ou `--ink`).
 | `EmptyState`, `SceneEmpty`, `SceneNoResults`, `SceneAllClear`, `SceneLocked`, `SceneGenerating`, `SceneDone` | O estado vazio e as cenas prontas (todas aceitam `label`, o texto para leitor de tela) |
 | `Scene`, `SceneLine`, `SceneCard`, `SceneDuDoo` | As peças para desenhar uma cena nova |
 | `SideRail`, `SidePanel`, `requestPanel`, `usePanelRequests` | As gavetas: a barra de ícones na borda direita e a gaveta aberta ao lado; o pedido de abrir uma de fora |
+| `DuDooSays`, `YouSay`, `Typing`, `SystemNotice`, `useReadThenThink`, `replyMood`, `ChatEnterScope`, `Enter`, `READING` | As falas do chat: a do DuDoo com a expressão do que diz, a sua, a espera, o aviso do sistema, o olhar antes de pensar e a entrada subindo |
+| `StatusScreen`, `AccessDenied`, `AppList`, `ACCESS_DENIAL_TEXT` | A moldura das telas de status; a negação de acesso por código; a lista de apps da pessoa; os textos de cada código |
 | `useDuDooMotion`, `DuDooMotion`, `usePrefersReducedMotion` | O DuDoo em movimento: a expressão quadro a quadro (hook e motor) |
 | `DrawOn`, `drawOn`, `SceneDuDooFace` | A cena se desenhando, com o DuDoo pousando; o rosto que se mexe nas cenas |
 | `DUDOO_INTENSITY`, `DUDOO_TIMING`, `DUDOO_REDUCED_TIMING` | A intensidade de cada expressão e o ritmo da troca |
@@ -258,6 +260,65 @@ planejamento", no Marketing), `<SceneDone object="post" />`. Há objeto para cad
 
 As cenas prontas, os objetos do `SceneEmpty`, a receita para desenhar uma nova, onde ela mora
 (no app ou aqui) e a cena em movimento: [docs/ilustracao.md](docs/ilustracao.md).
+
+### Falas do chat
+
+```tsx
+<ChatEnterScope>
+  <DuDooWall style={{ display: "flex", flexDirection: "column", gap: 10, padding: 16 }}>
+    {turns.map((t) => (
+      <Enter key={t.id} still={t.saved}>
+        {t.from === "you" ? (
+          <YouSay>{t.text}</YouSay>
+        ) : (
+          <DuDooSays mood={replyMood(t.text)} live={t.id === lastId}>
+            {t.text}
+          </DuDooSays>
+        )}
+      </Enter>
+    ))}
+    {waiting && <Waiting />}
+  </DuDooWall>
+</ChatEnterScope>
+
+// A espera: ele olha a sua fala e só então pensa.
+function Waiting() {
+  const mood = useReadThenThink();
+  return (
+    <DuDooSays mood={mood} live>
+      <Typing />
+    </DuDooSays>
+  );
+}
+```
+
+`live` é o rosto vivo: só a última fala do DuDoo. `Typing` e `SystemNotice` trazem
+o texto para leitor de tela em português (`label`, `closeLabel`); `Typing label=""` quando
+ao lado já há texto dizendo o mesmo. `SystemNotice` espera uma coluna flex como pai, que o
+centraliza. `replyMood(texto)` dá `curioso` se a resposta termina em "?" e `neutro` no resto.
+Quem entra subindo é só a fala que chega com a conversa já aberta: `still` desliga.
+
+### Acesso negado
+
+```tsx
+<StatusScreen>
+  <AccessDenied
+    code="NOT_ENTITLED"
+    signedInAs={{ email: "ana@agencia.com", tenant: "Agência Flor" }}
+    services={<AppList services={services} loading={isPending} error={isError} currentSlug="slides" />}
+    actions={<Button onClick={signOut}>Sair</Button>}
+    detail="NOT_ENTITLED"
+  />
+</StatusScreen>
+```
+
+O pacote só desenha: quem busca a identidade e `GET /api/me/services` (`SuiteService[]`), e
+quem faz o Tentar de novo e o Sair, é o app. `code` é um `AccessDenialCode`
+(`NOT_ENTITLED`, `NO_TENANT`, `TENANT_SUSPENDED`, `AMBIGUOUS_TENANT`, `MALFORMED`,
+`UNAVAILABLE`, `UNKNOWN`) e escolhe o texto de `ACCESS_DENIAL_TEXT`; `title` e `body`
+sobrescrevem. O cadeado aparece nas negações, não em `UNAVAILABLE` e `UNKNOWN`. O texto de
+`NOT_ENTITLED` aponta para a lista "abaixo": passe `services`, ou troque o `body`. Os
+rótulos de `AppList` e `AccessDenied` (`labels`) têm padrão em português.
 
 ### Tabela
 

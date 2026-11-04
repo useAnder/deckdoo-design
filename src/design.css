@@ -683,6 +683,46 @@
   box-shadow: 0 0 0 1px var(--dd-border);
 }
 
+/* Aviso do sistema no meio da conversa (`SystemNotice`): não é fala do DuDoo, então não tem rosto
+   nem balão. Espera uma coluna flex como pai, que o centraliza. */
+.dd-chat-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  align-self: center;
+  max-width: 85%;
+  padding: 6px 12px;
+  border-radius: var(--dd-r-item);
+  background: var(--dd-surface);
+  box-shadow: 0 0 0 1px var(--dd-border);
+  color: var(--dd-ink-muted);
+  font-size: 13px;
+}
+
+.dd-chat-notice > svg {
+  flex: none;
+  margin-top: 3px;
+  color: var(--dd-attention);
+}
+
+/* A fala que chega entra subindo um pouco (`Enter`): Trabalho, rápido e sem passar do ponto. */
+.dd-chat-enter {
+  animation: dd-chat-enter 220ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+@keyframes dd-chat-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dd-chat-enter {
+    animation: none;
+  }
+}
+
 /*
  * O estado vazio (`EmptyState`): a cena, o título, o texto e a ação, centrados. A cena não passa
  * de 280 px, para não brigar com o conteúdo que um dia vai estar ali.
@@ -858,4 +898,26 @@
  */
 .mantine-Progress-section[style*="--progress-section-color: inverse"] {
   background-color: var(--dd-inverse);
+}
+
+/*
+ * A moldura das telas de status (`StatusScreen`): o fundo cinza, a marca em cima e o painel no
+ * centro da tela.
+ */
+.dd-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--dd-gap);
+  background: var(--dd-canvas);
+  color: var(--dd-ink);
+}
+
+.dd-screen-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dd-gap);
+  width: 100%;
+  max-width: 560px;
 }

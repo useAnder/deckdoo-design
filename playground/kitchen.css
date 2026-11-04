@@ -537,6 +537,12 @@ body {
   color: var(--mantine-color-orange-7);
 }
 
+/* A conversa curta da seção Chat: baixa, sem a altura da conversa completa. */
+.ks-chat-short {
+  height: auto;
+  margin: 0;
+}
+
 .ks-chat-list {
   margin: 0;
   padding-left: 20px;
@@ -613,4 +619,15 @@ body {
   min-width: 0;
   display: grid;
   place-items: center;
+}
+
+/* A moldura de status ocupa a tela inteira; na cozinha ela é só um quadro. */
+.ks-screen {
+  overflow: hidden;
+  border-radius: var(--dd-r-panel);
+}
+
+.ks-screen .dd-screen {
+  min-height: 0;
+  padding: 32px var(--dd-gap);
 }

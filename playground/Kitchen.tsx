@@ -42,6 +42,7 @@ import {
   CaretRight,
   ChartBar,
   ChatCircleDots,
+  Chats,
   CheckCircle,
   ClockCounterClockwise,
   Copy,
@@ -51,6 +52,7 @@ import {
   House,
   Images,
   Info,
+  LockKey,
   MagnifyingGlass,
   Megaphone,
   Moon,
@@ -73,17 +75,22 @@ import {
   Warning,
 } from "@phosphor-icons/react";
 import {
+  AccessDenied,
   AppIcon,
+  AppList,
   BRAND,
   Block,
   ChatBubble,
+  ChatEnterScope,
   Count,
   DECKDOO_BRAND,
   DesignProvider,
   Dots,
   DuDoo,
+  DuDooSays,
   DuDooWall,
   EmptyState,
+  Enter,
   Logo,
   NavItem,
   Panel,
@@ -94,13 +101,19 @@ import {
   SideRail,
   Stat,
   Status,
+  StatusScreen,
   Steps,
+  SystemNotice,
+  Typing,
+  YouSay,
   accentHex,
   buildTheme,
+  useReadThenThink,
   type Accent,
   type RailItem,
   type Brand as BrandIdentity,
   type Corners,
+  type SuiteService,
 } from "@deckdoo/design";
 import { EXEMPLO_BRAND } from "./brands.js";
 import marca from "../docs/marca.md?raw";
@@ -160,6 +173,8 @@ const SECTIONS = [
   { id: "gavetas", label: "Gavetas", icon: SidebarSimple },
   { id: "cartoes", label: "Cartões", icon: ChartBar },
   { id: "conversa", label: "Conversa", icon: ChatCircleDots },
+  { id: "chat", label: "Chat", icon: Chats },
+  { id: "acesso", label: "Acesso", icon: LockKey },
   { id: "tabela", label: "Tabela", icon: FileText },
   { id: "camadas", label: "Camadas", icon: Copy },
   { id: "tela", label: "Tela exemplo", icon: House },
@@ -309,6 +324,8 @@ function Kitchen({ controls }: { controls: Controls }) {
         <Drawers />
         <Cards />
         <Conversation />
+        <ChatParts />
+        <Access />
         <TableSection />
         <Layers />
         <Example />
@@ -1389,6 +1406,105 @@ const DECKS = [
   ["DK-2852", "Treinamento de vendas", "Comercial", "Rascunho", "info", "Gerando slide 7", "5 out"],
   ["DK-2803", "Pitch para investidores", "Fundadores", "Pronto", "neutral", "—", "12 out"],
 ] as const;
+
+/* ——— Chat ——— */
+
+/** A espera do DuDoo: ele olha a sua fala e só então pensa (`useReadThenThink`). */
+function Waiting() {
+  const mood = useReadThenThink();
+  return (
+    <DuDooSays mood={mood} live>
+      <Typing />
+    </DuDooSays>
+  );
+}
+
+function ChatParts() {
+  const [round, setRound] = useState(0);
+  // As cinco primeiras falas já estão lá ao abrir (aparecem prontas); as outras chegam depois e
+  // entram subindo.
+  const [shown, setShown] = useState(5);
+  useEffect(() => {
+    setShown(5);
+    const ids = [
+      window.setTimeout(() => setShown(6), 900),
+      window.setTimeout(() => setShown(7), 1800),
+    ];
+    return () => ids.forEach((id) => window.clearTimeout(id));
+  }, [round]);
+
+  const lines: ReactNode[] = [
+    <DuDooSays key="0" live={false}>
+      Oi! Me conta a ideia do deck.
+    </DuDooSays>,
+    <YouSay key="1">Resultados do 3º trimestre pra diretoria.</YouSay>,
+    <SystemNotice key="2">
+      Não deu para ler <span className="dd-nobreak">vendas-q3.xlsx</span>.
+    </SystemNotice>,
+    <YouSay key="3">Mandei de novo, agora em .csv.</YouSay>,
+    <DuDooSays key="4" mood="curioso" live={false}>
+      Li a planilha. A margem de agosto é o ponto: quer que ela abra o deck?
+    </DuDooSays>,
+    <YouSay key="5">Quero.</YouSay>,
+    <Waiting key="6" />,
+  ];
+
+  return (
+    <Section
+      id="chat"
+      title="Chat"
+      note="As falas sobre o ChatBubble: só o rosto da última fala do DuDoo está vivo. A espera olha a sua fala antes de pensar, e a fala que chega com a conversa aberta entra subindo."
+    >
+      <Panel
+        title="Uma conversa curta"
+        actions={
+          <Button size="xs" variant="default" onClick={() => setRound((r) => r + 1)}>
+            Tocar de novo
+          </Button>
+        }
+      >
+        <ChatEnterScope key={round}>
+          <DuDooWall className="ks-chat-wall ks-chat-short">
+            {lines.slice(0, shown).map((line, i) => (
+              <Enter key={i}>{line}</Enter>
+            ))}
+          </DuDooWall>
+        </ChatEnterScope>
+      </Panel>
+    </Section>
+  );
+}
+
+/* ——— Acesso ——— */
+
+// O app em que a lista aparece (`marketing`) sai dela: ficam o Slides e o externo.
+const SERVICES: readonly SuiteService[] = [
+  { slug: "slides", kind: "app", name: "DeckDoo Slides", href: "#acesso" },
+  { slug: "marketing", kind: "app", name: "DeckDoo Marketing", href: "#acesso" },
+  { slug: "crm", kind: "external", name: "CRM da agência", href: "https://example.com" },
+];
+
+function Access() {
+  return (
+    <Section
+      id="acesso"
+      title="Acesso"
+      note="A moldura das telas de status e a negação de acesso. Os botões e a lista de apps são do app; o cadeado só aparece nas negações (não em UNAVAILABLE nem UNKNOWN)."
+    >
+      <div className="ks-screen">
+        <StatusScreen component="div">
+          <AccessDenied
+            code="NOT_ENTITLED"
+            signedInAs={{ email: "ana@agencia.com", tenant: "Agência Flor" }}
+            services={<AppList services={SERVICES} currentSlug="marketing" />}
+            actions={<Button>Sair</Button>}
+            detail="NOT_ENTITLED"
+          />
+        </StatusScreen>
+      </div>
+    </Section>
+  );
+}
 
 function TableSection() {
   return (
