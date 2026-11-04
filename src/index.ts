@@ -87,6 +87,33 @@ export {
   type SidePanelProps,
   type SideRailProps,
 } from "./rail.js";
+export { SideScroll, useScrollFade } from "./scroll.js";
+export {
+  NavGroup,
+  NavSection,
+  SideBar,
+  SideTip,
+  useSideCollapsed,
+  type NavGroupProps,
+  type SideBarLabels,
+  type SideBarProps,
+} from "./side.js";
+export { Skeleton, TopProgress, WAIT_DELAY, useWait } from "./wait.js";
+export {
+  FilterBar,
+  FilterChip,
+  FilterMenu,
+  monthPeriod,
+  periodLabel,
+  periodShortcuts,
+  yearPeriod,
+  type FilterChipProps,
+  type FilterMenuLabels,
+  type FilterMenuProps,
+  type FilterOption,
+  type FilterPeriod,
+  type PeriodShortcut,
+} from "./filter.js";
 export {
   ChatEnterScope,
   DuDooSays,

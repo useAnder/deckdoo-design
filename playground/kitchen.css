@@ -23,6 +23,38 @@ body {
   cursor: pointer;
 }
 
+/* Na barra recolhida, só o quadrado. */
+.ks-workspace[data-collapsed] {
+  justify-content: center;
+  width: auto;
+  padding: 4px;
+  background: transparent;
+}
+
+.ks-workspace[data-collapsed]:hover {
+  background: var(--dd-hover);
+}
+
+/* O DuDoo na barra recolhida: o rosto no acento, que liga e desliga. */
+.ks-ai-mini {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: var(--dd-r-block);
+  cursor: pointer;
+}
+
+.ks-ai-mini[aria-pressed="false"] {
+  background: var(--dd-sunken);
+}
+
+.ks-ai-mini:focus-visible {
+  outline: 2px solid var(--dd-accent);
+  outline-offset: 2px;
+}
+
 .ks-workspace strong,
 .ks-workspace .dd-muted {
   display: block;

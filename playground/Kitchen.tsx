@@ -49,6 +49,8 @@ import {
   DotsThree,
   Export,
   FileText,
+  Funnel,
+  Hourglass,
   House,
   Images,
   Info,
@@ -103,6 +105,20 @@ import {
   RailButton,
   SidePanel,
   SideRail,
+  NavGroup,
+  NavSection,
+  SideBar,
+  SideTip,
+  Skeleton,
+  TopProgress,
+  FilterBar,
+  FilterChip,
+  FilterMenu,
+  periodShortcuts,
+  useSideCollapsed,
+  useWait,
+  yearPeriod,
+  type FilterPeriod,
   Stat,
   Status,
   StatusScreen,
@@ -186,6 +202,8 @@ const SECTIONS = [
   { id: "suite", label: "Suíte", icon: SquaresFour },
   { id: "acesso", label: "Acesso", icon: LockKey },
   { id: "tabela", label: "Tabela", icon: FileText },
+  { id: "filtros", label: "Filtros", icon: Funnel },
+  { id: "espera", label: "Espera", icon: Hourglass },
   { id: "camadas", label: "Camadas", icon: Copy },
   { id: "tela", label: "Tela exemplo", icon: House },
 ] as const;
@@ -214,98 +232,37 @@ function Kitchen({ controls }: { controls: Controls }) {
 
   return (
     <div className="dd-root dd-frame ks" lang="pt-BR">
-      <aside className="dd-side dd-panel">
-        <Group justify="space-between" wrap="nowrap" mb="md">
-          <Logo height={26} />
-          <Tooltip label="Recolher barra">
-            <ActionIcon variant="subtle" color="gray" aria-label="Recolher barra">
-              <ArrowLeft size={16} />
-            </ActionIcon>
-          </Tooltip>
-        </Group>
-
-        <button type="button" className="ks-workspace">
-          <Avatar radius="md" size={34} color="inverse" variant="filled">
-            UA
-          </Avatar>
-          <span style={{ minWidth: 0 }}>
-            <strong>useAnder</strong>
-            <span className="dd-muted">Espaço de trabalho</span>
-          </span>
-          <CaretDown size={14} style={{ marginLeft: "auto" }} />
-        </button>
-
-        <div className="dd-eyebrow dd-side-label">Padrão visual</div>
-        <nav>
-          {SECTIONS.map((s) => (
-            // Link de verdade (`component="a"`): abre em nova aba, copia o endereço.
-            <NavItem
-              key={s.id}
-              component="a"
-              href={`#${s.id}`}
-              icon={<s.icon size={18} />}
-              label={s.label}
-              active={active === s.id}
-              onClick={(e) => {
-                e.preventDefault();
-                document.getElementById(s.id)?.scrollIntoView({ behavior: "smooth" });
-              }}
-            />
+      <SideBar
+        brand={<Logo height={26} />}
+        brandCollapsed={<AppIcon size={30} />}
+        top={<KitchenWorkspace />}
+        foot={<KitchenFoot aiOn={aiOn} onAiChange={setAiOn} />}
+      >
+        <NavSection label="Padrão visual">
+          {SECTIONS.filter((s) => !CHAT_IDS.includes(s.id)).map((s) => (
+            <SectionLink key={s.id} section={s} active={active === s.id} />
           ))}
-        </nav>
+          <NavGroup
+            icon={<ChatCircleDots size={18} />}
+            label="Conversa"
+            itemsId="ks-nav-conversa"
+            active={CHAT_IDS.includes(active)}
+          >
+            {SECTIONS.filter((s) => CHAT_IDS.includes(s.id)).map((s) => (
+              <SectionLink key={s.id} section={s} active={active === s.id} />
+            ))}
+          </NavGroup>
+        </NavSection>
 
-        <div className="dd-eyebrow dd-side-label">Mascote</div>
-        <nav>
+        <NavSection label="Mascote">
           <NavItem
             component="a"
             href="/dudoo.html"
             icon={<PaintBrush size={18} />}
             label="Ateliê do DuDoo"
           />
-        </nav>
-
-        <div className="dd-side-foot">
-          <div className="dd-accent ks-ai-card">
-            <Group justify="space-between" wrap="nowrap">
-              <Group gap={10} wrap="nowrap">
-                <DuDoo mood={aiOn ? "neutro" : "dormindo"} />
-                <div>
-                  <Text fw={600} size="sm" lh={1.2}>
-                    DuDoo
-                  </Text>
-                  <Text size="xs" opacity={0.75}>
-                    {aiOn ? "Ligado · 12 decks" : "Desligado"}
-                  </Text>
-                </div>
-              </Group>
-              <Switch
-                checked={aiOn}
-                onChange={(e) => setAiOn(e.currentTarget.checked)}
-                // Sobre o acento a tinta é sempre escura, nos dois temas.
-                color="ink.9"
-                size="md"
-                aria-label="DuDoo"
-              />
-            </Group>
-            <button type="button" className="ks-ai-link">
-              3 slides pedem atenção <CaretRight size={14} />
-            </button>
-          </div>
-          <Group gap="sm" wrap="nowrap" className="ks-user">
-            <Avatar radius="xl" color="purple" variant="filled">
-              AF
-            </Avatar>
-            <div style={{ minWidth: 0 }}>
-              <Text size="sm" fw={600}>
-                Anderson
-              </Text>
-              <Text size="xs" className="dd-muted">
-                Dono do espaço
-              </Text>
-            </div>
-          </Group>
-        </div>
-      </aside>
+        </NavSection>
+      </SideBar>
 
       <main className="dd-main ks-main">
         <header className="ks-top">
@@ -338,10 +295,132 @@ function Kitchen({ controls }: { controls: Controls }) {
         <Suite />
         <Access />
         <TableSection />
+        <Filters />
+        <Loading />
         <Layers />
         <Example />
       </main>
     </div>
+  );
+}
+
+// As seções de conversa ficam num grupo que abre e fecha, para mostrar o `NavGroup`.
+const CHAT_IDS = ["conversa", "chat"];
+
+function SectionLink({ section, active }: { section: (typeof SECTIONS)[number]; active: boolean }) {
+  return (
+    // Link de verdade (`component="a"`): abre em nova aba, copia o endereço.
+    <NavItem
+      component="a"
+      href={`#${section.id}`}
+      icon={<section.icon size={18} />}
+      label={section.label}
+      active={active}
+      onClick={(e) => {
+        e.preventDefault();
+        document.getElementById(section.id)?.scrollIntoView({ behavior: "smooth" });
+      }}
+    />
+  );
+}
+
+/** O espaço de trabalho no topo da barra; recolhida, só o quadrado. */
+function KitchenWorkspace() {
+  const collapsed = useSideCollapsed();
+  const mark = (
+    <Avatar radius="md" size={34} color="inverse" variant="filled">
+      UA
+    </Avatar>
+  );
+  return (
+    <SideTip label="useAnder">
+      <button
+        type="button"
+        className="ks-workspace"
+        data-collapsed={collapsed || undefined}
+        aria-label={collapsed ? "useAnder · Espaço de trabalho" : undefined}
+      >
+        {mark}
+        {!collapsed && (
+          <>
+            <span style={{ minWidth: 0 }}>
+              <strong>useAnder</strong>
+              <span className="dd-muted">Espaço de trabalho</span>
+            </span>
+            <CaretDown size={14} style={{ marginLeft: "auto" }} />
+          </>
+        )}
+      </button>
+    </SideTip>
+  );
+}
+
+/** O pé da barra: o DuDoo e a pessoa. Recolhida, o rosto do DuDoo (que liga e desliga) e o avatar. */
+function KitchenFoot({ aiOn, onAiChange }: { aiOn: boolean; onAiChange: (on: boolean) => void }) {
+  const collapsed = useSideCollapsed();
+  const avatar = (
+    <Avatar radius="xl" color="purple" variant="filled">
+      AF
+    </Avatar>
+  );
+  if (collapsed) {
+    return (
+      <>
+        <SideTip label={aiOn ? "DuDoo ligado" : "DuDoo desligado"}>
+          <button
+            type="button"
+            className="dd-accent ks-ai-mini"
+            aria-pressed={aiOn}
+            aria-label="DuDoo"
+            onClick={() => onAiChange(!aiOn)}
+          >
+            <DuDoo mood={aiOn ? "neutro" : "dormindo"} />
+          </button>
+        </SideTip>
+        <SideTip label="Anderson · Dono do espaço">{avatar}</SideTip>
+      </>
+    );
+  }
+  return (
+    <>
+      <div className="dd-accent ks-ai-card">
+        <Group justify="space-between" wrap="nowrap">
+          <Group gap={10} wrap="nowrap">
+            <DuDoo mood={aiOn ? "neutro" : "dormindo"} />
+            <div>
+              <Text fw={600} size="sm" lh={1.2}>
+                DuDoo
+              </Text>
+              <Text size="xs" opacity={0.75}>
+                {aiOn ? "Ligado · 12 decks" : "Desligado"}
+              </Text>
+            </div>
+          </Group>
+          <Switch
+            checked={aiOn}
+            onChange={(e) => onAiChange(e.currentTarget.checked)}
+            // Sobre o acento a tinta é sempre escura, nos dois temas.
+            color="ink.9"
+            size="md"
+            aria-label="DuDoo"
+          />
+        </Group>
+        <button type="button" className="ks-ai-link">
+          3 slides pedem atenção <CaretRight size={14} />
+        </button>
+      </div>
+      <Group gap="sm" wrap="nowrap" className="ks-user">
+        {avatar}
+        <div style={{ minWidth: 0 }}>
+          <Text size="sm" fw={600}>
+            Anderson
+          </Text>
+          <Text size="xs" className="dd-muted">
+            Dono do espaço
+          </Text>
+        </div>
+      </Group>
+    </>
   );
 }
 
@@ -1653,6 +1732,181 @@ function TableSection() {
 }
 
 /* ——— Camadas ——— */
+
+/* ——— Filtros ——— */
+
+const DECK_STATES = [
+  { value: "rascunho", label: "Rascunho" },
+  { value: "revisao", label: "Em revisão" },
+  { value: "aprovado", label: "Aprovado" },
+  { value: "arquivado", label: "Arquivado" },
+];
+
+const PEOPLE = [
+  { value: "af", label: "Anderson Fonseca", group: "Diretoria" },
+  { value: "bl", label: "Beatriz Lima", group: "Diretoria" },
+  { value: "cm", label: "Caio Martins", group: "Marketing" },
+  { value: "dr", label: "Débora Rocha", group: "Marketing" },
+  { value: "ep", label: "Elisa Prado", group: "Marketing" },
+  { value: "fs", label: "Fábio Souza", group: "Vendas" },
+  { value: "gt", label: "Gabriela Teles", group: "Vendas" },
+  { value: "hn", label: "Hugo Nunes", group: "Vendas" },
+  { value: "iv", label: "Íris Vidal", group: "Vendas" },
+];
+
+function Filters() {
+  const [state, setState] = useState<string | null>("revisao");
+  const [people, setPeople] = useState<string[]>([]);
+  const [period, setPeriod] = useState<FilterPeriod>({ from: null, to: null });
+  const [text, setText] = useState("");
+  const year = new Date().getFullYear();
+  return (
+    <Section
+      id="filtros"
+      title="Filtros"
+      note="Sempre em linha, nunca um formulário. O chip tracejado convida; com valor, o acento suave e o ×. Pessoas tem mais de 8 opções: ganha a busca e os grupos."
+    >
+      <Panel>
+        <FilterBar
+          end={
+            <>
+              <span className="dd-num">24 decks</span>
+              <Button size="compact-sm" variant="subtle" color="gray">
+                Mais recentes
+              </Button>
+            </>
+          }
+        >
+          <FilterMenu
+            kind="single"
+            label="Estado"
+            options={DECK_STATES}
+            value={state}
+            onChange={setState}
+          />
+          <FilterMenu
+            kind="multi"
+            label="Pessoas"
+            options={PEOPLE}
+            value={people}
+            onChange={setPeople}
+          />
+          <FilterMenu
+            kind="period"
+            label="Período"
+            value={period}
+            onChange={setPeriod}
+            shortcuts={[
+              ...periodShortcuts(),
+              { label: "Ano passado", value: yearPeriod(year - 1) },
+            ]}
+          />
+          <FilterMenu
+            kind="text"
+            label="Título"
+            value={text}
+            onChange={setText}
+            placeholder="Contém…"
+          />
+          <FilterChip label="Espaço" value="useAnder" disabled />
+        </FilterBar>
+      </Panel>
+    </Section>
+  );
+}
+
+/* ——— Espera ——— */
+
+/** O esqueleto de uma lista de decks, atrás da espera atrasada. */
+function DeckListSkeleton() {
+  const wait = useWait();
+  return (
+    <div className={wait.className} style={wait.style} role="status" aria-label="Carregando">
+      <Stack gap="md">
+        {[0, 1, 2, 3].map((i) => (
+          <Group key={i} gap="md" wrap="nowrap">
+            <Skeleton width={56} height={40} radius={10} />
+            <Stack gap={8} style={{ flex: 1 }}>
+              <Skeleton width={`${62 - i * 9}%`} height={12} />
+              <Skeleton width={`${34 + (i % 2) * 10}%`} height={10} />
+            </Stack>
+            <Skeleton width={28} height={28} radius="50%" />
+          </Group>
+        ))}
+      </Stack>
+    </div>
+  );
+}
+
+function Loading() {
+  const [loading, setLoading] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(timer.current), []);
+  const run = (ms: number) => {
+    clearTimeout(timer.current);
+    setLoading(true);
+    setBusy(true);
+    timer.current = setTimeout(() => {
+      setLoading(false);
+      setBusy(false);
+    }, ms);
+  };
+  return (
+    <Section
+      id="espera"
+      title="Espera"
+      note="O esqueleto só aparece depois de 200 ms (useWait): a resposta rápida não pisca. O fio do topo (TopProgress) responde ao clique quando demora, sobre a coluna do conteúdo."
+    >
+      <TopProgress active={busy} />
+      <SimpleGrid cols={{ base: 1, md: 2 }}>
+        <Panel
+          title="Lista"
+          actions={
+            <Group gap="xs">
+              <Button size="compact-sm" variant="default" onClick={() => run(120)}>
+                Rápida
+              </Button>
+              <Button size="compact-sm" onClick={() => run(2200)}>
+                Demorada
+              </Button>
+            </Group>
+          }
+        >
+          {loading ? (
+            <DeckListSkeleton />
+          ) : (
+            <Stack gap="xs">
+              {["Plano de expansão 2027", "Resultados do 3º tri", "Onboarding de vendas"].map(
+                (title) => (
+                  <Group key={title} gap="md" wrap="nowrap">
+                    <Presentation size={20} />
+                    <Text size="sm">{title}</Text>
+                  </Group>
+                ),
+              )}
+            </Stack>
+          )}
+        </Panel>
+        <Panel title="Os traços">
+          <Stack gap="sm">
+            <Group gap="sm" wrap="nowrap">
+              <Skeleton width={36} height={36} radius="50%" />
+              <Stack gap={6} style={{ flex: 1 }}>
+                <Skeleton width="50%" height={12} />
+                <Skeleton width="30%" height={10} />
+              </Stack>
+            </Group>
+            <Skeleton height={90} radius={14} />
+            <Text size="xs" className="dd-muted">
+              Skeleton: largura, altura e canto. Decorativo; quem anuncia a espera é o contêiner.
+            </Text>
+          </Stack>
+        </Panel>
+      </SimpleGrid>
+    </Section>
+  );
+}
 
 function Layers() {
   const [open, setOpen] = useState(false);

@@ -151,6 +151,10 @@ DeckDoo; sem `--bg`, limão; a tinta sai do contraste (ou `--ink`).
 | `sketch`, `sparkle`, `curl` | O rabisco: traço à mão em vetor, o brilho, o laço |
 | `EmptyState`, `SceneEmpty`, `SceneNoResults`, `SceneAllClear`, `SceneLocked`, `SceneGenerating`, `SceneDone` | O estado vazio e as cenas prontas (todas aceitam `label`, o texto para leitor de tela) |
 | `Scene`, `SceneLine`, `SceneCard`, `SceneDuDoo` | As peças para desenhar uma cena nova |
+| `SideBar`, `NavSection`, `NavGroup`, `SideTip`, `useSideCollapsed` | A barra lateral pronta (topo e pé presos, recolher com `[`); o grupo com rótulo; o grupo que abre e fecha; a dica da barra recolhida; se ela está recolhida |
+| `SideScroll`, `useScrollFade` | O miolo da barra lateral que rola entre o topo e o pé presos; o esmaecido nas bordas de qualquer área que rola |
+| `FilterBar`, `FilterChip`, `FilterMenu`, `periodLabel`, `periodShortcuts`, `monthPeriod`, `yearPeriod` | Os filtros em linha: a barra, o chip, o chip com o menu das escolhas; o texto e os atalhos do período |
+| `useWait`, `WAIT_DELAY`, `Skeleton`, `TopProgress` | A espera: o esqueleto que só aparece se demora, o traço dele e o fio no topo da página |
 | `SideRail`, `SidePanel`, `RailButton`, `requestPanel`, `usePanelRequests`, `useDrawerFloats`, `DRAWER_FLOAT_BELOW` | As gavetas: a barra de ícones na borda direita e a gaveta aberta ao lado; o botão do pé da barra; o pedido de abrir uma de fora; quando a gaveta flutua |
 | `DuDooSays`, `YouSay`, `Typing`, `SystemNotice`, `useReadThenThink`, `replyMood`, `ChatEnterScope`, `Enter`, `READING` | As falas do chat: a do DuDoo com a expressão do que diz, a sua, a espera, o aviso do sistema, o olhar antes de pensar e a entrada subindo |
 | `StatusScreen`, `AccessDenied`, `AppList`, `ACCESS_DENIAL_TEXT` | A moldura das telas de status; a negação de acesso por código; a lista de apps da pessoa; os textos de cada código |
@@ -163,22 +167,55 @@ DeckDoo; sem `--bg`, limão; a tinta sai do contraste (ou `--ink`).
 
 ### Moldura do app
 
-```html
-<div class="dd-root dd-frame">
-  <aside class="dd-side dd-panel">
-    <!-- logo, espaço de trabalho -->
-    <div class="dd-eyebrow dd-side-label">Seção</div>
-    <nav><!-- NavItem… --></nav>
-    <div class="dd-side-foot"><!-- IA, usuário --></div>
-  </aside>
-  <main class="dd-main"><!-- painéis --></main>
+A barra pronta é a `SideBar`, dentro da `.dd-frame`:
+
+```tsx
+<div className="dd-root dd-frame">
+  <SideBar
+    brand={<Logo height={26} />}
+    brandCollapsed={<AppIcon size={30} />}
+    top={<EspacoDeTrabalho />}
+    foot={<PeDaBarra />}
+  >
+    <NavSection label="Decks">
+      <NavItem component={NavLink} to="/" icon={<House size={18} />} label="Início" />
+      <NavGroup icon={<Folder size={18} />} label="Pastas" active={naPasta}>
+        <NavItem component={NavLink} to="/pastas/vendas" icon={<Folder size={18} />} label="Vendas" />
+      </NavGroup>
+    </NavSection>
+  </SideBar>
+  <main className="dd-main">{/* painéis */}</main>
 </div>
 ```
 
-Barra de 260 px presa à esquerda; abaixo de 48em ela vira o topo da página, na altura do
-próprio conteúdo. Só o esqueleto. O cabeçalho dos apps de editor (menu de apps, marca, abas, pessoa) é o
-`SuiteHeader` (ver [Cabeçalho da suíte e preferências](#cabeçalho-da-suíte-e-preferências)); o
-espaço de trabalho e a barra lateral ainda são de cada app.
+Barra de 260 px presa à esquerda. O topo (`brand`, `top`) e o pé (`foot`) ficam presos; só a
+navegação rola, com a barra de rolagem fina e as bordas esmaecendo quando há o que rolar. Abaixo
+de 48em ela vira o topo da página, na altura do próprio conteúdo.
+
+**Recolher:** o botão do topo ou a tecla `[` (fora de campo de texto) deixam só a coluna de
+ícones, de 76 px. O rótulo do item vira dica à direita, o rótulo da seção vira um fio, o contador
+vira um ponto e o `NavGroup` abre os itens numa folha ao lado, ao passar o mouse. A escolha fica
+no `localStorage` da pessoa; `collapsed`/`onCollapsedChange` controlam de fora e
+`collapsible={false}` tira o botão. Abaixo de 48em não há recolhido. O que o app põe em `top` e
+`foot` desenha a própria versão curta lendo `useSideCollapsed()` (só o avatar, só o ícone), e o
+`SideTip` dá a dica que só aparece recolhida. Os textos para leitor de tela vão em `labels`.
+
+Montada à mão, a barra ainda funciona: a `SideScroll` (ou a `div` abaixo) faz o miolo que rola,
+e sem ela a barra inteira rola, como antes.
+
+```html
+<aside class="dd-side dd-panel">
+  <!-- logo, espaço de trabalho: presos no topo -->
+  <div class="dd-side-scroll dd-scroll-fade"><!-- só isto rola -->
+    <div class="dd-eyebrow dd-side-label">Seção</div>
+    <nav><!-- NavItem… --></nav>
+  </div>
+  <div class="dd-side-foot"><!-- IA, usuário: preso embaixo --></div>
+</aside>
+```
+
+O cabeçalho dos apps de editor (menu de apps, marca, abas, pessoa) é o `SuiteHeader` (ver
+[Cabeçalho da suíte e preferências](#cabeçalho-da-suíte-e-preferências)).
 
 O `NavItem` é botão; para navegar de verdade, passe o link:
 
@@ -189,6 +226,39 @@ O `NavItem` é botão; para navegar de verdade, passe o link:
 
 O `NavLink` do roteador marca `aria-current="page"`, e isso já acende o item: não precisa de
 `active`.
+
+### Filtros
+
+Sempre em linha (`FilterBar` + chips), nunca um formulário de filtros. O `FilterMenu` é o chip e
+o menu num só, controlado, em quatro tipos:
+
+```tsx
+<FilterBar end={<span className="dd-num">24 decks</span>}>
+  <FilterMenu kind="single" label="Estado" options={ESTADOS} value={estado} onChange={setEstado} />
+  <FilterMenu kind="multi" label="Pessoas" options={PESSOAS} value={pessoas} onChange={setPessoas} />
+  <FilterMenu kind="period" label="Período" value={periodo} onChange={setPeriodo} />
+  <FilterMenu kind="text" label="Título" value={texto} onChange={setTexto} />
+</FilterBar>
+```
+
+`single` fecha ao escolher; `multi` fica aberto, com "Limpar" embaixo; `period` é de–até em
+datas ISO, com os atalhos de `periodShortcuts()` (troque ou acrescente em `shortcuts`, com
+`monthPeriod` e `yearPeriod`); `text` aplica no Enter. Acima de 8 opções a lista ganha a busca, e
+`group` nas opções põe os títulos. O valor do chip é escrito pela peça (`periodLabel` para o
+período); o × limpa. `onClose` avisa que o menu fechou; `disabled` trava o chip. Os textos estão em
+`labels` (pt-BR por padrão; `labels.period` troca o texto do período). O `FilterChip` sozinho
+serve de alvo de um `Menu` ou `Popover` seu.
+
+### Espera
+
+- **`useWait`:** o contêiner do esqueleto (`<div {...useWait()} role="status">`) fica invisível
+  por `WAIT_DELAY` (200 ms) e então esmaece: a resposta rápida não pisca. A espera que entra no
+  lugar de outra na mesma troca de tela herda o atraso, sem sumir e voltar.
+- **`Skeleton`:** o traço (largura, altura, canto; `radius="50%"` para avatar), decorativo.
+- **`TopProgress`:** o fio no topo da coluna do conteúdo (`.dd-main`), ligado a `active`. Aparece
+  depois do mesmo atraso, fica pelo menos 400 ms, cresce sem prometer um fim e esmaece ao
+  terminar. Ligue ao carregamento do roteador e às buscas sem dado ainda, não ao que atualiza em
+  segundo plano.
 
 ### Gavetas
 

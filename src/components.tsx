@@ -7,6 +7,7 @@ import type {
 import { isLightColor, useMantineTheme } from "@mantine/core";
 import { Check } from "@phosphor-icons/react";
 import { useBrand, type BrandShape } from "./brand.js";
+import { SideTip, useSideCollapsed } from "./side.js";
 import { DUDOO_MOODS, DuDooFace, type DuDooExpression, type DuDooMood } from "./dudoo.js";
 import wallUrl from "./brand/dudoo-tile.svg";
 import wallInverseUrl from "./brand/dudoo-tile-inverse.svg";
@@ -60,7 +61,8 @@ interface NavItemOwnProps {
 /**
  * Item da barra lateral. É botão; com `component` vira outra coisa — `component="a"` com
  * `href`, ou o link do roteador (`component={Link} to="/clientes"`). O `NavLink`, que marca
- * `aria-current="page"` sozinho, acende o item sem precisar de `active`.
+ * `aria-current="page"` sozinho, acende o item sem precisar de `active`. Rótulo longo não
+ * quebra: corta com reticências e o nome inteiro fica no `title` (na barra recolhida, na dica).
  */
 export type NavItemProps<C extends ElementType = "button"> = NavItemOwnProps & {
   component?: C;
@@ -75,19 +77,24 @@ export function NavItem<C extends ElementType = "button">({
   className,
   ...rest
 }: NavItemProps<C>) {
+  const collapsed = useSideCollapsed();
   const Root: ElementType = component ?? "button";
   return (
-    <Root
-      type={Root === "button" ? "button" : undefined}
-      className={cx("dd-nav-item", className)}
-      data-active={active || undefined}
-      aria-current={active ? "page" : undefined}
-      {...rest}
-    >
-      {icon}
-      <span>{label}</span>
-      {count !== undefined && <Count>{count}</Count>}
-    </Root>
+    <SideTip label={count !== undefined ? `${label} · ${count}` : label}>
+      <Root
+        type={Root === "button" ? "button" : undefined}
+        className={cx("dd-nav-item", className)}
+        data-active={active || undefined}
+        aria-current={active ? "page" : undefined}
+        aria-label={collapsed ? label : undefined}
+        title={collapsed ? undefined : label}
+        {...rest}
+      >
+        {icon}
+        <span className="dd-nav-text">{label}</span>
+        {count !== undefined && <Count>{count}</Count>}
+      </Root>
+    </SideTip>
   );
 }
 
