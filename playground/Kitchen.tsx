@@ -66,6 +66,7 @@ import {
   ShareNetwork,
   SidebarSimple,
   Sparkle,
+  SquaresFour,
   Stack as StackIcon,
   Sun,
   TextAa,
@@ -78,6 +79,7 @@ import {
   AccessDenied,
   AppIcon,
   AppList,
+  AppSwitcher,
   BRAND,
   Block,
   ChatBubble,
@@ -103,8 +105,11 @@ import {
   Status,
   StatusScreen,
   Steps,
+  SUITE_HEADER_HEIGHT,
+  SuiteHeader,
   SystemNotice,
   Typing,
+  UserMenu,
   YouSay,
   accentHex,
   buildTheme,
@@ -113,6 +118,7 @@ import {
   type RailItem,
   type Brand as BrandIdentity,
   type Corners,
+  type AppearanceValue,
   type SuiteService,
 } from "@deckdoo/design";
 import { EXEMPLO_BRAND } from "./brands.js";
@@ -174,6 +180,7 @@ const SECTIONS = [
   { id: "cartoes", label: "Cartões", icon: ChartBar },
   { id: "conversa", label: "Conversa", icon: ChatCircleDots },
   { id: "chat", label: "Chat", icon: Chats },
+  { id: "suite", label: "Suíte", icon: SquaresFour },
   { id: "acesso", label: "Acesso", icon: LockKey },
   { id: "tabela", label: "Tabela", icon: FileText },
   { id: "camadas", label: "Camadas", icon: Copy },
@@ -325,6 +332,7 @@ function Kitchen({ controls }: { controls: Controls }) {
         <Cards />
         <Conversation />
         <ChatParts />
+        <Suite />
         <Access />
         <TableSection />
         <Layers />
@@ -1483,6 +1491,51 @@ const SERVICES: readonly SuiteService[] = [
   { slug: "marketing", kind: "app", name: "DeckDoo Marketing", href: "#acesso" },
   { slug: "crm", kind: "external", name: "CRM da agência", href: "https://example.com" },
 ];
+
+function Suite() {
+  // A pessoa vê o tema que o Mantine aplica; trocar aqui é o `setColorScheme` que o app faria
+  // na hora, antes de gravar a escolha no control plane.
+  const { colorScheme, setColorScheme } = useMantineColorScheme();
+  const appearance: AppearanceValue = colorScheme;
+  return (
+    <Section
+      id="suite"
+      title="Suíte"
+      note={`O cabeçalho dos apps de editor (${SUITE_HEADER_HEIGHT} px, sem borda): o menu de apps, a marca, as abas e o canto da pessoa. A aparência do menu troca o tema da cozinha, como o app trocaria o do Mantine antes de gravar no control plane.`}
+    >
+      <div className="ks-suite">
+        <SuiteHeader
+          start={<AppSwitcher services={SERVICES} currentSlug="slides" />}
+          brand={
+            <a href="#suite" aria-label="DeckDoo, ir para o início">
+              <Logo variant="type" height={24} label="DeckDoo" />
+            </a>
+          }
+          tabs={
+            <>
+              <a href="#suite" className="dd-tab" aria-current="page">
+                Decks
+              </a>
+              <a href="#suite" className="dd-tab">
+                Modelos
+              </a>
+            </>
+          }
+          end={
+            <UserMenu
+              name="Anderson Fonseca"
+              email="anderson@agencia.com"
+              accountUrl="#suite"
+              appearance={{ value: appearance, onChange: setColorScheme }}
+              footer="Versão de exemplo"
+              onSignOut={() => undefined}
+            />
+          }
+        />
+      </div>
+    </Section>
+  );
+}
 
 function Access() {
   return (

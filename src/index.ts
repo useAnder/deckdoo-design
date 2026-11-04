@@ -104,3 +104,19 @@ export {
   type AppListLabels,
   type SuiteService,
 } from "./access.js";
+export {
+  AppSwitcher,
+  AppearanceControl,
+  SUITE_HEADER_HEIGHT,
+  SuiteHeader,
+  UserMenu,
+  initials,
+  matchLocale,
+  pickLocale,
+  useColorSchemePreference,
+  useRefreshOnReturn,
+  type AppSwitcherLabels,
+  type AppearanceLabels,
+  type AppearanceValue,
+  type UserMenuLabels,
+} from "./suite.js";

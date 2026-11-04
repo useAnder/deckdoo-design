@@ -631,3 +631,10 @@ body {
   min-height: 0;
   padding: 32px var(--dd-gap);
 }
+
+/* O cabeçalho da suíte pede o fundo cinza da página; na cozinha ele só ganha um quadro. */
+.ks-suite {
+  border-radius: var(--dd-r-panel);
+  background: var(--dd-canvas);
+  box-shadow: inset 0 0 0 1px var(--dd-border);
+}

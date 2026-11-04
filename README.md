@@ -154,6 +154,8 @@ DeckDoo; sem `--bg`, limão; a tinta sai do contraste (ou `--ink`).
 | `SideRail`, `SidePanel`, `requestPanel`, `usePanelRequests` | As gavetas: a barra de ícones na borda direita e a gaveta aberta ao lado; o pedido de abrir uma de fora |
 | `DuDooSays`, `YouSay`, `Typing`, `SystemNotice`, `useReadThenThink`, `replyMood`, `ChatEnterScope`, `Enter`, `READING` | As falas do chat: a do DuDoo com a expressão do que diz, a sua, a espera, o aviso do sistema, o olhar antes de pensar e a entrada subindo |
 | `StatusScreen`, `AccessDenied`, `AppList`, `ACCESS_DENIAL_TEXT` | A moldura das telas de status; a negação de acesso por código; a lista de apps da pessoa; os textos de cada código |
+| `SuiteHeader`, `AppSwitcher`, `UserMenu`, `AppearanceControl`, `SUITE_HEADER_HEIGHT`, `initials` | O cabeçalho dos apps de editor; o menu de trocar de app; o menu da pessoa (com a aparência dentro); o seletor claro / escuro / sistema |
+| `useColorSchemePreference`, `matchLocale`, `pickLocale`, `useRefreshOnReturn` | As preferências que o control plane guarda: aplicar o tema, casar o idioma com a lista do app, reler ao voltar para a aba |
 | `useDuDooMotion`, `DuDooMotion`, `usePrefersReducedMotion` | O DuDoo em movimento: a expressão quadro a quadro (hook e motor) |
 | `DrawOn`, `drawOn`, `SceneDuDooFace` | A cena se desenhando, com o DuDoo pousando; o rosto que se mexe nas cenas |
 | `DUDOO_INTENSITY`, `DUDOO_TIMING`, `DUDOO_REDUCED_TIMING` | A intensidade de cada expressão e o ritmo da troca |
@@ -174,8 +176,9 @@ DeckDoo; sem `--bg`, limão; a tinta sai do contraste (ou `--ink`).
 ```
 
 Barra de 260 px presa à esquerda; abaixo de 48em ela vira o topo da página, na altura do
-próprio conteúdo. Só o esqueleto: o cabeçalho da suíte (espaço de trabalho, usuário) ainda é de
-cada app.
+próprio conteúdo. Só o esqueleto. O cabeçalho dos apps de editor (menu de apps, marca, abas, pessoa) é o
+`SuiteHeader` (ver [Cabeçalho da suíte e preferências](#cabeçalho-da-suíte-e-preferências)); o
+espaço de trabalho e a barra lateral ainda são de cada app.
 
 O `NavItem` é botão; para navegar de verdade, passe o link:
 
@@ -320,6 +323,71 @@ sobrescrevem. O cadeado aparece nas negações, não em `UNAVAILABLE` e `UNKNOWN
 `NOT_ENTITLED` aponta para a lista "abaixo": passe `services`, ou troque o `body`. Os
 rótulos de `AppList` e `AccessDenied` (`labels`) têm padrão em português.
 
+### Cabeçalho da suíte e preferências
+
+```tsx
+<AppShell header={{ height: SUITE_HEADER_HEIGHT }}>
+  <AppShell.Header>
+    <SuiteHeader
+      start={<AppSwitcher services={services} loading={isPending} error={isError} currentSlug="slides" />}
+      brand={
+        <Link to="/" aria-label="DeckDoo, ir para o início">
+          <Logo variant="type" height={24} />
+        </Link>
+      }
+      tabs={<NavLink to="/" end className="dd-tab">Decks</NavLink>}
+      end={
+        <UserMenu
+          name={principal?.user.name ?? null}
+          accountUrl={accountUrl}
+          appearance={{ value: colorScheme, onChange: changeAppearance }}
+          onSignOut={signOut}
+        />
+      }
+    />
+  </AppShell.Header>
+</AppShell>
+```
+
+Tema e idioma são preferências da **pessoa**, guardadas no control plane (`GET /api/me`:
+`user.preferredColorScheme`, `"light" | "dark" | null`, e `user.preferredLocale`). Quem trocou o tema
+num app já o encontra nos outros. O valor do control plane é a verdade; o `localStorage` do
+Mantine é cache para a tela não piscar. O pacote não chama rede: dá as peças, e o app lê e grava
+pelo servidor dele.
+
+```tsx
+// main.tsx: o cache pinta a primeira tela
+<MantineProvider theme={theme} defaultColorScheme="auto">
+
+// no app
+const { data: principal, refetch } = usePrincipal(); // o /api/me, lido pelo servidor do app
+const { colorScheme, setColorScheme } = useMantineColorScheme();
+
+useColorSchemePreference(principal?.user.preferredColorScheme); // undefined = ainda não respondeu
+useRefreshOnReturn(() => void refetch()); // pega o que outro app gravou
+
+function changeAppearance(next: AppearanceValue) {
+  setColorScheme(next); // na hora
+  void savePreference({ preferredColorScheme: next === "auto" ? null : next }); // pelo servidor do app
+}
+```
+
+- `useColorSchemePreference(preferred)`: `undefined` (o control plane não respondeu, ou falhou) não
+  mexe em nada e fica o tema aplicado; `null` vira `"auto"`. Só aplica quando o valor **muda**,
+  para não desfazer a troca que o app fez enquanto a gravação está no ar.
+- `useRefreshOnReturn(refresh, throttleMs = 5000)`: chama `refresh` ao voltar para a aba ou a
+  janela, no máximo uma vez a cada `throttleMs`.
+- `matchLocale(tags, supported)` e `pickLocale(preferred, supported, browserTags?)` escolhem o
+  idioma da interface. Casam o tag inteiro e depois só o idioma, sem diferença de caixa
+  (`pt-PT` cai em `pt-BR`, `en-US` em `en`): cortar no hífen não casa `pt` com `pt-BR`.
+  `pickLocale` devolve `undefined` enquanto `preferred` é `undefined` (espere; o contrato manda
+  esperar no idioma); com `null`, vale o navegador; com um idioma, vale ele se o app o tem.
+- A gravação (`appearance.onChange`) é do app, pela rota de preferências do contrato.
+
+O `AppSwitcher` e o `UserMenu` têm rótulos em português que `labels` sobrescreve. `UserMenu`
+aceita itens do app como filhos (`Menu.Item`), `footer` (uma linha pequena, como a versão) e
+`target` (o gatilho do app no lugar da pílula, com `position` para dizer onde o menu abre).
+
 ### Tabela
 
 `<table class="dd-table">` (ou `<Table className="dd-table" withRowBorders={false}>`) dentro de
@@ -347,8 +415,10 @@ marque. `Badge` em célula não corta o rótulo.
 - **Tipografia:** Figtree em tudo, inclusive números (com `.dd-num`, algarismos de largura
   fixa). Geist Mono é tempero, não regra: só onde a tela quer cara de terminal ou em ID e código
   de máquina.
-- **Tema escuro:** a pessoa escolhe no menu do usuário; fica no `localStorage`. Toda tela tem que
-  funcionar nos dois.
+- **Tema escuro:** é preferência da pessoa e vale para a suíte inteira: o valor que o control plane
+  guarda manda, e o `localStorage` do Mantine é só cache para a tela não piscar. Nenhum app tem
+  tema só dele (ver [Cabeçalho da suíte e preferências](#cabeçalho-da-suíte-e-preferências)). Toda
+  tela tem que funcionar nos dois.
 - **Ícones:** Phosphor (`@phosphor-icons/react`), traço regular a 16–18 px; preenchido só no
   brilho (`Sparkle`) das ações de IA e em "apresentar".
 - **DuDoo, o assistente:** o brilho é o botão ("Gerar com IA"), reconhecido na hora; o rosto
