@@ -65,6 +65,7 @@ import {
   Presentation,
   ShareNetwork,
   SidebarSimple,
+  Rows,
   Sparkle,
   SquaresFour,
   Stack as StackIcon,
@@ -99,6 +100,7 @@ import {
   PillTabs,
   SceneDone,
   SceneLocked,
+  RailButton,
   SidePanel,
   SideRail,
   Stat,
@@ -113,12 +115,13 @@ import {
   YouSay,
   accentHex,
   buildTheme,
+  requestPanel,
+  usePanelRequests,
   useReadThenThink,
   type Accent,
   type RailItem,
   type Brand as BrandIdentity,
   type Corners,
-  type AppearanceValue,
   type SuiteService,
 } from "@deckdoo/design";
 import { EXEMPLO_BRAND } from "./brands.js";
@@ -883,6 +886,9 @@ function States() {
 
 type DrawerKey = "inserir" | "tema" | "historico";
 
+const DRAWER_EVENT = "cozinha:abrir-gaveta";
+const DRAWER_KEYS: readonly DrawerKey[] = ["inserir", "tema", "historico"];
+
 const RAIL: RailItem<DrawerKey>[] = [
   { key: "inserir", label: "Inserir", icon: <Plus size={20} /> },
   { key: "tema", label: "Tema", icon: <Palette size={20} /> },
@@ -897,18 +903,29 @@ const RAIL: RailItem<DrawerKey>[] = [
 function Drawers() {
   const [open, setOpen] = useState<DrawerKey | null>("tema");
   const item = RAIL.find((i) => i.key === open);
+  // A chave chega tipada: `keys` barra o que não é gaveta daqui.
+  usePanelRequests<DrawerKey>(setOpen, DRAWER_EVENT, DRAWER_KEYS);
   return (
     <Section
       id="gavetas"
       title="Gavetas"
-      note="A barra de ícones na borda direita e a gaveta aberta ao lado, que empurra o palco. Clicar na aberta fecha; o ícone apagado explica por quê."
+      note="A barra de ícones na borda direita e a gaveta aberta ao lado, que empurra o palco. Clicar na aberta fecha; o ícone apagado explica por quê. A linha é uma .dd-bench: abaixo de 960 px dela (e não da janela), a gaveta flutua."
     >
       <Panel>
-        <div className="ks-drawers">
+        <div className="ks-drawers dd-bench">
           <Block className="ks-drawers-stage">
-            <Text size="sm" className="dd-muted">
-              O palco: a gaveta aberta encaixa ao lado dele.
-            </Text>
+            <Stack gap="xs" align="center">
+              <Text size="sm" className="dd-muted">
+                O palco: a gaveta aberta encaixa ao lado dele.
+              </Text>
+              <Button
+                size="xs"
+                variant="light"
+                onClick={() => requestPanel<DrawerKey>("inserir", DRAWER_EVENT)}
+              >
+                Abrir Inserir de fora da barra
+              </Button>
+            </Stack>
           </Block>
           {item && (
             <SidePanel title={item.label} width={300} onClose={() => setOpen(null)}>
@@ -922,9 +939,16 @@ function Drawers() {
             open={open}
             onToggle={(key) => setOpen(open === key ? null : key)}
             footer={
-              <Text size="xs" ta="center" className="dd-muted">
-                Pé
-              </Text>
+              <Menu position="left-end" withinPortal>
+                <Menu.Target>
+                  <RailButton icon={<Rows size={18} />} label="Layout" />
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Label>O pé da barra é um RailButton</Menu.Label>
+                  <Menu.Item>Colunas</Menu.Item>
+                  <Menu.Item>Palco amplo</Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
             }
           />
         </div>
@@ -1496,7 +1520,7 @@ function Suite() {
   // A pessoa vê o tema que o Mantine aplica; trocar aqui é o `setColorScheme` que o app faria
   // na hora, antes de gravar a escolha no control plane.
   const { colorScheme, setColorScheme } = useMantineColorScheme();
-  const appearance: AppearanceValue = colorScheme;
+  const appearance = colorScheme;
   return (
     <Section
       id="suite"

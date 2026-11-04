@@ -15,7 +15,6 @@ import {
 import {
   ArrowSquareOut,
   CaretDown,
-  Monitor,
   Moon,
   SignOut,
   SquaresFour,
@@ -152,16 +151,17 @@ export function AppSwitcher({
 
 /* ——— Aparência ——— */
 
-/** Claro, escuro ou o do sistema: o mesmo vocabulário do `setColorScheme` do Mantine. */
-export type AppearanceValue = "light" | "dark" | "auto";
+/**
+ * Claro ou escuro. Não há "sistema": pelo contrato do control plane, quem nunca escolheu
+ * (`preferredColorScheme: null`) vê o claro, e o `prefers-color-scheme` não entra.
+ */
+export type AppearanceValue = "light" | "dark";
 
 export interface AppearanceLabels {
   /** Padrão: `"Claro"`. */
   light: string;
   /** Padrão: `"Escuro"`. */
   dark: string;
-  /** Padrão: `"Sistema"`. */
-  auto: string;
   /** O nome do seletor para leitor de tela. Padrão: `"Aparência"`. */
   label: string;
 }
@@ -169,20 +169,21 @@ export interface AppearanceLabels {
 const APPEARANCE_LABELS: AppearanceLabels = {
   light: "Claro",
   dark: "Escuro",
-  auto: "Sistema",
   label: "Aparência",
 };
 
 const APPEARANCE_OPTIONS = [
   { value: "light", icon: Sun },
   { value: "dark", icon: Moon },
-  { value: "auto", icon: Monitor },
 ] as const;
 
 /**
- * O seletor claro / escuro / sistema. Controlado e sem efeito próprio: não toca o Mantine nem
- * grava nada. O app aplica a escolha na hora (`setColorScheme`) e a grava onde a pessoa a
- * guarda (ver `useColorSchemePreference`).
+ * O seletor claro / escuro. Controlado e sem efeito próprio: não toca o Mantine nem grava nada.
+ * O app aplica a escolha na hora (`setColorScheme`) e a grava onde a pessoa a guarda (ver
+ * `useColorSchemePreference`).
+ *
+ * `value` aceita o `colorScheme` do Mantine como vem: um `"auto"` que tenha ficado no cache
+ * aparece como claro, que é o que a pessoa vê.
  *
  * `iconsOnly` é para cabeçalho apertado; os nomes ficam como dica e rótulo de leitor de tela.
  */
@@ -193,7 +194,7 @@ export function AppearanceControl({
   fullWidth,
   iconsOnly,
 }: {
-  value: AppearanceValue;
+  value: AppearanceValue | "auto";
   onChange: (value: AppearanceValue) => void;
   labels?: Partial<AppearanceLabels>;
   fullWidth?: boolean;
@@ -206,7 +207,7 @@ export function AppearanceControl({
       radius="xl"
       fullWidth={fullWidth}
       aria-label={text.label}
-      value={value}
+      value={value === "auto" ? "light" : value}
       onChange={(next) => onChange(next as AppearanceValue)}
       data={APPEARANCE_OPTIONS.map(({ value: option, icon: Icon }) => ({
         value: option,
@@ -277,7 +278,8 @@ export function UserMenu({
   /** O endereço de "Minha conta" (a tela de identidade do contrato). Sem ele, o item some. */
   accountUrl?: string | null;
   appearance?: {
-    value: AppearanceValue;
+    /** O `colorScheme` do Mantine serve direto (`"auto"` aparece como claro). */
+    value: AppearanceValue | "auto";
     onChange: (value: AppearanceValue) => void;
     labels?: Partial<AppearanceLabels>;
   };
@@ -402,26 +404,34 @@ export function SuiteHeader({
 /* ——— Preferências do control plane ——— */
 
 /**
- * Aplica no Mantine o tema que o control plane guarda (`user.preferredColorScheme`).
+ * Aplica no Mantine o tema que o control plane guarda (`user.preferredColorScheme`), com o
+ * significado do contrato ("O `preferredColorScheme` e o clarão"):
  *
  * - `undefined`: o control plane ainda não respondeu, ou falhou. Não mexe em nada, e fica o
  *   tema que está aplicado (o cache do `localStorage`). Falha é "não consegui perguntar", não
  *   "a pessoa não escolheu".
- * - `null`: a pessoa não escolheu, e vale o sistema (`"auto"`).
+ * - `null`: a pessoa nunca escolheu, e vale o **claro**. O tema do sistema não entra.
  * - `"light"` / `"dark"`: aplica.
  *
  * Aplica quando o valor **muda** em relação ao último recebido, não a cada render. Assim a troca
  * que o app faz na hora, enquanto a gravação está no ar, não é desfeita por um valor velho.
- * Quem usa precisa de `MantineProvider defaultColorScheme="auto"` para o cache pintar a tela.
+ *
+ * Quem usa põe `MantineProvider defaultColorScheme="light"`: o cache pinta a primeira tela, e sem
+ * cache ela abre clara. Um `"auto"` que tenha ficado no cache (de antes desta regra, ou de um
+ * `defaultColorScheme="auto"`) vira claro na hora, sem esperar o control plane.
  */
 export function useColorSchemePreference(preferred: "light" | "dark" | null | undefined): void {
-  const { setColorScheme } = useMantineColorScheme();
+  const { colorScheme, setColorScheme } = useMantineColorScheme();
   const received = useRef<"light" | "dark" | null | undefined>(undefined);
   useEffect(() => {
     if (preferred === undefined || received.current === preferred) return;
     received.current = preferred;
-    setColorScheme(preferred ?? "auto");
+    setColorScheme(preferred ?? "light");
   }, [preferred, setColorScheme]);
+  useEffect(() => {
+    // Roda depois do de cima: se o control plane já respondeu neste render, vale o que ele disse.
+    if (colorScheme === "auto") setColorScheme(received.current ?? "light");
+  }, [colorScheme, setColorScheme]);
 }
 
 /**

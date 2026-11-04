@@ -151,10 +151,10 @@ DeckDoo; sem `--bg`, limão; a tinta sai do contraste (ou `--ink`).
 | `sketch`, `sparkle`, `curl` | O rabisco: traço à mão em vetor, o brilho, o laço |
 | `EmptyState`, `SceneEmpty`, `SceneNoResults`, `SceneAllClear`, `SceneLocked`, `SceneGenerating`, `SceneDone` | O estado vazio e as cenas prontas (todas aceitam `label`, o texto para leitor de tela) |
 | `Scene`, `SceneLine`, `SceneCard`, `SceneDuDoo` | As peças para desenhar uma cena nova |
-| `SideRail`, `SidePanel`, `requestPanel`, `usePanelRequests` | As gavetas: a barra de ícones na borda direita e a gaveta aberta ao lado; o pedido de abrir uma de fora |
+| `SideRail`, `SidePanel`, `RailButton`, `requestPanel`, `usePanelRequests`, `useDrawerFloats`, `DRAWER_FLOAT_BELOW` | As gavetas: a barra de ícones na borda direita e a gaveta aberta ao lado; o botão do pé da barra; o pedido de abrir uma de fora; quando a gaveta flutua |
 | `DuDooSays`, `YouSay`, `Typing`, `SystemNotice`, `useReadThenThink`, `replyMood`, `ChatEnterScope`, `Enter`, `READING` | As falas do chat: a do DuDoo com a expressão do que diz, a sua, a espera, o aviso do sistema, o olhar antes de pensar e a entrada subindo |
 | `StatusScreen`, `AccessDenied`, `AppList`, `ACCESS_DENIAL_TEXT` | A moldura das telas de status; a negação de acesso por código; a lista de apps da pessoa; os textos de cada código |
-| `SuiteHeader`, `AppSwitcher`, `UserMenu`, `AppearanceControl`, `SUITE_HEADER_HEIGHT`, `initials` | O cabeçalho dos apps de editor; o menu de trocar de app; o menu da pessoa (com a aparência dentro); o seletor claro / escuro / sistema |
+| `SuiteHeader`, `AppSwitcher`, `UserMenu`, `AppearanceControl`, `SUITE_HEADER_HEIGHT`, `initials` | O cabeçalho dos apps de editor; o menu de trocar de app; o menu da pessoa (com a aparência dentro); o seletor claro / escuro |
 | `useColorSchemePreference`, `matchLocale`, `pickLocale`, `useRefreshOnReturn` | As preferências que o control plane guarda: aplicar o tema, casar o idioma com a lista do app, reler ao voltar para a aba |
 | `useDuDooMotion`, `DuDooMotion`, `usePrefersReducedMotion` | O DuDoo em movimento: a expressão quadro a quadro (hook e motor) |
 | `DrawOn`, `drawOn`, `SceneDuDooFace` | A cena se desenhando, com o DuDoo pousando; o rosto que se mexe nas cenas |
@@ -199,23 +199,61 @@ const ITEMS: RailItem<"inserir" | "tema" | "historico">[] = [
   { key: "historico", label: "Histórico", icon: <ClockCounterClockwise size={20} />, off: "Salve o deck primeiro" },
 ];
 
-const [open, setOpen] = useState<"inserir" | "tema" | "historico" | null>(null);
-usePanelRequests((key) => setOpen(key as "inserir" | "tema" | "historico"), "meuapp:abrir-gaveta");
+type Gaveta = "inserir" | "tema" | "historico";
+const GAVETAS: readonly Gaveta[] = ["inserir", "tema", "historico"];
+const EVENTO = "meuapp:abrir-gaveta";
 
-<div style={{ display: "flex", position: "relative" }}>
+const [open, setOpen] = useState<Gaveta | null>(null);
+usePanelRequests<Gaveta>(setOpen, EVENTO, GAVETAS); // só chaves da lista chegam, já tipadas
+
+<div className="dd-bench" style={{ display: "flex" }}>
   <main style={{ flex: 1 }}>{/* o palco */}</main>
-  {open && <SidePanel title="Tema" onClose={() => setOpen(null)}>…</SidePanel>}
-  <SideRail items={ITEMS} open={open} onToggle={(k) => setOpen(open === k ? null : k)} />
+  {open && <SidePanel title="Tema" className="meuapp-gaveta" onClose={() => setOpen(null)}>…</SidePanel>}
+  <SideRail
+    items={ITEMS}
+    open={open}
+    onToggle={(k) => setOpen(open === k ? null : k)}
+    footer={
+      <Menu position="left-end">
+        <Menu.Target>
+          <RailButton icon={<Rows size={18} />} label="Layout" />
+        </Menu.Target>
+        <Menu.Dropdown>…</Menu.Dropdown>
+      </Menu>
+    }
+  />
 </div>;
 
-requestPanel("tema", "meuapp:abrir-gaveta"); // de quem não tem a barra
+requestPanel<Gaveta>("tema", EVENTO); // de quem não tem a barra
 ```
 
 O app decide qual gaveta está aberta; a barra só mostra e avisa o clique. `off` apaga o ícone e
 mostra o motivo numa dica; clicar na gaveta aberta fecha mesmo assim. O nome do evento é
-parâmetro (o padrão é `dd:abrir-gaveta`): é o mesmo nos dois lados. Abaixo de 62em a gaveta
-flutua por cima do palco; para isso o pai dela precisa ser `position: relative` e a barra ficar na
-borda direita dele.
+parâmetro (o padrão é `dd:abrir-gaveta`): é o mesmo nos dois lados. `requestPanel<K>` e
+`usePanelRequests<K>` amarram a chave às gavetas do app; com a lista `keys`, o que chega pelo
+`window` e não é gaveta dali é ignorado. O pé da barra que não é gaveta (o seletor de layout)
+vai num `RailButton`, que tem o desenho dos itens e serve de alvo de `Menu` e `Tooltip`.
+`SidePanel` e `SideRail` aceitam `className`.
+
+**Quando a gaveta flutua.** Sem palco para empurrar, ela flutua por cima dele, ao lado da barra.
+Quem decide é a largura da **bancada**, não a da janela: ponha `dd-bench` na linha com o palco, a
+gaveta e a barra (ela vira `position: relative` e contêiner de consulta, com a barra na borda
+direita), e abaixo de 960 px dela (`DRAWER_FLOAT_BELOW`) a gaveta flutua. Assim a barra lateral
+do app, que come o palco, já entra na conta. Sem `dd-bench`, vale a janela (62em), como antes; o
+pai da gaveta precisa ser `position: relative`. Para outro ponto, ou para o app saber se ela
+flutua (abrir algo só onde ela encaixa), meça e passe o resultado:
+
+```tsx
+const [bench, setBench] = useState<HTMLDivElement | null>(null);
+const floats = useDrawerFloats(bench, 1100); // padrão: DRAWER_FLOAT_BELOW
+
+<div className="dd-bench" ref={setBench}>
+  …
+  <SidePanel floating={floats} …>…</SidePanel>
+</div>;
+```
+
+`floating` passa por cima do CSS (`true` flutua, `false` encaixa).
 
 ### O DuDoo
 
@@ -297,8 +335,8 @@ function Waiting() {
 
 `live` é o rosto vivo: só a última fala do DuDoo. `Typing` e `SystemNotice` trazem
 o texto para leitor de tela em português (`label`, `closeLabel`); `Typing label=""` quando
-ao lado já há texto dizendo o mesmo. `SystemNotice` espera uma coluna flex como pai, que o
-centraliza. `replyMood(texto)` dá `curioso` se a resposta termina em "?" e `neutro` no resto.
+ao lado já há texto dizendo o mesmo. `SystemNotice` se centraliza com pai em coluna flex ou em
+bloco. `replyMood(texto)` dá `curioso` se a resposta termina em "?" e `neutro` no resto.
 Quem entra subindo é só a fala que chega com a conversa já aberta: `still` desliga.
 
 ### Acesso negado
@@ -319,9 +357,16 @@ O pacote só desenha: quem busca a identidade e `GET /api/me/services` (`SuiteSe
 quem faz o Tentar de novo e o Sair, é o app. `code` é um `AccessDenialCode`
 (`NOT_ENTITLED`, `NO_TENANT`, `TENANT_SUSPENDED`, `AMBIGUOUS_TENANT`, `MALFORMED`,
 `UNAVAILABLE`, `UNKNOWN`) e escolhe o texto de `ACCESS_DENIAL_TEXT`; `title` e `body`
-sobrescrevem. O cadeado aparece nas negações, não em `UNAVAILABLE` e `UNKNOWN`. O texto de
-`NOT_ENTITLED` aponta para a lista "abaixo": passe `services`, ou troque o `body`. Os
-rótulos de `AppList` e `AccessDenied` (`labels`) têm padrão em português.
+sobrescrevem. O cadeado aparece nas negações, não em `UNAVAILABLE` e `UNKNOWN`. O `body` de
+`NOT_ENTITLED` aponta para a lista "abaixo"; cada código tem também o `short`, que se sustenta
+sozinho, para o alerta curto (a negação no meio de uma tela, sem `AppList`). O `AccessDenied` usa
+o `short` quando não recebe `services`. Os rótulos de `AppList` e `AccessDenied` (`labels`) têm
+padrão em português.
+
+Dentro do `AppShell`, abaixo do `SuiteHeader`, use `<StatusScreen inShell>`: ocupa só a altura
+que sobra (`100dvh` menos `--app-shell-header-height`), fica sem a marca (o cabeçalho já a mostra)
+e vira `div` (o `AppShell.Main` já é o `main`). Fora dele, `brand={null}` ou `brand={false}` tiram
+a marca.
 
 ### Cabeçalho da suíte e preferências
 
@@ -357,7 +402,7 @@ pelo servidor dele.
 
 ```tsx
 // main.tsx: o cache pinta a primeira tela
-<MantineProvider theme={theme} defaultColorScheme="auto">
+<MantineProvider theme={theme} defaultColorScheme="light">
 
 // no app
 const { data: principal, refetch } = usePrincipal(); // o /api/me, lido pelo servidor do app
@@ -368,13 +413,18 @@ useRefreshOnReturn(() => void refetch()); // pega o que outro app gravou
 
 function changeAppearance(next: AppearanceValue) {
   setColorScheme(next); // na hora
-  void savePreference({ preferredColorScheme: next === "auto" ? null : next }); // pelo servidor do app
+  void savePreference({ preferredColorScheme: next }); // pelo servidor do app
 }
 ```
 
 - `useColorSchemePreference(preferred)`: `undefined` (o control plane não respondeu, ou falhou) não
-  mexe em nada e fica o tema aplicado; `null` vira `"auto"`. Só aplica quando o valor **muda**,
-  para não desfazer a troca que o app fez enquanto a gravação está no ar.
+  mexe em nada e fica o tema aplicado; `null` ("nunca escolheu") é o **claro**, como manda o
+  contrato do control plane: o tema do sistema não entra. Só aplica quando o valor **muda**, para
+  não desfazer a troca que o app fez enquanto a gravação está no ar. Um `"auto"` que tenha ficado
+  no cache vira claro na hora.
+- O seletor (`AppearanceControl`, e o do `UserMenu`) tem só Claro e Escuro. `value` aceita o
+  `colorScheme` do Mantine como vem (`"auto"` aparece como claro); `onChange` dá `"light"` ou
+  `"dark"`, que é o que se grava.
 - `useRefreshOnReturn(refresh, throttleMs = 5000)`: chama `refresh` ao voltar para a aba ou a
   janela, no máximo uma vez a cada `throttleMs`.
 - `matchLocale(tags, supported)` e `pickLocale(preferred, supported, browserTags?)` escolhem o

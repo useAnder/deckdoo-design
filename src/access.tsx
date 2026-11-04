@@ -14,10 +14,13 @@ import { SceneLocked } from "./scenes.js";
 /**
  * Um item de `GET /api/me/services` do control plane: um serviço que a pessoa tem. `external`
  * sai do app (abre em outro lugar), e a lista avisa com uma seta.
+ *
+ * O contrato manda `kind` como texto livre, e as peças só testam `=== "external"`: um tipo novo
+ * que o control plane passe a mandar aparece como app, sem o app ter de converter a lista.
  */
 export interface SuiteService {
   slug: string;
-  kind: "app" | "external";
+  kind: "app" | "external" | (string & {});
   name: string;
   href: string;
   /** Vem do contrato; as peças daqui não o usam. */
@@ -28,21 +31,39 @@ export interface SuiteService {
  * A moldura das telas que ficam fora do app (acesso negado, erro de rota): o fundo cinza, a marca
  * em cima e o conteúdo num painel no centro. Com `component="div"` não vira o `main` da página
  * (para pôr dentro de outro).
+ *
+ * Com `inShell`, ela vai dentro do `AppShell`, abaixo do `SuiteHeader`: ocupa a altura que sobra
+ * (sem a página rolar o cabeçalho), fica sem a marca (o cabeçalho já a mostra) e vira `div` (o
+ * `AppShell.Main` já é o `main`). `brand` e `component` ainda mandam, se vierem.
  */
 export function StatusScreen({
   brand,
-  component: Root = "main",
+  component,
+  inShell = false,
+  className,
   children,
 }: {
-  /** A marca de cima. Padrão: o `Logo` da marca do app. */
+  /**
+   * A marca de cima. Padrão: o `Logo` da marca do app (nenhuma com `inShell`). `null` ou `false`
+   * tiram a marca.
+   */
   brand?: ReactNode;
+  /** Padrão: `"main"` (`"div"` com `inShell`). */
   component?: "main" | "div";
+  /** Dentro do `AppShell`, abaixo do cabeçalho da suíte. */
+  inShell?: boolean;
+  className?: string;
   children: ReactNode;
 }) {
+  const Root = component ?? (inShell ? "div" : "main");
+  const mark = brand === undefined ? inShell ? null : <Logo height={22} /> : brand;
   return (
-    <Root className="dd-screen">
+    <Root
+      className={className ? `dd-screen ${className}` : "dd-screen"}
+      data-in-shell={inShell || undefined}
+    >
       <div className="dd-screen-col">
-        {brand ?? <Logo height={22} />}
+        {mark}
         <Panel>{children}</Panel>
       </div>
     </Root>
@@ -134,18 +155,32 @@ export type AccessDenialCode =
   | "UNAVAILABLE"
   | "UNKNOWN";
 
+/** O texto de um código de negação. */
+export interface AccessDenialText {
+  title: string;
+  /** O da tela inteira (`AccessDenied`), que pode contar com a lista de apps embaixo. */
+  body: string;
+  /**
+   * O que se sustenta sozinho: para o alerta curto, a negação que chega no meio de uma tela e não
+   * tem a `AppList`. Só difere de `body` onde `body` aponta para a lista (`NOT_ENTITLED`).
+   */
+  short: string;
+}
+
 /**
  * O texto de cada código, o do Slides. Cada um tem o seu porque a **saída** é diferente: "não
  * contratou" se resolve com a agência, "sessão não serve" trocando de conta, e uma falha do
  * serviço só esperando.
  *
- * O de `NOT_ENTITLED` manda olhar "abaixo" os apps que a pessoa já tem: passe `services` (um
- * `AppList`) com ele, ou sobrescreva o `body`.
+ * O `body` de `NOT_ENTITLED` manda olhar "abaixo" os apps que a pessoa já tem; sem a lista (um
+ * alerta), use `short`. O `AccessDenied` já troca sozinho quando não recebe `services`.
  */
-export const ACCESS_DENIAL_TEXT: Record<AccessDenialCode, { title: string; body: string }> = {
+export const ACCESS_DENIAL_TEXT: Record<AccessDenialCode, AccessDenialText> = withShort({
   NOT_ENTITLED: {
     title: "Sua conta não tem este app",
     body: "A contratação deste app não está ativa para a sua empresa. Fale com a agência para liberar — enquanto isso, os apps que você já tem estão abaixo.",
+    short:
+      "A contratação deste app não está ativa para a sua empresa. Fale com a agência para liberar.",
   },
   TENANT_SUSPENDED: {
     title: "Conta suspensa",
@@ -171,7 +206,19 @@ export const ACCESS_DENIAL_TEXT: Record<AccessDenialCode, { title: string; body:
     title: "Não deu para abrir o app",
     body: "Algo deu errado ao confirmar o seu acesso. Tente de novo; se continuar, saia e entre de novo.",
   },
-};
+});
+
+/** `short` é o próprio `body` onde ele não aponta para nada em volta. */
+function withShort(
+  texts: Record<AccessDenialCode, Omit<AccessDenialText, "short"> & { short?: string }>,
+): Record<AccessDenialCode, AccessDenialText> {
+  const out = {} as Record<AccessDenialCode, AccessDenialText>;
+  for (const code of Object.keys(texts) as AccessDenialCode[]) {
+    const text = texts[code];
+    out[code] = { ...text, short: text.short ?? text.body };
+  }
+  return out;
+}
 
 export interface AccessDeniedLabels {
   /** A linha de quem está vendo a tela. Padrão: `"Você entrou como {email}, em {tenant}."`. */
@@ -202,7 +249,10 @@ export function AccessDenied({
   code: AccessDenialCode;
   /** Quem está vendo a tela: conta errada é metade dos casos. */
   signedInAs?: { email: string; tenant: string };
-  /** Normalmente um `<AppList />`, para o `NOT_ENTITLED`. */
+  /**
+   * Normalmente um `<AppList />`, para o `NOT_ENTITLED`. Sem ele, o texto padrão é o `short`, que
+   * não aponta para lista nenhuma.
+   */
   services?: ReactNode;
   /** Os botões, do app. */
   actions?: ReactNode;
@@ -234,7 +284,7 @@ export function AccessDenied({
 
       <Stack gap="xs">
         <Title order={2}>{title ?? said.title}</Title>
-        <Text className="dd-muted">{body ?? said.body}</Text>
+        <Text className="dd-muted">{body ?? (services ? said.body : said.short)}</Text>
       </Stack>
 
       {signedInAs && (

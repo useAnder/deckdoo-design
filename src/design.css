@@ -684,13 +684,16 @@
 }
 
 /* Aviso do sistema no meio da conversa (`SystemNotice`): não é fala do DuDoo, então não tem rosto
-   nem balão. Espera uma coluna flex como pai, que o centraliza. */
+   nem balão. Centraliza com pai em coluna flex (`align-self`) ou em bloco (`fit-content` com
+   margem automática). */
 .dd-chat-notice {
   display: flex;
   align-items: flex-start;
   gap: 6px;
   align-self: center;
+  width: fit-content;
   max-width: 85%;
+  margin-inline: auto;
   padding: 6px 12px;
   border-radius: var(--dd-r-item);
   background: var(--dd-surface);
@@ -874,11 +877,49 @@
   padding: 4px 16px 16px;
 }
 
-/* Em tela estreita não há palco para empurrar: a gaveta flutua por cima, ao lado da barra. O
- * pai da gaveta precisa ser `position: relative`, com a barra na borda direita dele (68 px de
- * barra mais 12 de respiro = `right: 80px`). */
+/*
+ * Sem palco para empurrar, a gaveta flutua por cima, ao lado da barra. O pai da gaveta precisa ser
+ * `position: relative`, com a barra na borda direita dele (68 px de barra mais 12 de respiro =
+ * `right: 80px`).
+ *
+ * Quando: a bancada (`.dd-bench`, a linha com o palco, a gaveta e a barra) é medida, não a
+ * janela, porque a barra lateral do app também come o palco. Abaixo de 60em de bancada
+ * (`DRAWER_FLOAT_BELOW`, 960 px), flutua. Fora de uma `.dd-bench`, vale a janela (62em), como
+ * antes. `data-floating` (a prop `floating`) passa por cima dos dois.
+ */
+.dd-bench {
+  position: relative;
+  container: dd-bench / inline-size;
+}
+
+.dd-drawer[data-floating="true"] {
+  position: absolute;
+  z-index: 20;
+  top: 0;
+  right: 80px;
+  bottom: 12px;
+  max-width: calc(100% - 92px);
+  box-shadow:
+    0 0 0 1px var(--dd-border),
+    var(--mantine-shadow-lg);
+}
+
+@container dd-bench (max-width: 60em) {
+  .dd-drawer:not([data-floating]) {
+    position: absolute;
+    z-index: 20;
+    top: 0;
+    right: 80px;
+    bottom: 12px;
+    max-width: calc(100% - 92px);
+    box-shadow:
+      0 0 0 1px var(--dd-border),
+      var(--mantine-shadow-lg);
+  }
+}
+
 @media (max-width: 62em) {
-  .dd-drawer {
+  .dd-drawer:not([data-floating]):not(.dd-bench .dd-drawer) {
     position: absolute;
     z-index: 20;
     top: 0;
@@ -902,16 +943,22 @@
 
 /*
  * A moldura das telas de status (`StatusScreen`): o fundo cinza, a marca em cima e o painel no
- * centro da tela.
+ * centro da tela. Dentro do `AppShell` (`inShell`), ocupa só o que sobra abaixo do cabeçalho: o
+ * Mantine publica a altura dele em `--app-shell-header-height`.
  */
 .dd-screen {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+  min-height: 100dvh;
   padding: var(--dd-gap);
   background: var(--dd-canvas);
   color: var(--dd-ink);
+}
+
+.dd-screen[data-in-shell] {
+  min-height: calc(100dvh - var(--app-shell-header-height, 0px));
 }
 
 .dd-screen-col {

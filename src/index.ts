@@ -75,10 +75,14 @@ export {
   type Sketch,
 } from "./scenes.js";
 export {
+  DRAWER_FLOAT_BELOW,
+  RailButton,
   SidePanel,
   SideRail,
   requestPanel,
+  useDrawerFloats,
   usePanelRequests,
+  type RailButtonProps,
   type RailItem,
   type SidePanelProps,
   type SideRailProps,
@@ -100,6 +104,7 @@ export {
   AppList,
   StatusScreen,
   type AccessDeniedLabels,
+  type AccessDenialText,
   type AccessDenialCode,
   type AppListLabels,
   type SuiteService,
