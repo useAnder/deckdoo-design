@@ -438,6 +438,48 @@ que sobra (`100dvh` menos `--app-shell-header-height`), fica sem a marca (o cabe
 e vira `div` (o `AppShell.Main` já é o `main`). Fora dele, `brand={null}` ou `brand={false}` tiram
 a marca.
 
+### Sessão que cai com a tela aberta
+
+A sessão central acaba com o app aberto (troca de senha ou saída em outro navegador): em vez de um
+aviso em cada painel e de um link que leva ao login na mesma aba (perdendo a tela), um modal por
+cima de tudo, e o login numa janela à parte. É a regra do contrato do Hub (§2, "A sessão que cai
+com a tela aberta"); o Pages foi o primeiro.
+
+```tsx
+// 1. o cliente da API: toda resposta passa por aqui
+const res = await fetch(path, init);
+watchSession(res); // 2xx: a sessão existe; 401 depois disso: abre o modal
+
+// 2. o layout (uma vez, dentro do MantineProvider)
+<SessionExpiredModal
+  loginHref={(next) => `/auth/login?next=${encodeURIComponent(next)}`}
+  checkSession={() => api.getPrincipal({ fresh: true })} // resolve = a sessão voltou
+  onResumed={() => void queryClient.invalidateQueries()}
+/>
+
+// 3. a rota de retorno, FORA do layout (sem cabeçalho nem leitura de principal)
+{ path: SESSION_RESUMED_PATH, element: <StatusScreen><SessionResumed /></StatusScreen> }
+
+// 4. o 401 do primeiro carregamento continua indo direto para o login
+if (status === 401 && !sessionEstablished()) redirectToLogin();
+```
+
+- "Entrar de novo" abre `loginHref(SESSION_RESUMED_PATH)` numa janela pequena. O login de `id.`
+  termina em `/sessao-retomada`, onde `SessionResumed` avisa a aba de origem (`BroadcastChannel`,
+  não `window.opener`, que a passagem por `id.` pode cortar) e fecha a janela. O modal some e
+  `onResumed` refaz as leituras, sem recarregar a página. Com a sessão central ainda aberta, a
+  janela só pisca.
+- Voltar para a aba roda `checkSession`: quem entrou por outra aba vê o modal fechar sozinho.
+- Janela bloqueada pelo navegador: entra na própria aba, com `loginHref(<onde está>)`.
+- O modal não fecha por fora (sem X, Esc nem clique no fundo). As ações que falharam com 401 não
+  se repetem sozinhas; o aviso delas (o do app) diz para tentar de novo.
+- O pacote não chama rede. `watchSession` aceita qualquer `{ status, ok }`; quem tem um `fetch`
+  próprio fora do cliente (stream, download) chama `noteUnauthorized()` no 401. `useSessionLost()`
+  diz se o modal está aberto, para o aviso em linha do app se calar atrás dele.
+- O 401 só abre o modal depois de uma resposta boa nesta página (`noteSessionOk`, que o
+  `watchSession` chama). Nos testes, `resetSessionState()` volta ao estado de página recém-aberta.
+- Textos em português, que `labels` sobrescreve nas duas peças.
+
 ### Cabeçalho da suíte e preferências
 
 ```tsx

@@ -122,7 +122,10 @@ import {
   Stat,
   Status,
   StatusScreen,
+  SessionExpiredModal,
   Steps,
+  noteSessionOk,
+  noteUnauthorized,
   SUITE_HEADER_HEIGHT,
   SuiteHeader,
   SystemNotice,
@@ -1658,6 +1661,26 @@ function Access() {
           />
         </StatusScreen>
       </div>
+      <Group gap="sm" mt="lg">
+        {/* Aqui o "login" é uma aba em branco, e voltar para esta já confere e fecha o modal. */}
+        <Button
+          variant="default"
+          onClick={() => {
+            noteSessionOk();
+            noteUnauthorized();
+          }}
+        >
+          Simular a sessão que caiu
+        </Button>
+        <Text size="sm" className="dd-muted">
+          O <code>SessionExpiredModal</code>: a sessão caiu com a tela aberta.
+        </Text>
+      </Group>
+      <SessionExpiredModal
+        loginHref={() => "about:blank"}
+        checkSession={() => Promise.resolve()}
+        onResumed={() => undefined}
+      />
     </Section>
   );
 }

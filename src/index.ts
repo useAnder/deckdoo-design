@@ -137,6 +137,23 @@ export {
   type SuiteService,
 } from "./access.js";
 export {
+  SESSION_RESUMED_PATH,
+  SessionExpiredModal,
+  SessionResumed,
+  announceSessionResumed,
+  clearSessionLost,
+  noteSessionOk,
+  noteUnauthorized,
+  onSessionResumed,
+  openLoginWindow,
+  resetSessionState,
+  sessionEstablished,
+  useSessionLost,
+  watchSession,
+  type SessionExpiredLabels,
+  type SessionResumedLabels,
+} from "./session.js";
+export {
   AppSwitcher,
   AppearanceControl,
   SUITE_HEADER_HEIGHT,
