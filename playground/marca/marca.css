@@ -269,3 +269,35 @@
   place-items: center;
   height: 104px;
 }
+
+/* ——— O logotipo e o mascote DeckDoo ——— */
+
+.bm-brand-assets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--dd-gap);
+}
+
+.bm-brand-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 12px 14px;
+}
+
+.bm-brand-tile {
+  display: grid;
+  place-items: center;
+  height: 120px;
+  padding: 0 20px;
+  border-radius: var(--dd-r-block);
+}
+
+.bm-brand-tile img {
+  max-width: 100%;
+  height: 36px;
+}
+
+.bm-brand-assets + .bm-brand-assets .bm-brand-tile img {
+  height: 56px;
+}

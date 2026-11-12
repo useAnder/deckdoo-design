@@ -51,6 +51,7 @@ import {
   TextT,
 } from "@phosphor-icons/react";
 import {
+  BRAND,
   DECKDOO_BRAND,
   DECKDOO_WORD,
   DesignProvider,
@@ -86,6 +87,8 @@ import "@fontsource-variable/figtree/wght.css";
 import "@fontsource-variable/plus-jakarta-sans/wght.css";
 import markLightSvg from "../../src/brand/deckdoo-mark.svg?raw";
 import markDarkSvg from "../../src/brand/deckdoo-mark-inverse.svg?raw";
+import logotypeLightSvg from "../../src/brand/deckdoo-logotype.svg?raw";
+import logotypeDarkSvg from "../../src/brand/deckdoo-logotype-inverse.svg?raw";
 import { textOutline } from "./outline.js";
 import { savePng, saveSvg, svgFromElement } from "../download.js";
 import "../kitchen.css";
@@ -701,6 +704,7 @@ function Bancada() {
         </header>
 
         <Stage look={look} />
+        <BrandAssets />
         <AppIcons />
         <Scale look={look} />
         <Weights look={look} />
@@ -1230,6 +1234,130 @@ function Stage({ look }: { look: Look }) {
         </div>
       </div>
     </Section>
+  );
+}
+
+/* ——— O logotipo e o mascote DeckDoo ——— */
+
+type BrandForm = "logotipo" | "mascote";
+
+/** Os desenhos de cada forma: o normal (tinta escura) e o inverso (tinta clara). */
+const BRAND_RAW: Record<BrandForm, Record<On, string>> = {
+  logotipo: { light: logotypeLightSvg, dark: logotypeDarkSvg },
+  mascote: { light: markLightSvg, dark: markDarkSvg },
+};
+
+/**
+ * Os fundos da primeira seção da cozinha: o desenho segue a tinta (o inverso na clara, para a
+ * pupila nunca ficar branca) e a cor é a do texto naquele fundo. O arquivo sai sem fundo; o fundo
+ * da prévia é fixo, igual nos dois temas, porque a cor do arquivo também é.
+ */
+const BRAND_GROUNDS: { key: string; label: string; bg: string; on: On; color: string }[] = [
+  { key: "claro", label: "Fundo claro", bg: "#ffffff", on: "light", color: BRAND.ink },
+  { key: "escuro", label: "Fundo escuro", bg: BRAND.ink, on: "dark", color: BRAND.paper },
+  { key: "limao", label: "Sobre o limão", bg: BRAND.lime, on: "light", color: BRAND.ink },
+  { key: "roxo", label: "Sobre o roxo", bg: BRAND.purple, on: "dark", color: BRAND.lime },
+];
+
+/** As alturas do PNG (e a do SVG, que é a primeira de uso comum). */
+const BRAND_PNG_HEIGHTS = [32, 64, 128, 256, 512, 1024];
+
+/** O SVG do pacote, na cor do fundo e com tamanho (a altura dada; a largura segue a proporção). */
+function brandSvg(form: BrandForm, ground: (typeof BRAND_GROUNDS)[number], height: number) {
+  const raw = BRAND_RAW[form][ground.on];
+  const box = (/viewBox="([^"]+)"/.exec(raw)?.[1] ?? "0 0 1 1").split(/\s+/).map(Number);
+  const width = +((height * (box[2] ?? 1)) / (box[3] ?? 1)).toFixed(2);
+  return raw
+    .replace(/<\?xml[^>]*\?>\s*/, "")
+    .replace(/fill:\s*#[0-9a-fA-F]{3,6}/, `fill: ${ground.color}`)
+    .replace("<svg ", `<svg width="${width}" height="${height}" `)
+    .replace(/(<svg[^>]*>)/, "$1<title>DeckDoo</title>");
+}
+
+/**
+ * O logotipo e o mascote DeckDoo, como na primeira seção da cozinha, para baixar: o SVG (128 px
+ * de altura nominal) e o PNG na altura escolhida, sem fundo.
+ */
+function BrandAssets() {
+  return (
+    <Section
+      id="logotipo"
+      title="Logotipo DeckDoo"
+      note={
+        <>
+          A marca da suíte, sem o nome de app: o <code>{'<Logo variant="type">'}</code> e o mascote.
+          Cada fundo leva o desenho e a cor dele; o arquivo sai sem fundo.
+        </>
+      }
+    >
+      <Stack gap="md">
+        {(["logotipo", "mascote"] as const).map((form) => (
+          <div key={form} className="bm-brand-assets">
+            {BRAND_GROUNDS.map((ground) => (
+              <BrandAssetCard key={ground.key} form={form} ground={ground} />
+            ))}
+          </div>
+        ))}
+      </Stack>
+    </Section>
+  );
+}
+
+function BrandAssetCard({
+  form,
+  ground,
+}: {
+  form: BrandForm;
+  ground: (typeof BRAND_GROUNDS)[number];
+}) {
+  const preview = useMemo(
+    () => `data:image/svg+xml,${encodeURIComponent(brandSvg(form, ground, 128))}`,
+    [form, ground],
+  );
+  const name = `deckdoo-${form}-${ground.key}`;
+  return (
+    <div className="dd-panel bm-brand-card">
+      <div className="bm-brand-tile" style={{ background: ground.bg }}>
+        <img src={preview} alt={`DeckDoo, ${form}, ${ground.label.toLowerCase()}`} />
+      </div>
+      <Group justify="space-between" wrap="nowrap" gap={6}>
+        <Text size="sm" fw={600}>
+          {ground.label}
+        </Text>
+        <Group gap={6} wrap="nowrap">
+          <Button
+            size="xs"
+            variant="default"
+            leftSection={<DownloadSimple size={14} />}
+            onClick={() => saveSvg(brandSvg(form, ground, 128), `${name}.svg`)}
+          >
+            SVG
+          </Button>
+          <Menu position="bottom-end" shadow="md">
+            <Menu.Target>
+              <Button size="xs" variant="default" leftSection={<DownloadSimple size={14} />}>
+                PNG
+              </Button>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Label>Altura</Menu.Label>
+              {BRAND_PNG_HEIGHTS.map((h) => (
+                <Menu.Item
+                  key={h}
+                  onClick={() => {
+                    const svg = brandSvg(form, ground, h);
+                    const width = Number(/width="([^"]+)"/.exec(svg)?.[1] ?? h);
+                    void savePng(svg, `${name}-${h}.png`, width, h);
+                  }}
+                >
+                  {`${h} px`}
+                </Menu.Item>
+              ))}
+            </Menu.Dropdown>
+          </Menu>
+        </Group>
+      </Group>
+    </div>
   );
 }
 
