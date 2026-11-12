@@ -230,8 +230,13 @@ Barra de 260 px presa à esquerda. O topo (`brand`, `top`) e o pé (`foot`) fica
 navegação rola, com a barra de rolagem fina e as bordas esmaecendo quando há o que rolar. Abaixo
 de 48em ela vira o topo da página, na altura do próprio conteúdo.
 
-**Recolher:** o botão do topo ou a tecla `[` (fora de campo de texto) deixam só a coluna de
-ícones, de 76 px. O rótulo do item vira dica à direita, o rótulo da seção vira um fio, o contador
+**Recolher:** o botão ao lado do logo ou a tecla `[` (fora de campo de texto) deixam só a coluna
+de ícones, de 76 px. Recolhida, o logo vira o `brandCollapsed` no mesmo ponto (com o link que
+tiver), e o botão de abrir fica pequeno, de cantos redondos, preso na borda da barra na altura do
+logo: sempre à vista, sem empilhar nada no topo, e os itens não descem. Ao abrir, o conteúdo já nasce na largura final e a
+barra o revela, sem quebrar texto no caminho; a largura sai de `--dd-side-w` (a coluna da
+`.dd-frame`, 260 px) menos `--dd-side-px` (o respiro lateral, 24 px). O app que mudar a coluna ou
+o `padding` da barra muda as variáveis junto. O rótulo do item vira dica à direita, o rótulo da seção vira um fio, o contador
 vira um ponto e o `NavGroup` abre os itens numa folha ao lado, ao passar o mouse. A escolha fica
 no `localStorage` da pessoa; `collapsed`/`onCollapsedChange` controlam de fora e
 `collapsible={false}` tira o botão. Abaixo de 48em não há recolhido. O que o app põe em `top` e

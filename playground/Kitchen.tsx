@@ -46,6 +46,7 @@ import {
   CheckCircle,
   ClockCounterClockwise,
   Copy,
+  DotsNine,
   DotsThree,
   Export,
   FileText,
@@ -147,6 +148,7 @@ import {
   type SuiteService,
 } from "@deckdoo/design";
 import { EXEMPLO_BRAND } from "./brands.js";
+import { AppsStudy, CurrentAppBrand, SuiteRail, useRailState, type RailMode } from "./AppsStudy.js";
 import marca from "../docs/marca.md?raw";
 import "./kitchen.css";
 
@@ -206,6 +208,7 @@ const SECTIONS = [
   { id: "conversa", label: "Conversa", icon: ChatCircleDots },
   { id: "chat", label: "Chat", icon: Chats },
   { id: "suite", label: "Suíte", icon: SquaresFour },
+  { id: "apps", label: "Apps", icon: DotsNine },
   { id: "acesso", label: "Acesso", icon: LockKey },
   { id: "tabela", label: "Tabela", icon: FileText },
   { id: "filtros", label: "Filtros", icon: Funnel },
@@ -217,6 +220,9 @@ const SECTIONS = [
 function Kitchen({ controls }: { controls: Controls }) {
   const [active, setActive] = useState<string>("marca");
   const [aiOn, setAiOn] = useState(true);
+  // O trilho de apps na borda da página (estudo da seção Apps), para ver no tamanho real.
+  const rail = useRailState();
+  const railOn = rail.mode !== "off";
 
   // A seção visível acende na barra lateral, como numa página de verdade.
   useEffect(() => {
@@ -237,81 +243,91 @@ function Kitchen({ controls }: { controls: Controls }) {
   }, []);
 
   return (
-    <div className="dd-root dd-frame ks" lang="pt-BR">
-      <SideBar
-        brand={<Logo height={26} />}
-        brandCollapsed={<AppIcon size={30} />}
-        top={<KitchenWorkspace />}
-        foot={<KitchenFoot aiOn={aiOn} onAiChange={setAiOn} />}
-      >
-        <NavSection label="Padrão visual">
-          {SECTIONS.filter((s) => !CHAT_IDS.includes(s.id)).map((s) => (
-            <SectionLink key={s.id} section={s} active={active === s.id} />
-          ))}
-          <NavGroup
-            icon={<ChatCircleDots size={18} />}
-            label="Conversa"
-            itemsId="ks-nav-conversa"
-            active={CHAT_IDS.includes(active)}
-          >
-            {SECTIONS.filter((s) => CHAT_IDS.includes(s.id)).map((s) => (
+    <div
+      className="dd-root ks-shell"
+      data-rail={railOn ? rail.mode : undefined}
+      data-rail-collapsed={(railOn && rail.collapsed) || undefined}
+      lang="pt-BR"
+    >
+      {railOn && <SuiteRail />}
+      <div className="dd-frame ks">
+        <SideBar
+          // Com o trilho, a marca aberta é a do app atual dele; recolhida, o mascote DeckDoo.
+          brand={railOn ? <CurrentAppBrand /> : <Logo height={26} />}
+          brandCollapsed={<AppIcon size={30} />}
+          top={<KitchenWorkspace />}
+          foot={<KitchenFoot aiOn={aiOn} onAiChange={setAiOn} />}
+        >
+          <NavSection label="Padrão visual">
+            {SECTIONS.filter((s) => !CHAT_IDS.includes(s.id)).map((s) => (
               <SectionLink key={s.id} section={s} active={active === s.id} />
             ))}
-          </NavGroup>
-        </NavSection>
+            <NavGroup
+              icon={<ChatCircleDots size={18} />}
+              label="Conversa"
+              itemsId="ks-nav-conversa"
+              active={CHAT_IDS.includes(active)}
+            >
+              {SECTIONS.filter((s) => CHAT_IDS.includes(s.id)).map((s) => (
+                <SectionLink key={s.id} section={s} active={active === s.id} />
+              ))}
+            </NavGroup>
+          </NavSection>
 
-        <NavSection label="Bancadas">
-          <NavItem
-            component="a"
-            href="/dudoo.html"
-            icon={<PaintBrush size={18} />}
-            label="Ateliê do DuDoo"
-          />
-          <NavItem
-            component="a"
-            href="/marca.html"
-            icon={<TextAa size={18} />}
-            label="Bancada da marca"
-          />
-        </NavSection>
-      </SideBar>
+          <NavSection label="Bancadas">
+            <NavItem
+              component="a"
+              href="/dudoo.html"
+              icon={<PaintBrush size={18} />}
+              label="Ateliê do DuDoo"
+            />
+            <NavItem
+              component="a"
+              href="/marca.html"
+              icon={<TextAa size={18} />}
+              label="Bancada da marca"
+            />
+          </NavSection>
+        </SideBar>
 
-      <main className="dd-main ks-main">
-        <header className="ks-top">
-          <div>
-            <Text size="xs" className="dd-muted">
-              Design <CaretRight size={10} /> Suíte
-            </Text>
-            <Group gap="sm">
-              <Title order={1} fz={28}>
-                Cozinha
-              </Title>
-              <Status tone="info">Rascunho</Status>
-            </Group>
-          </div>
-          <ThemeBar controls={controls} />
-        </header>
+        <main className="dd-main ks-main">
+          <header className="ks-top">
+            <div>
+              <Text size="xs" className="dd-muted">
+                Design <CaretRight size={10} /> Suíte
+              </Text>
+              <Group gap="sm">
+                <Title order={1} fz={28}>
+                  Cozinha
+                </Title>
+                <Status tone="info">Rascunho</Status>
+              </Group>
+            </div>
+            <ThemeBar controls={controls} />
+          </header>
 
-        <Brand />
-        <Voice />
-        <Colors />
-        <Typography />
-        <Buttons />
-        <Fields />
-        <States />
-        <Navigation />
-        <Drawers />
-        <Cards />
-        <Conversation />
-        <ChatParts />
-        <Suite />
-        <Access />
-        <TableSection />
-        <Filters />
-        <Loading />
-        <Layers />
-        <Example />
-      </main>
+          <Brand />
+          <Voice />
+          <Colors />
+          <Typography />
+          <Buttons />
+          <Fields />
+          <States />
+          <Navigation />
+          <Drawers />
+          <Cards />
+          <Conversation />
+          <ChatParts />
+          <Suite />
+          <Apps />
+          <Access />
+          <TableSection />
+          <Filters />
+          <Loading />
+          <Layers />
+          <Example />
+        </main>
+      </div>
     </div>
   );
 }
@@ -438,6 +454,7 @@ function KitchenFoot({ aiOn, onAiChange }: { aiOn: boolean; onAiChange: (on: boo
 
 function ThemeBar({ controls }: { controls: Controls }) {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
+  const rail = useRailState();
   const accents = ["lime", "cyan", "yellow", "coral", "magenta", "purple"] as const;
   return (
     <Group gap="sm" className="ks-themebar" wrap="wrap">
@@ -486,6 +503,17 @@ function ThemeBar({ controls }: { controls: Controls }) {
           { value: "suave", label: "Suave" },
           { value: "sutil", label: "Sutil" },
           { value: "reto", label: "Reto" },
+        ]}
+      />
+      <SegmentedControl
+        size="xs"
+        aria-label="Trilho de apps"
+        value={rail.mode}
+        onChange={(v) => rail.setMode(v as RailMode)}
+        data={[
+          { value: "off", label: "Sem trilho" },
+          { value: "solto", label: "Solto" },
+          { value: "fundo", label: "Com fundo" },
         ]}
       />
       <ActionIcon
@@ -1668,6 +1696,18 @@ function Suite() {
           }
         />
       </div>
+    </Section>
+  );
+}
+
+function Apps() {
+  return (
+    <Section
+      id="apps"
+      title="Apps"
+      note="Estudo, ainda fora do pacote: o ícone de cada app da suíte e a barra que leva de um app ao outro."
+    >
+      <AppsStudy />
     </Section>
   );
 }

@@ -8,8 +8,9 @@
  * vira o topo da página, sem ficar presa.
  */
 .dd-frame {
+  --dd-side-w: 260px;
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-columns: var(--dd-side-w) minmax(0, 1fr);
   gap: var(--dd-gap);
   min-height: 100vh;
   padding: var(--dd-gap);
@@ -94,10 +95,26 @@
 
 /* ——— a barra pronta (`SideBar`): topo, navegação e o recolhido ——— */
 
+/*
+ * Ao abrir, a coluna cresce de 76 para 260 px em 180 ms, mas o conteúdo já é o da barra aberta:
+ * sem largura mínima, os textos quebrariam em três linhas e iriam se desembolando. Então o
+ * conteúdo nasce na largura final e a barra o revela, cortando o que ainda não cabe. A largura
+ * vem de `--dd-side-w` (a da coluna da `.dd-frame`) menos `--dd-side-px` (o respiro lateral do
+ * `.dd-panel`); um app que mude a coluna ou o `padding` da barra muda as variáveis junto.
+ */
+.dd-side {
+  --dd-side-px: 24px;
+}
+
+/* A barra pronta não rola inteira (quem rola é o miolo): corta, para revelar ao abrir. */
+.dd-side:has(> .dd-side-scroll) {
+  overflow: hidden;
+}
+
 .dd-side-head {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
   min-height: 32px;
   margin-bottom: 16px;
@@ -201,21 +218,44 @@
   }
 
   .dd-side[data-collapsed] {
-    padding: 18px 12px 14px;
+    --dd-side-px: 12px;
+    padding: 22px var(--dd-side-px) 14px;
   }
 
-  /* O logo recolhido em cima do botão, um embaixo do outro. */
+  /* Aberta, o conteúdo tem a largura final mesmo enquanto a coluna ainda cresce. */
+  .dd-side:not([data-collapsed]) > :is(.dd-side-head, .dd-side-top, .dd-side-foot) {
+    min-width: calc(var(--dd-side-w, 260px) - 2 * var(--dd-side-px));
+  }
+
+  /* O miolo tem 10 px de cada lado além da barra (a margem negativa da `.dd-side-scroll`). */
+  .dd-side:not([data-collapsed]) > .dd-side-scroll {
+    min-width: calc(var(--dd-side-w, 260px) - 2 * var(--dd-side-px) + 20px);
+  }
+
+  /*
+   * O logo recolhido no mesmo ponto do aberto, centrado na coluna, e o botão de abrir pequeno,
+   * preso na borda da barra (metade para fora), na altura do logo. Para ele passar da borda, a
+   * barra recolhida não corta o que sai dela; ao abrir, volta a cortar, para revelar o conteúdo.
+   */
+  .dd-side[data-collapsed]:has(> .dd-side-scroll) {
+    z-index: 2;
+    overflow: visible;
+  }
+
   .dd-side[data-collapsed] .dd-side-head {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .dd-side[data-collapsed] .dd-side-brand:empty {
-    display: none;
+    justify-content: center;
   }
 
   .dd-side[data-collapsed] .dd-side-collapse {
+    position: absolute;
+    top: 50%;
+    right: calc(-1 * var(--dd-side-px));
     margin: 0;
+    translate: 50% -50%;
+    /* Cantos redondos, não círculo: metade do raio de um item, que segue o jeito dos cantos. */
+    border-radius: calc(var(--dd-r-item) / 2);
+    color: var(--dd-ink-muted);
+    box-shadow: var(--mantine-shadow-xs);
   }
 
   .dd-side[data-collapsed] :is(.dd-side-top, .dd-side-foot) {

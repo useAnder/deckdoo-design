@@ -55,7 +55,10 @@ const SIDE_LABELS: SideBarLabels = {
 export interface SideBarProps {
   /** O topo: o logo. */
   brand: ReactNode;
-  /** O logo na barra recolhida (o `AppIcon`, sem o nome). Sem ele, só o botão de abrir. */
+  /**
+   * O logo na barra recolhida (o `AppIcon`, sem o nome). O botão de abrir fica ao lado dele, na
+   * borda da barra. Sem ele, o topo fica só com o botão.
+   */
   brandCollapsed?: ReactNode;
   /** Logo abaixo do logo, também preso: o espaço de trabalho, a busca. */
   top?: ReactNode;
@@ -76,8 +79,11 @@ export interface SideBarProps {
  * A barra lateral do app, para ir dentro da `.dd-frame`. O topo (`brand`, `top`) e o pé
  * (`foot`) ficam presos; só a navegação rola, com a barra fina e as bordas esmaecendo.
  *
- * Recolhe para a coluna de ícones no botão do topo ou na tecla `[` (fora de campo de texto):
- * o rótulo vira dica à direita, o rótulo de seção vira um fio, o contador vira um ponto e o
+ * Recolhe para a coluna de ícones no botão ao lado do logo ou na tecla `[` (fora de campo de
+ * texto). Recolhida, o logo vira o `brandCollapsed` no mesmo ponto (e continua sendo o logo, com
+ * o link que tiver), e o botão de abrir fica pequeno, preso na borda da barra, metade para fora:
+ * sempre à vista, sem empilhar nada no topo, e os itens não descem. O rótulo vira dica à
+ * direita, o rótulo de seção vira um fio, o contador vira um ponto e o
  * `NavGroup` abre ao lado. A escolha fica no `localStorage` da pessoa. Abaixo de 48em, onde a
  * barra vira o topo da página, não há recolhido.
  */
@@ -141,16 +147,18 @@ export function SideBar({
         <div className="dd-side-head">
           <span className="dd-side-brand">{collapsed ? brandCollapsed : brand}</span>
           {canCollapse && (
-            <Tooltip label={`${label} ( [ )`} position="right">
+            <Tooltip label={`${label} ( [ )`} position="right" offset={8}>
               <ActionIcon
-                variant="subtle"
-                color="gray"
+                // Recolhida, o botão é pequeno e com contorno, na borda da barra.
+                variant={collapsed ? "default" : "subtle"}
+                color={collapsed ? undefined : "gray"}
+                size={collapsed ? 22 : "md"}
                 className="dd-side-collapse"
                 onClick={toggle}
                 aria-label={label}
                 aria-expanded={!collapsed}
               >
-                <SidebarSimple size={18} />
+                <SidebarSimple size={collapsed ? 13 : 18} />
               </ActionIcon>
             </Tooltip>
           )}
