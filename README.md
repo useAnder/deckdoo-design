@@ -22,6 +22,9 @@ Os apps instalam por tag Git, com versão fixa, e atualizam quando quiserem:
 
 A tag já traz o `dist/` pronto: o app não compila o pacote nem precisa de token.
 
+Ao subir a versão, leia os [avisos aos apps](docs/avisos.md): o que mudou e pede um olhar de
+quem usa (uma regra de movimento nova, um campo que mudou de sentido).
+
 Peer dependencies: `react` e `react-dom` 19, `@mantine/core` e `@mantine/hooks` 9,
 `@phosphor-icons/react` 2.
 

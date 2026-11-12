@@ -198,16 +198,21 @@ import { DrawOn, EmptyState, SceneDone } from "@deckdoo/design";
 ```
 
 Nada muda no desenho: o `DrawOn` lê o SVG e dá a cada peça o seu papel, na ordem do código. O
-traço sai da ponta da caneta, o papel do cartão acende com o contorno, a mancha cai depois do
-traço, o brilho e o ponto saltam, e o DuDoo pousa por último e só então faz a cara da cena. Por
-isso a ordem do código importa: desenhe o objeto antes dos enfeites.
+DuDoo, se a cena tem, pousa primeiro, olhando para onde o desenho vai nascer. Depois o traço sai
+da ponta da caneta, o papel do cartão acende com o contorno, a mancha cai depois do traço e o
+brilho e o ponto saltam. Com tudo assentado, ele faz a cara da cena (na espera, logo que pousa).
+Por isso a ordem do código importa: desenhe o objeto antes dos enfeites. O lugar do DuDoo no
+código não muda nada: ele chega primeiro de qualquer jeito.
 
 Dois grupos mudam o tempo de uma parte:
 
-| Grupo                      | Para                                                           |
-| -------------------------- | -------------------------------------------------------------- |
-| `<g data-dd-draw="dudoo">` | A reação dele (os risquinhos): se desenha depois que ele pousa |
-| `<g data-dd-draw="loop">`  | A espera: se desenha, assenta, apaga e recomeça                |
+| Grupo                      | Para                                                             |
+| -------------------------- | ---------------------------------------------------------------- |
+| `<g data-dd-draw="dudoo">` | A reação dele (os risquinhos): se desenha quando ele faz a cara  |
+| `<g data-dd-draw="loop">`  | A espera: se desenha, assenta, apaga e recomeça                  |
+
+Para sincronizar algo do app com a cena, o `drawOn` devolve `dudooAt` (quando ele termina de
+pousar) e `reactAt` (quando ele faz a cara da cena), em ms desde o começo.
 
 - **No Sério, parada:** `<DrawOn still>`. O `SceneLocked` aparece pronto.
 - **`replay`** desenha de novo quando o número muda (ao mostrar o estado vazio outra vez, por

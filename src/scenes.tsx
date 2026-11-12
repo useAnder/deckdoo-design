@@ -121,7 +121,8 @@ export function SceneCard({
 
 /**
  * O rosto do DuDoo nas cenas. Quem anima a cena troca o `DuDooFace` parado por um que se mexe
- * (chega neutro e, assentado, faz a cara da cena); sem nada, é o desenho parado.
+ * (chega primeiro, neutro, olhando o desenho nascer, e faz a cara da cena no fim); sem nada, é o
+ * desenho parado.
  */
 export const SceneDuDooFace = createContext<ComponentType<{
   mood: DuDooMood | DuDooExpression;
@@ -876,7 +877,7 @@ export function SceneEmpty({
           {dudoo ? (
             <>
               <SceneLine d={curl(150, 150, 3, 1)} />
-              {/* A empolgação dele: quem anima a cena desenha isto depois que ele chega. */}
+              {/* A empolgação dele: quem anima a cena desenha isto quando ele faz a cara. */}
               <g data-dd-draw="dudoo">
                 <SceneLine d={s.ticks(36, 80, -110, 4, 9, 30)} />
               </g>

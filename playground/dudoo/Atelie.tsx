@@ -1081,7 +1081,7 @@ function Scenes() {
             art={<SceneEmpty object="slide" dudoo />}
             title="Nenhum deck ainda"
             text="Tem uma ideia? Me conta que eu monto o deck com você."
-            motion="O slide se desenha, a cor cai, e o DuDoo chega e olha para ele."
+            motion="O DuDoo chega e olha; o slide se desenha, a cor cai, e ele se empolga."
             action={<Button leftSection={<Sparkle size={16} weight="fill" />}>Gerar com IA</Button>}
           />
           <SceneShowcase
@@ -1091,7 +1091,7 @@ function Scenes() {
             art={<SceneGenerating />}
             title="Montando o deck"
             text="Montando a estrutura… agora os gráficos."
-            motion="O slide da frente se monta em loop enquanto ele pensa, olhando em volta."
+            motion="Ele chega já pensando, e o slide da frente se monta em loop enquanto ele olha em volta."
           />
           <SceneShowcase
             tone="festa"
@@ -1100,7 +1100,7 @@ function Scenes() {
             art={<SceneDone />}
             title="Pronto: 12 slides"
             text="Quer revisar o roteiro antes de exportar?"
-            motion="O trabalho se desenha, o visto fecha, e ele chega com a piscadinha."
+            motion="Ele chega e assiste: o trabalho se desenha, o visto fecha, e aí a piscadinha."
             action={<Button>Revisar roteiro</Button>}
           />
           <SceneShowcase
@@ -1650,7 +1650,7 @@ function Rules() {
     ],
     [
       "Desenha uma vez e para",
-      "Na ordem de quem desenha: objeto, enfeites, a cor, o brilho e, por último, o DuDoo pousando. Loop só na espera.",
+      "O DuDoo pousa primeiro e olha; depois, na ordem de quem desenha, objeto, enfeites, a cor e o brilho. A cara dele vem por último. Loop só na espera.",
     ],
     [
       "Reduzido não é parado",

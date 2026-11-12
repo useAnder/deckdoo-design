@@ -3,11 +3,18 @@ import {
   useContext,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
 } from "react";
-import { DUDOO_MOODS, DuDooFace, type DuDooExpression, type DuDooMood } from "./dudoo.js";
+import {
+  DUDOO_MOODS,
+  DuDooFace,
+  dudooExpression,
+  type DuDooExpression,
+  type DuDooMood,
+} from "./dudoo.js";
 import { SceneDuDooFace } from "./scenes.js";
 import { useDuDooMotion, usePrefersReducedMotion } from "./motion.js";
 
@@ -23,11 +30,15 @@ import { useDuDooMotion, usePrefersReducedMotion } from "./motion.js";
  * - **mancha** (`blob`): entra depois do traço, deslizando até o lugar, como a cor que cai fora
  *   de registro.
  * - **brilho** (`sparkle`): salta, com um giro, quando o resto está pronto.
- * - **DuDoo**: chega por último, como a coruja pousando (vem num arco, girando até o prumo), e
- *   só então faz a cara da cena. O corpo não estica.
+ * - **DuDoo**: chega primeiro, como a coruja pousando (vem num arco, girando até o prumo), e
+ *   olha para onde o desenho vai nascer; a mão começa quando ele está quase no lugar. A cara da
+ *   cena fica para o fim, quando o desenho assenta. O corpo não estica.
  *
  * O que está num grupo `data-dd-draw="dudoo"` é a reação dele (os risquinhos de quem se
- * empolgou): se desenha quando ele pousa e faz a cara da cena.
+ * empolgou): se desenha quando ele faz a cara da cena, no fim.
+ *
+ * Na espera (uma cena com `loop`), a cara vem logo que ele pousa: o trabalho que se monta é ele
+ * pensando.
  *
  * O que está num grupo `data-dd-draw="loop"` se desenha, assenta, apaga e recomeça: a espera do
  * `SceneGenerating`. O resto desenha uma vez e para. Com movimento reduzido, a cena já aparece
@@ -63,8 +74,10 @@ const DUDOO = {
   from: { x: -12, y: 12, tilt: 14 },
   /** O alto do arco, e quanto passa do prumo ali. */
   over: { x: -2, y: -4, tilt: -3, at: 0.55 },
+  /** Em que ponto da chegada a mão começa: ele quase no lugar, já olhando. */
+  inkAt: 0.6,
 };
-/** Quanto o DuDoo fica na cena antes de fazer a cara dela: chega, olha, reage. */
+/** Depois que o desenho assenta (ou que ele pousa, na espera), quanto ele espera para reagir. */
 const DUDOO_REACT = 200;
 /** O loop: depois de desenhado, segura assim, apaga neste tempo e espera para recomeçar. */
 const LOOP = { hold: 1100, fade: 320, gap: 260, /** O slide se montando sem pressa. */ ink: 1000 };
@@ -178,6 +191,13 @@ export interface DrawResult {
   stop: () => void;
   /** Quando o DuDoo termina de chegar, em ms desde o começo (já com a velocidade). */
   dudooAt: number;
+  /**
+   * Quando ele faz a cara da cena e a reação dele se desenha, em ms desde o começo (já com a
+   * velocidade): o desenho assentado, ou logo depois de pousar, na espera.
+   */
+  reactAt: number;
+  /** Para onde ele olha enquanto o desenho nasce (o `look` de uma expressão), se dá para medir. */
+  look?: [number, number];
 }
 
 /**
@@ -216,9 +236,17 @@ export function drawOn(root: SVGSVGElement, { delay = 0, speed = 1 } = {}): Draw
   // O loop é a espera: a mão monta o slide devagar, por mais curto que ele seja.
   const loopPace = loopInk > 0 ? Math.max(pace, LOOP.ink / loopInk) : pace;
 
+  // 0. O DuDoo, primeiro: pousa olhando para onde o desenho vai nascer, e a mão começa quando ele
+  // está quase no lugar. Mede-se o olhar antes de a chegada tirá-lo do lugar.
+  const dudoos = once.filter((p) => p.role === "dudoo");
+  const look = dudoos[0] ? lookAtDrawing(dudoos[0].el, list) : undefined;
+  for (const { el } of dudoos) all.push(land(el, time(delay), time));
+  const landed = delay + DUDOO.ms;
+  const dudooAt = dudoos.length ? time(landed) : 0;
+
   // 1. O traço e o ponto, na ordem do código. O papel do cartão acende enquanto o contorno é
   // desenhado, devagar no começo: quando o contorno fecha, o papel está lá.
-  let t = delay;
+  let t = dudoos.length ? delay + DUDOO.ms * DUDOO.inkAt : delay;
   let pendingFundo: SVGElement[] = [];
   let loopAt: number | undefined;
   for (const { el, role, group } of list) {
@@ -261,9 +289,11 @@ export function drawOn(root: SVGSVGElement, { delay = 0, speed = 1 } = {}): Draw
 
   // 2. A mancha, quando o traço está acabando.
   const blobAt = Math.max(delay, inked - 140);
+  let settled = inked;
   for (const { el, role } of once) {
     if (role !== "mancha") continue;
     all.push(blob(el, time(blobAt), time(BLOB.ms)));
+    settled = Math.max(settled, blobAt + BLOB.ms);
   }
 
   // 3. Os brilhos, um de cada vez.
@@ -271,43 +301,18 @@ export function drawOn(root: SVGSVGElement, { delay = 0, speed = 1 } = {}): Draw
   for (const { el, role } of once) {
     if (role !== "brilho") continue;
     all.push(pop(el, time(popAt), time));
+    // Conta como assentado no meio do salto: a mola já passou do ponto e está voltando.
+    settled = Math.max(settled, popAt + POP.ms / 2);
     popAt += POP.stagger;
   }
 
-  // 4. O DuDoo, por último.
-  let dudooAt = 0;
-  for (const { el, role } of once) {
-    if (role !== "dudoo") continue;
-    // Pousa: o arco e o giro juntos, terminando no lugar e no prumo ao mesmo tempo.
-    el.style.transformBox = "fill-box";
-    el.style.transformOrigin = "50% 50%";
-    const { from, over } = DUDOO;
-    all.push(
-      el.animate(
-        [
-          {
-            offset: 0,
-            opacity: 0,
-            translate: `${from.x}px ${from.y}px`,
-            rotate: `${from.tilt}deg`,
-            easing: "cubic-bezier(0.2, 0.6, 0.4, 1)",
-          },
-          { offset: 0.22, opacity: 1 },
-          {
-            offset: over.at,
-            translate: `${over.x}px ${over.y}px`,
-            rotate: `${over.tilt}deg`,
-            easing: "cubic-bezier(0.45, 0, 0.4, 1)",
-          },
-          { offset: 1, opacity: 1, translate: "0 0", rotate: "0deg" },
-        ],
-        { duration: time(DUDOO.ms), delay: time(popAt), fill: "backwards" },
-      ),
-    );
-    dudooAt = time(popAt + DUDOO.ms);
-
+  // 4. A cara da cena, e a reação dele, no fim: quando o desenho assenta. Na espera, logo que
+  // ele pousa: o que se monta é ele pensando, e o loop não acaba.
+  const reactRaw = (loopAt !== undefined ? landed : Math.max(landed, settled)) + DUDOO_REACT;
+  const reactAt = dudoos.length ? time(reactRaw) : 0;
+  if (dudoos.length) {
     // A reação dele (a ênfase de quem se empolgou) se desenha quando ele faz a cara da cena.
-    let r = popAt + DUDOO.ms + DUDOO_REACT;
+    let r = reactRaw;
     for (const p of reaction) {
       if (p.role === "traco") {
         const { len, ms: raw } = strokeMs(p.el);
@@ -343,7 +348,65 @@ export function drawOn(root: SVGSVGElement, { delay = 0, speed = 1 } = {}): Draw
       .then(() => !stopped && restore())
       .catch(() => {});
 
-  return { animations: all, stop, dudooAt };
+  return { animations: all, stop, dudooAt, reactAt, look };
+}
+
+/** Pousa: o arco e o giro juntos, terminando no lugar e no prumo ao mesmo tempo. */
+function land(el: SVGElement, delay: number, time: (ms: number) => number) {
+  el.style.transformBox = "fill-box";
+  el.style.transformOrigin = "50% 50%";
+  const { from, over } = DUDOO;
+  return el.animate(
+    [
+      {
+        offset: 0,
+        opacity: 0,
+        translate: `${from.x}px ${from.y}px`,
+        rotate: `${from.tilt}deg`,
+        easing: "cubic-bezier(0.2, 0.6, 0.4, 1)",
+      },
+      { offset: 0.22, opacity: 1 },
+      {
+        offset: over.at,
+        translate: `${over.x}px ${over.y}px`,
+        rotate: `${over.tilt}deg`,
+        easing: "cubic-bezier(0.45, 0, 0.4, 1)",
+      },
+      { offset: 1, opacity: 1, translate: "0 0", rotate: "0deg" },
+    ],
+    { duration: time(DUDOO.ms), delay, fill: "backwards" },
+  );
+}
+
+/**
+ * O olhar do DuDoo até o meio do que vai se desenhar (o traço, o papel e a mancha da cena, sem
+ * a reação dele): dos olhos, um pouco acima do meio do corpo, até lá. Sem caixa para medir (fora
+ * de um navegador, ou a cena escondida), não há olhar.
+ */
+function lookAtDrawing(dudoo: SVGElement, list: Piece[]): [number, number] | undefined {
+  const f = dudoo.getBoundingClientRect();
+  if (!f.width || !f.height) return undefined;
+  let box: { l: number; t: number; r: number; b: number } | undefined;
+  for (const { el, role, group } of list) {
+    if (group === "dudoo" || role === "dudoo" || role === "brilho" || role === "ponto") continue;
+    const r = el.getBoundingClientRect();
+    if (!r.width && !r.height) continue;
+    box = box
+      ? {
+          l: Math.min(box.l, r.left),
+          t: Math.min(box.t, r.top),
+          r: Math.max(box.r, r.right),
+          b: Math.max(box.b, r.bottom),
+        }
+      : { l: r.left, t: r.top, r: r.right, b: r.bottom };
+  }
+  if (!box) return undefined;
+  const dx = (box.l + box.r) / 2 - (f.left + f.width / 2);
+  const dy = (box.t + box.b) / 2 - (f.top + f.height * 0.35);
+  const len = Math.hypot(dx, dy);
+  if (!len) return undefined;
+  const round = (n: number) => Math.round(n * 100) / 100;
+  return [round(dx / len), round(dy / len)];
 }
 
 /** Um traço saindo da ponta da caneta. */
@@ -454,8 +517,10 @@ function loopOn(looping: Piece[], at: number, pace: number, time: (ms: number) =
 interface Stage {
   /** Muda a cada desenho; o DuDoo recomeça a chegada. */
   run: number;
-  /** Quando ele termina de chegar, em ms desde o começo do desenho. */
-  arriveAt: number;
+  /** Quando ele faz a cara da cena, em ms desde o começo do desenho. */
+  reactAt: number;
+  /** Para onde ele olha até lá: o desenho nascendo. */
+  look?: [number, number];
   still: boolean;
 }
 
@@ -475,23 +540,27 @@ function named(mood: DuDooMood | DuDooExpression): {
 }
 
 /**
- * O rosto do DuDoo dentro de uma cena que se desenha: chega neutro e, assentado, faz a cara da
- * cena (a piscadinha do pronto, o pensando da espera). Entra no lugar do `DuDooFace` parado pelo
- * `SceneDuDooFace` do pacote.
+ * O rosto do DuDoo dentro de uma cena que se desenha: chega primeiro, neutro, olhando o desenho
+ * nascer e, com ele assentado, faz a cara da cena (a piscadinha do pronto; na espera, o pensando
+ * vem logo que ele pousa). Entra no lugar do `DuDooFace` parado pelo `SceneDuDooFace` do pacote.
  */
 function SceneFace({ mood, size }: { mood: DuDooMood | DuDooExpression; size: number }) {
   const stage = useContext(DrawStage);
   const reduced = usePrefersReducedMotion();
   const target = named(mood);
-  const [arrived, setArrived] = useState(true);
+  const [reacted, setReacted] = useState(true);
   useEffect(() => {
-    if (!stage || stage.still || !stage.run) return setArrived(true);
-    setArrived(false);
-    const id = window.setTimeout(() => setArrived(true), stage.arriveAt + DUDOO_REACT);
+    if (!stage || stage.still || !stage.run) return setReacted(true);
+    setReacted(false);
+    const id = window.setTimeout(() => setReacted(true), stage.reactAt);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage?.run, stage?.still]);
-  const e = useDuDooMotion(arrived ? target.mood : "neutro", { reduced: reduced || stage?.still });
+  const watching = useMemo(
+    () => (stage?.look ? dudooExpression({ look: stage.look }) : "neutro"),
+    [stage?.look],
+  );
+  const e = useDuDooMotion(reacted ? target.mood : watching, { reduced: reduced || stage?.still });
   return <DuDooFace size={size} mood={target.lean ? { ...e, lean: target.lean } : e} title="" />;
 }
 
@@ -515,15 +584,15 @@ export function DrawOn({
   const ref = useRef<HTMLDivElement>(null);
   const running = useRef<() => void>(() => {});
   const seen = useRef(false);
-  const [stage, setStage] = useState<Stage>({ run: 0, arriveAt: 0, still });
+  const [stage, setStage] = useState<Stage>({ run: 0, reactAt: 0, still });
 
   const play = () => {
     const svg = ref.current?.querySelector("svg");
     running.current();
     if (!svg || still) return;
-    const { stop, dudooAt } = drawOn(svg, { delay, speed });
+    const { stop, reactAt, look } = drawOn(svg, { delay, speed });
     running.current = stop;
-    setStage((s) => ({ run: s.run + 1, arriveAt: dudooAt, still: false }));
+    setStage((s) => ({ run: s.run + 1, reactAt, look, still: false }));
   };
 
   // Antes de pintar: a cena começa escondida, para não piscar pronta e sumir.

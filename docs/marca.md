@@ -215,8 +215,11 @@ No código: `useDuDooMotion(mood)` devolve a expressão quadro a quadro para o `
   traço acaba (deslizando até o registro), o brilho salta por último.
 - **A mão tem ritmo:** linha longa demora mais, linhas de texto vêm uma de cada vez, e o traço do
   desenho inteiro fica entre 0,6 e 1,6 s. Peça sozinha não acaba num piscar.
-- **O DuDoo pousa por último,** como a coruja: vem de baixo e da esquerda, inclinado, num arco
-  que gira até o prumo. Só então faz a cara da cena, e a reação dele (os risquinhos) vem depois.
+- **O DuDoo chega primeiro, a cara dele vem por último.** Pousa como a coruja: vem de baixo e
+  da esquerda, inclinado, num arco que gira até o prumo, e olha para onde o desenho vai nascer.
+  A mão começa quando ele está quase no lugar, e o desenho acontece sob o olhar dele: quem
+  desenha é ele. Com o desenho assentado, ele faz a cara da cena, e a reação (os risquinhos) vem
+  junto. Na espera, a cara vem logo que ele pousa, porque o que se monta é ele pensando.
 - **Loop só na espera** (`SceneGenerating`): o slide se monta, assenta, apaga e recomeça.
 
 No código: `<DrawOn>` em volta da cena (ver [ilustracao.md](ilustracao.md#5-em-movimento)).
