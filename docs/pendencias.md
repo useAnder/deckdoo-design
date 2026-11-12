@@ -77,3 +77,16 @@ Coisas anotadas para ver depois, fora do trabalho em andamento.
   sublinhado não aparece; com o nome do produto ao lado (o Pages põe "Pages"), aparece. O Pages
   contorna com `text-decoration: none` no próprio `BrandMark`.
 - **Estado:** não iniciado.
+
+## `SideBar` sem menu no celular
+
+- **Origem:** Marketing, 2026-11-04 (adoção da v0.12.0).
+- **Pedido:** abaixo de 48em a `SideBar` vira o topo da página e mostra tudo: `top`, a navegação inteira e o `foot`. No Marketing isso empurra a página para baixo da dobra, então a navegação fica atrás de um botão de menu. O botão mora dentro de `brand`, e o estado aberto vai por `className` (`elq-side--open`). Uma regra local esconde `.dd-side-top`, `.dd-side-scroll` e `.dd-side-foot` enquanto o menu está fechado. Sugestão: a `SideBar` ter o menu do celular, com o botão no `.dd-side-head` no lugar do botão de recolher, fechando ao navegar, e o rótulo em `labels`.
+- **Também:** a `.dd-side-brand` tem `overflow: hidden`, que corta o anel de foco de um controle posto em `brand` (o Marketing põe o `AppSwitcher` ao lado da assinatura). O Marketing compensa com um respiro de 3px.
+- **Estado:** não iniciado.
+
+## Tag `v0.12.0` saiu sem `dist/`
+
+- **Origem:** Marketing, 2026-11-04.
+- **Pedido:** a tag foi criada à mão sobre o commit da `main` (`6a6c6b6`), e a `main` não leva a `dist/`. O pnpm não compila dependência, então o app recebeu o pacote sem o código pronto. As tags anteriores ficam no commit "vX.Y.Z (dist)" que o `scripts/release.mjs` cria.
+- **Estado:** corrigido em 2026-11-04 pela sessão do Marketing, com o sim do usuário. O commit `57daf12` ("v0.12.0 (dist)") foi feito sobre o `6a6c6b6`, a tag anotada foi refeita nele, e o push da tag foi forçado. A `main` não mudou. Para as próximas versões, usar `pnpm release X.Y.Z`.
