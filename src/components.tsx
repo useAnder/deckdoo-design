@@ -6,7 +6,9 @@ import type {
 } from "react";
 import { isLightColor, useMantineTheme } from "@mantine/core";
 import { Check } from "@phosphor-icons/react";
-import { useBrand, type BrandShape } from "./brand.js";
+import { DECKDOO_BRAND, useBrand, useLockupApp, type BrandShape } from "./brand.js";
+import { LockupView } from "./lockup-view.js";
+import type { LockupApp, LockupVersion } from "./lockup.js";
 import { SideTip, useSideCollapsed } from "./side.js";
 import { DUDOO_MOODS, DuDooFace, type DuDooExpression, type DuDooMood } from "./dudoo.js";
 import wallUrl from "./brand/dudoo-tile.svg";
@@ -247,39 +249,93 @@ function LogoShape({
 }
 
 /**
+ * A tinta sobre o acento do app: escura num acento claro (limão), clara num escuro (roxo). O
+ * mascote segue a tinta: com tinta clara vai o desenho inverso, para a pupila nunca sair branca.
+ */
+function useAccentInk(): "light" | "dark" {
+  const theme = useMantineTheme();
+  const accent = theme.colors[theme.primaryColor]?.[6];
+  return !accent || isLightColor(accent, theme.luminanceThreshold) ? "dark" : "light";
+}
+
+/**
  * A marca do app (`DesignProvider`; sem ele, a do DeckDoo), que escolhe o desenho pelo fundo
- * onde está: o inverso no tema escuro e dentro de `.dd-inverse`; o normal no claro e sobre o
- * acento (`.dd-accent`). A escolha é do CSS (`design.css`), então acompanha a troca de tema sem
- * re-renderizar. Sobre fundo que o CSS não conhece (uma cor da paleta, uma foto), diga com `on`.
+ * onde está: o inverso no tema escuro, dentro de `.dd-inverse` e sobre um acento escuro; o normal
+ * no claro e sobre um acento claro. A escolha é do CSS (`design.css`), então acompanha a troca de
+ * tema sem re-renderizar. Sobre fundo que o CSS não conhece (uma cor da paleta, uma foto), diga
+ * com `on`.
+ *
+ * Com o app definido (`app`, ou o do `DesignProvider`), o `Logo` vira o lockup do app: por padrão
+ * o `compact` (mascote + nome); `variant` escolhe os outros. `height` é sempre a altura do mascote.
+ * O lockup é da marca DeckDoo: com outra marca no `DesignProvider`, vale o logotipo dela.
  */
 export function Logo({
-  variant = "type",
+  variant,
   height = 28,
   on,
   color,
   label,
+  app,
 }: {
-  /** `type` = o logotipo; `mark` = o mascote ou símbolo sozinho. */
-  variant?: "type" | "mark";
+  /**
+   * `type` = o logotipo; `mark` = o mascote ou símbolo sozinho; os demais são o lockup do app
+   * (ver `LockupVersion`). Padrão: `compact` com app, `type` sem.
+   */
+  variant?: "type" | "mark" | LockupVersion;
   height?: number;
   /** Força o desenho: `light` = fundo claro, `dark` = fundo escuro. */
   on?: "light" | "dark";
   color?: string;
-  /** Rótulo acessível. Padrão: o nome da marca. */
+  /** Rótulo acessível. Padrão: o nome da marca (com o do app, no lockup). */
   label?: string;
+  /** O app do lockup: um `LOCKUP_*` (nome em contorno) ou só o nome. Padrão: o do provider. */
+  app?: LockupApp | string;
 }) {
   const brand = useBrand();
-  const { light, dark = light } = brand[variant];
+  const provided = useLockupApp();
+  const accentInk = useAccentInk();
+  const given = app ?? provided;
+  const lockupApp =
+    brand === DECKDOO_BRAND && given ? (typeof given === "string" ? { name: given } : given) : null;
+  const v = variant ?? (lockupApp ? "compact" : "type");
+
+  const shapes = (form: "type" | "mark") => {
+    const { light, dark = light } = brand[form];
+    return [
+      <LogoShape key="light" shape="light" height={height} {...light} />,
+      <LogoShape key="dark" shape="dark" height={height} {...dark} />,
+    ];
+  };
+
+  if (v !== "type" && v !== "mark") {
+    if (lockupApp) {
+      return (
+        <LockupView
+          version={v}
+          height={height}
+          app={lockupApp}
+          label={label ?? `${brand.name} ${lockupApp.name}`}
+          color={color}
+          mark={
+            <span className="dd-logo-switch" data-on={on} data-accent-ink={accentInk} aria-hidden>
+              {shapes("mark")}
+            </span>
+          }
+        />
+      );
+    }
+  }
+
   return (
     <span
       role="img"
       aria-label={label ?? brand.name}
       className="dd-logo-switch"
       data-on={on}
+      data-accent-ink={accentInk}
       style={{ color }}
     >
-      <LogoShape shape="light" height={height} {...light} />
-      <LogoShape shape="dark" height={height} {...dark} />
+      {shapes(v === "mark" ? "mark" : "type")}
     </span>
   );
 }
@@ -289,14 +345,12 @@ export function Logo({
  * acento (escura no limão, clara num roxo), e o desenho acompanha.
  */
 export function AppIcon({ size = 40 }: { size?: number }) {
-  const theme = useMantineTheme();
-  const accent = theme.colors[theme.primaryColor]?.[6];
-  const onLight = accent ? isLightColor(accent, theme.luminanceThreshold) : true;
+  const ink = useAccentInk();
   return (
     <span className="dd-app-icon" style={{ width: size, height: size, borderRadius: size * 0.28 }}>
       <Logo
         variant="mark"
-        on={onLight ? "light" : "dark"}
+        on={ink === "dark" ? "light" : "dark"}
         height={Math.round(size * 0.56)}
         color="var(--dd-on-accent)"
       />

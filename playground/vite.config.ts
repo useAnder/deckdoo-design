@@ -14,12 +14,13 @@ export default defineConfig({
       { find: /^@deckdoo\/design$/, replacement: `${src}/index.ts` },
     ],
   },
-  // Duas páginas: a cozinha e o ateliê do DuDoo.
+  // Três páginas: a cozinha, o ateliê do DuDoo e a bancada da marca.
   build: {
     rollupOptions: {
       input: {
         cozinha: resolve(import.meta.dirname, "index.html"),
         dudoo: resolve(import.meta.dirname, "dudoo.html"),
+        marca: resolve(import.meta.dirname, "marca.html"),
       },
     },
   },

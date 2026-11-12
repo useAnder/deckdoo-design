@@ -791,6 +791,37 @@
   display: none;
 }
 
+/*
+ * Sobre um acento escuro (roxo) a tinta é clara, e o mascote cheio sairia com a pupila branca:
+ * vai o inverso. O `Logo` marca a tinta do acento (`data-accent-ink`); esta regra é mais
+ * específica que a de cima.
+ */
+[data-mantine-color-scheme]
+  .dd-accent
+  .dd-logo-switch[data-accent-ink="light"]
+  > [data-shape="light"] {
+  display: none;
+}
+[data-mantine-color-scheme]
+  .dd-accent
+  .dd-logo-switch[data-accent-ink="light"]
+  > [data-shape="dark"] {
+  display: inline-block;
+}
+
+/* O lockup de cada app (`Logo` com `app`): o mascote e, ao lado, o nome e o "DeckDoo" num SVG. */
+.dd-lockup {
+  display: inline-flex;
+  flex: none;
+  align-items: flex-start;
+  line-height: 0;
+}
+
+.dd-lockup-type {
+  flex: none;
+  overflow: visible;
+}
+
 .dd-logo-switch[data-on="light"] > [data-shape="light"],
 .dd-logo-switch[data-on="dark"] > [data-shape="dark"] {
   display: inline-block !important;

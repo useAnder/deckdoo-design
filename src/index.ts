@@ -12,10 +12,27 @@ export {
   DECKDOO_BRAND,
   DesignProvider,
   useBrand,
+  useLockupApp,
   type Brand,
   type BrandForm,
   type BrandShape,
 } from "./brand.js";
+export {
+  LOCKUP_VERSIONS,
+  MARK_PUPIL,
+  lockupHasMark,
+  lockupLayout,
+  pickOutline,
+  wordTransform,
+  type LockupApp,
+  type LockupBlock,
+  type LockupMetrics,
+  type LockupOutline,
+  type LockupVersion,
+} from "./lockup.js";
+export { LOCKUP_SPEC, lockupWeight, lockupWeights, type LockupSpec } from "./lockup-spec.js";
+export { DECKDOO_WORD } from "./word.js";
+export * from "./lockup-names.js";
 export {
   AppIcon,
   Block,

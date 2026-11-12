@@ -90,6 +90,9 @@ import {
   Count,
   DECKDOO_BRAND,
   DesignProvider,
+  LOCKUP_MARKETING,
+  LOCKUP_SLIDES,
+  LOCKUP_WORKS,
   Dots,
   DuDoo,
   DuDooSays,
@@ -257,12 +260,18 @@ function Kitchen({ controls }: { controls: Controls }) {
           </NavGroup>
         </NavSection>
 
-        <NavSection label="Mascote">
+        <NavSection label="Bancadas">
           <NavItem
             component="a"
             href="/dudoo.html"
             icon={<PaintBrush size={18} />}
             label="Ateliê do DuDoo"
+          />
+          <NavItem
+            component="a"
+            href="/marca.html"
+            icon={<TextAa size={18} />}
+            label="Bancada da marca"
           />
         </NavSection>
       </SideBar>
@@ -559,6 +568,26 @@ function Brand() {
             <AppIcon size={72} />
             <AppIcon size={44} />
             <AppIcon size={28} />
+          </div>
+        </BrandRow>
+        <BrandRow
+          title="Marca de cada app"
+          note="Com app no DesignProvider, o Logo vira o lockup do app. A bancada fica em /marca.html."
+        >
+          <div className="dd-panel ks-brand-tile ks-lockup-stack">
+            <Logo app={LOCKUP_SLIDES} height={28} />
+            <Logo app={LOCKUP_MARKETING} variant="stacked" height={44} />
+            <Logo app={LOCKUP_WORKS} variant="inline" height={24} />
+          </div>
+          <div className="dd-panel dd-inverse ks-brand-tile ks-lockup-stack">
+            <Logo app={LOCKUP_SLIDES} height={28} />
+            <Logo app={LOCKUP_MARKETING} variant="stacked" height={44} />
+            <Logo app={LOCKUP_WORKS} variant="inline" height={24} />
+          </div>
+          <div className="dd-panel dd-accent ks-brand-tile ks-lockup-stack">
+            <Logo app={LOCKUP_SLIDES} height={28} />
+            <Logo app={LOCKUP_MARKETING} variant="stacked" height={44} />
+            <Logo app={LOCKUP_WORKS} variant="inline" height={24} />
           </div>
         </BrandRow>
       </Stack>

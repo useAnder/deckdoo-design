@@ -139,6 +139,42 @@ espera, marco.
 As cenas prontas, a receita para desenhar uma nova e onde cada cena mora estão em
 [ilustracao.md](ilustracao.md).
 
+## A marca de cada app
+
+Cada app assina com o mascote e o próprio nome; o "DeckDoo" entra como assinatura. O nome é
+texto (Figtree), não desenho: app novo é só digitar. No código é o `Logo` com `app` (ver o
+[README](../README.md#nome-do-app-na-marca)); a bancada para ver e testar é a da marca
+(`/marca.html` na cozinha).
+
+### As versões
+
+| Versão           | O que é                                     | Quando                                         |
+| ---------------- | ------------------------------------------- | ---------------------------------------------- |
+| `compact`        | Mascote + nome                              | O padrão: barra lateral, cabeçalho, pouco espaço |
+| `stacked`        | Mascote + nome, com o "DeckDoo" embaixo     | Onde cabe a altura: login, capa, divulgação    |
+| `inline`         | O logotipo DeckDoo e o nome depois          | Faixa larga e baixa: rodapé, assinatura        |
+| `text-stacked`   | Nome e "DeckDoo", sem o mascote             | Quando o mascote já está perto (o DuDoo na tela) |
+| `text-inline`    | "DeckDoo" e o nome em linha, sem o mascote  | Texto corrido, crédito                         |
+
+### As regras
+
+- **O mascote nunca tem a pupila branca.** Ele segue a tinta: tinta escura (fundo claro, acento
+  claro como o limão) leva o mascote cheio; tinta clara (fundo escuro, cartão invertido, acento
+  escuro como o roxo) leva o desenho inverso.
+- **As medidas partem do mascote.** Tamanhos são fração da altura dele; espaços são em pupilas
+  (o diâmetro da pupila), para crescer junto. Os valores estão em `LOCKUP_SPEC`.
+- **O peso acompanha o tamanho.** Figtree 300 no grande; abaixo de 56px de mascote o nome
+  engrossa, até 400 aos 20px, para o traço fino não sumir. Num arquivo (SVG para fora do
+  código) isso vira um arquivo por faixa de uso: a bancada baixa o SVG já no peso do tamanho em
+  que ele vai ser mostrado.
+- **Na empilhada, o nome encosta no "DeckDoo".** A maiúscula do nome fica no topo do mascote e
+  o "DeckDoo" na base, justo. Descendente (g, p, y) que cai depois do "DeckDoo" não conta; a
+  que cai em cima de uma letra dele (o "g" de Pages sobre o "k") encosta. Para esses nomes há o
+  recorte (`stacked.knock`): o "DeckDoo" abre um respiro onde a descendente passa. Nome não
+  muda para fugir de tipografia: muda se o produto pedir.
+- **O nome é o do produto, sem sinônimo.** Dois apps com nomes que dizem a mesma coisa ("Sites"
+  e "Websites") confundem mais que qualquer colisão de letra.
+
 ## Movimento
 
 O movimento é a voz em outro meio: segue as mesmas intensidades. A personalidade se mexe no

@@ -104,7 +104,41 @@ as peças e o CSS do app acompanham sem fazer nada. Para um controle próprio, u
 `radius="control"` (ou `"pill"`) num componente do Mantine, ou `var(--dd-r-control)` /
 `var(--dd-r-pill)` no CSS.
 
-### Marca
+### Nome do app na marca
+
+Cada app da suíte assina com o mascote e o próprio nome. Diga qual é o app no `DesignProvider`,
+e todo `<Logo />` (o da `SideBar`, o do `SuiteHeader`, o das telas de status) vira o lockup:
+
+```tsx
+import { DesignProvider, LOCKUP_SLIDES } from "@deckdoo/design";
+
+<DesignProvider app={LOCKUP_SLIDES}>…</DesignProvider>;
+
+<Logo height={26} />                              // compact: mascote + "Slides"
+<Logo variant="stacked" height={48} />            // + "DeckDoo" embaixo
+<Logo variant="inline" height={24} />             // logotipo DeckDoo + "Slides"
+<Logo variant="text-stacked" height={48} />       // sem o mascote
+<Logo variant="type" />                           // o logotipo DeckDoo, como antes
+<Logo app={LOCKUP_WORKS} variant="inline" />      // outro app, só aqui
+```
+
+- **`height` é a altura do mascote** em todas as versões; o nome e o "DeckDoo" se medem por ela.
+- **O peso acompanha o tamanho:** Figtree 300 no grande, engrossando até 400 abaixo de 56px. O
+  `Logo` sabe a altura em que está, então escolhe sozinho.
+- **`LOCKUP_*` traz o nome em contorno** (Slides, Works, Marketing, Sites, Pages, Commerce),
+  igual em qualquer lugar e sem depender da fonte. Cada app importa só o seu; os outros ficam
+  fora do bundle. Um nome fora da lista (`app="Websites"`) também funciona, escrito com a fonte
+  da página, até ganhar o contorno.
+- **As medidas** (tamanhos, espaços em pupilas, recorte) estão em `LOCKUP_SPEC`
+  (`src/lockup-spec.ts`), decididas na bancada da marca (`/marca.html` na cozinha).
+- **Com outra marca** no `DesignProvider` (`brand`), o lockup não se aplica: vale o logotipo
+  dela.
+
+App novo na suíte: ponha o nome na lista de `scripts/lockup.mjs` e rode `pnpm lockup`. O
+`LOCKUP_NOVO` sai em `src/lockup-names.ts`, que o pacote já exporta inteiro. Mudou o
+`LOCKUP_SPEC` (peso, espaço entre letras): rode de novo, que os contornos dependem dele.
+
+### Marca de outro cliente
 
 ```tsx
 import type { Brand } from "@deckdoo/design";
@@ -142,7 +176,8 @@ DeckDoo; sem `--bg`, limão; a tinta sai do contraste (ou `--ink`).
 | --- | --- |
 | `buildTheme({ accent, corners })` | O tema Mantine: paleta, escalas, fonte, cantos, padrões dos componentes |
 | `BRAND`, `INVERSE`, `accentHex` | A paleta, a cor `"inverse"` e o normalizador de acento |
-| `DesignProvider`, `useBrand`, `DECKDOO_BRAND` | A marca do app |
+| `DesignProvider`, `useBrand`, `DECKDOO_BRAND` | A marca do app (e, com `app`, o nome dele no `Logo`) |
+| `LOCKUP_SLIDES`, `LOCKUP_WORKS`…, `LOCKUP_SPEC`, `lockupLayout`, `lockupWeight`, `DECKDOO_WORD` | O nome de cada app em contorno; as medidas do lockup e a conta que as aplica; o "DeckDoo" desenhado |
 | `Logo`, `AppIcon` | Logotipo / mascote; ícone de app |
 | `Panel`, `Block`, `NavItem`, `PillTabs`, `Count` | Camadas e navegação (`NavItem` vira link com `component`; aba aceita `icon`) |
 | `Status`, `Stat`, `Steps`, `Dots` | Estado, número grande, etapas, medidor |
@@ -592,8 +627,9 @@ marque. `Badge` em célula não corta o rótulo.
   os olhos do DuDoo mexem; a cena se desenha uma vez e para; com movimento reduzido, reduz sem
   congelar. Regras em [docs/marca.md](docs/marca.md#movimento).
 - **Marca:** `<Logo variant="type" | "mark" />` escolhe sozinha o desenho normal ou o inverso
-  pelo fundo (tema escuro, `.dd-inverse`, `.dd-accent`). Sobre cor da paleta ou foto, diga o
-  fundo com `on="dark" | "light"`.
+  pelo fundo (tema escuro, `.dd-inverse`, acento escuro). Sobre cor da paleta ou foto, diga o
+  fundo com `on="dark" | "light"`. O mascote segue a tinta: tinta clara leva o desenho inverso,
+  e a pupila nunca sai branca. Com `app`, o `Logo` é o lockup do app ("Nome do app na marca").
 - **Palavra não quebra:** sem hifenização nem corte de palavra (`.dd-root`); palavra composta
   vai num `.dd-nobreak`.
 
@@ -615,18 +651,26 @@ marque. `Badge` em célula não corta o rótulo.
   `--dd-surface`; por isso o `styles.css` vem depois do CSS do Mantine.
 - **Troca normal/inverso do `Logo`** é CSS (`.dd-logo-switch`), com três regras de mesma
   especificidade em que vale a última. Mexer na ordem quebra o caso "invertido no tema escuro".
+  O acento escuro é uma quarta regra, mais específica, que lê o `data-accent-ink` que o `Logo`
+  põe (a tinta do acento sai do contraste, em JS, como no `AppIcon`).
 
 ## Desenvolver
+
+Node 24 ou mais novo: o `pnpm lockup` lê `src/lockup-spec.ts` direto, com o TypeScript que o Node
+roda sem build.
 
 ```bash
 pnpm install
 pnpm dev          # a cozinha, lendo src/ direto (sem build)
 pnpm typecheck && pnpm lint && pnpm format:check
 pnpm build        # dist/: index.js, index.d.ts, styles.css
+pnpm lockup       # refaz o nome de cada app em contorno (src/lockup-names.ts)
 ```
 
 O ateliê do DuDoo (`/dudoo.html`, link na barra da cozinha) é a bancada do mascote: anatomia,
-laboratório de expressão, o vocabulário, o chat e as cenas em rabisco.
+laboratório de expressão, o vocabulário, o chat e as cenas em rabisco. A bancada da marca
+(`/marca.html`) é a do lockup de cada app: versões, segmentos, pesos, espaços, o SVG para baixar
+e, no fim, o `Logo` do pacote, com o aviso de quando os ajustes da barra saíram do `LOCKUP_SPEC`.
 
 A cozinha troca acento (da paleta ou hex), cantos, tema e marca (DeckDoo ou uma de exemplo, em
 `playground/brands/`) na barra do topo.

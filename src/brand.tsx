@@ -3,6 +3,7 @@ import logotypeUrl from "./brand/deckdoo-logotype.svg";
 import logotypeInverseUrl from "./brand/deckdoo-logotype-inverse.svg";
 import markUrl from "./brand/deckdoo-mark.svg";
 import markInverseUrl from "./brand/deckdoo-mark-inverse.svg";
+import type { LockupApp } from "./lockup.js";
 
 /**
  * Um desenho da marca: a URL do SVG (ou data URI) e a proporção largura / altura. O SVG vira
@@ -45,12 +46,33 @@ export const DECKDOO_BRAND: Brand = {
 };
 
 const BrandContext = createContext<Brand>(DECKDOO_BRAND);
+const AppContext = createContext<LockupApp | string | undefined>(undefined);
 
-/** A marca do app para o `Logo` e o `AppIcon`. Sem provider, vale a do DeckDoo. */
-export function DesignProvider({ brand, children }: { brand?: Brand; children: ReactNode }) {
-  return <BrandContext.Provider value={brand ?? DECKDOO_BRAND}>{children}</BrandContext.Provider>;
+/**
+ * A marca do app para o `Logo` e o `AppIcon`. Sem provider, vale a do DeckDoo. Com `app` (um
+ * `LOCKUP_*`, ou só o nome), o `Logo` da suíte inteira vira o lockup do app: o mascote com o nome.
+ */
+export function DesignProvider({
+  brand,
+  app,
+  children,
+}: {
+  brand?: Brand;
+  app?: LockupApp | string;
+  children: ReactNode;
+}) {
+  return (
+    <BrandContext.Provider value={brand ?? DECKDOO_BRAND}>
+      <AppContext.Provider value={app}>{children}</AppContext.Provider>
+    </BrandContext.Provider>
+  );
 }
 
 export function useBrand(): Brand {
   return useContext(BrandContext);
+}
+
+/** O app do `DesignProvider`, para o lockup. */
+export function useLockupApp(): LockupApp | string | undefined {
+  return useContext(AppContext);
 }

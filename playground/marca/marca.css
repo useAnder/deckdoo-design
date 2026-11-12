@@ -1,0 +1,249 @@
+/* A bancada da marca (`/marca.html`). Usa a moldura e o topo da cozinha. */
+
+.bm {
+  --bm-guide: #ff2d55;
+}
+
+.bm-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bm-mono {
+  font-family: var(--mantine-font-family-monospace);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ——— O lockup ——— */
+
+.bm-lockup {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  vertical-align: top;
+}
+
+.bm-lockup-mark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  line-height: 0;
+}
+
+.bm-lockup-type {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: visible;
+}
+
+.bm-guide-box,
+.bm-guide-clear {
+  fill: none;
+  stroke: var(--bm-guide);
+  stroke-dasharray: 3 3;
+  opacity: 0.8;
+}
+
+.bm-guide-clear {
+  opacity: 0.45;
+}
+
+.bm-guide-gap {
+  fill: var(--bm-guide);
+  opacity: 0.22;
+}
+
+.bm-guide-line {
+  stroke: var(--bm-guide);
+  opacity: 0.7;
+}
+
+.bm-guide-hit {
+  fill: var(--bm-guide);
+  opacity: 0.55;
+}
+
+/* ——— A barra ——— */
+
+/* O lockup em teste mora no lugar do logo; a barra não corta a descendente. */
+.bm .dd-side-brand {
+  overflow: visible;
+}
+
+/* O lockup largo (lado a lado) passa da barra sem dar rolagem de lado nela. */
+.bm .dd-side {
+  overflow-x: hidden;
+}
+
+.bm-presets {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 4px;
+}
+
+.bm-other {
+  margin: 6px 4px 0;
+}
+
+.bm-adjust {
+  padding: 4px 6px 8px;
+}
+
+.bm-knob-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+/* ——— Seções ——— */
+
+.bm-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.bm-section-head .ks-section-head {
+  margin-bottom: 0;
+}
+
+/* Palco */
+
+.bm-stage-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: var(--dd-gap);
+}
+
+.bm-stage {
+  display: flex;
+  align-items: center;
+  /* "safe": o lockup mais largo que o palco rola a partir do começo, sem cortar a esquerda. */
+  justify-content: safe center;
+  min-height: 360px;
+  padding: 64px 48px;
+  overflow-x: auto;
+}
+
+.bm-readout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.bm-readout dl {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+
+.bm-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.bm-row dt {
+  color: var(--dd-ink-muted);
+}
+
+.bm-row dd {
+  margin: 0;
+}
+
+.bm-row[data-warn] dd {
+  color: var(--bm-guide);
+  font-weight: 600;
+}
+
+/* Em escala */
+
+.bm-scale {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bm-scale-row {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.bm-scale-label {
+  text-align: right;
+}
+
+.bm-cell {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  overflow-x: auto;
+}
+
+/* Pesos */
+
+.bm-weights {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--dd-gap);
+}
+
+.bm-weights-grid {
+  display: grid;
+  grid-template-columns: 40px repeat(3, max-content);
+  align-items: center;
+  column-gap: 40px;
+  row-gap: 22px;
+  overflow-x: auto;
+}
+
+.bm-weights-cell {
+  display: flex;
+  align-items: center;
+}
+
+/* Família */
+
+.bm-family {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 32px 48px;
+  padding: 32px 36px;
+  overflow-x: auto;
+}
+
+@media (max-width: 64em) {
+  .bm-stage-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bm-scale-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bm-scale-label {
+    text-align: left;
+  }
+}
+
+/* O valor do ajuste não quebra linha; o rótulo é que encolhe. */
+.bm-knob-head > :last-child {
+  flex: none;
+  white-space: nowrap;
+}
+
+.bm-diff {
+  margin-bottom: 12px;
+}
