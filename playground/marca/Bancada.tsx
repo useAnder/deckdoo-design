@@ -14,6 +14,7 @@ import {
   Button,
   Group,
   MantineProvider,
+  Menu,
   SegmentedControl,
   Select,
   Slider,
@@ -65,7 +66,9 @@ import {
   NavItem,
   NavSection,
   SideBar,
+  SUITE_APPS,
   Status,
+  SuiteAppIcon,
   buildTheme,
   lockupHasMark,
   lockupLayout,
@@ -84,6 +87,7 @@ import "@fontsource-variable/plus-jakarta-sans/wght.css";
 import markLightSvg from "../../src/brand/deckdoo-mark.svg?raw";
 import markDarkSvg from "../../src/brand/deckdoo-mark-inverse.svg?raw";
 import { textOutline } from "./outline.js";
+import { savePng, saveSvg, svgFromElement } from "../download.js";
 import "../kitchen.css";
 import "./marca.css";
 
@@ -697,6 +701,7 @@ function Bancada() {
         </header>
 
         <Stage look={look} />
+        <AppIcons />
         <Scale look={look} />
         <Weights look={look} />
         <Family look={look} />
@@ -1102,22 +1107,23 @@ function Stage({ look }: { look: Look }) {
   const g = lockupGeo(look, size, groundOn, epoch, useWeight);
   const side = lockupGeo(look, look.sideH, on.panel, epoch);
 
-  const download = async () => {
+  // O SVG no tamanho de uso; o PNG é ele rasterizado, em 1×, 2× ou 4× (fundo transparente).
+  const download = async (png?: number) => {
     const el = stageRef.current;
     if (!el) return;
     setBusy(true);
     try {
       const out = lockupGeo(look, useH, groundOn, epoch, useWeight);
       const svg = await lockupSvg(look, out, getComputedStyle(el).color);
-      const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
-      const a = document.createElement("a");
       const fundo = groundOn === "dark" ? "escuro" : "claro";
       const who = look.version === "icone" ? "" : `-${slug(g.name)}`;
       const scale = use === "grande" ? "grande" : `${use}px`;
-      a.href = url;
-      a.download = `deckdoo${who}-${look.version}-${fundo}-${scale}.svg`;
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      const base = `deckdoo${who}-${look.version}-${fundo}-${scale}`;
+      if (png) {
+        await savePng(svg, `${base}@${png}x.png`, out.W * png, (out.maxY - out.minY) * png);
+      } else {
+        saveSvg(svg, `${base}.svg`);
+      }
     } finally {
       setBusy(false);
     }
@@ -1154,10 +1160,30 @@ function Stage({ look }: { look: Look }) {
             variant="default"
             leftSection={<DownloadSimple size={14} />}
             loading={busy}
-            onClick={download}
+            onClick={() => void download()}
           >
-            Baixar SVG
+            SVG
           </Button>
+          <Menu position="bottom-end" shadow="md">
+            <Menu.Target>
+              <Button
+                size="xs"
+                variant="default"
+                leftSection={<DownloadSimple size={14} />}
+                loading={busy}
+              >
+                PNG
+              </Button>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Label>Em relação ao SVG</Menu.Label>
+              {[1, 2, 4].map((x) => (
+                <Menu.Item key={x} onClick={() => void download(x)}>
+                  {`${x}×`}
+                </Menu.Item>
+              ))}
+            </Menu.Dropdown>
+          </Menu>
         </Group>
       }
     >
@@ -1204,6 +1230,87 @@ function Stage({ look }: { look: Look }) {
         </div>
       </div>
     </Section>
+  );
+}
+
+/* ——— Os ícones dos apps ——— */
+
+/** Os tamanhos do PNG: favicon, ícone de tela inicial (180, 192), loja (512, 1024). */
+const ICON_PNG_SIZES = [32, 64, 128, 180, 192, 256, 512, 1024];
+
+/**
+ * O ícone de cada app (`SuiteAppIcon`), para baixar: o SVG (512 de tamanho nominal, escala sem
+ * perda) e o PNG no tamanho escolhido, com o quadrado e o fundo transparente nos cantos.
+ */
+function AppIcons() {
+  return (
+    <Section
+      id="icones"
+      title="Ícones dos apps"
+      note={
+        <>
+          O <code>{"<SuiteAppIcon app=…>"}</code> do pacote: o objeto do app com os olhos do DuDoo,
+          na cor do app. Baixe o SVG ou o PNG no tamanho de uso.
+        </>
+      }
+    >
+      <div className="bm-icons">
+        {Object.values(SUITE_APPS).map((app) => (
+          <AppIconCard key={app.slug} slug={app.slug as keyof typeof SUITE_APPS} />
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+function AppIconCard({ slug: app }: { slug: keyof typeof SUITE_APPS }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const svgOf = (size: number) => {
+    const el = ref.current?.querySelector("svg");
+    return el ? svgFromElement(el, size) : null;
+  };
+  const name = `deckdoo-${app}-icone`;
+  return (
+    <div className="dd-panel bm-icon-card">
+      <div ref={ref} className="bm-icon-preview">
+        <SuiteAppIcon app={SUITE_APPS[app]} size={96} />
+      </div>
+      <Text fw={600}>{SUITE_APPS[app].name}</Text>
+      <Group gap={6} justify="center">
+        <Button
+          size="xs"
+          variant="default"
+          leftSection={<DownloadSimple size={14} />}
+          onClick={() => {
+            const svg = svgOf(512);
+            if (svg) saveSvg(svg, `${name}.svg`);
+          }}
+        >
+          SVG
+        </Button>
+        <Menu position="bottom" shadow="md">
+          <Menu.Target>
+            <Button size="xs" variant="default" leftSection={<DownloadSimple size={14} />}>
+              PNG
+            </Button>
+          </Menu.Target>
+          <Menu.Dropdown>
+            <Menu.Label>Tamanho</Menu.Label>
+            {ICON_PNG_SIZES.map((px) => (
+              <Menu.Item
+                key={px}
+                onClick={() => {
+                  const svg = svgOf(px);
+                  if (svg) void savePng(svg, `${name}-${px}.png`, px, px);
+                }}
+              >
+                {`${px} px`}
+              </Menu.Item>
+            ))}
+          </Menu.Dropdown>
+        </Menu>
+      </Group>
+    </div>
   );
 }
 

@@ -130,7 +130,9 @@ import {
   Steps,
   noteSessionOk,
   noteUnauthorized,
+  SUITE_APPS,
   SUITE_HEADER_HEIGHT,
+  SuiteRail,
   SuiteHeader,
   SystemNotice,
   Typing,
@@ -145,10 +147,11 @@ import {
   type RailItem,
   type Brand as BrandIdentity,
   type Corners,
+  type SuiteAppSlug,
   type SuiteService,
 } from "@deckdoo/design";
 import { EXEMPLO_BRAND } from "./brands.js";
-import { AppsStudy, CurrentAppBrand, SuiteRail, useRailState, type RailMode } from "./AppsStudy.js";
+import { AppsStudy } from "./AppsStudy.js";
 import marca from "../docs/marca.md?raw";
 import "./kitchen.css";
 
@@ -221,8 +224,11 @@ function Kitchen({ controls }: { controls: Controls }) {
   const [active, setActive] = useState<string>("marca");
   const [aiOn, setAiOn] = useState(true);
   // O trilho de apps na borda da página (estudo da seção Apps), para ver no tamanho real.
-  const rail = useRailState();
-  const railOn = rail.mode !== "off";
+  const [railOn] = useRailOn();
+  const [current, setCurrent] = useLocalStorage<SuiteAppSlug>({
+    key: "dd-k-rail-app",
+    defaultValue: "slides",
+  });
 
   // A seção visível acende na barra lateral, como numa página de verdade.
   useEffect(() => {
@@ -243,17 +249,17 @@ function Kitchen({ controls }: { controls: Controls }) {
   }, []);
 
   return (
-    <div
-      className="dd-root ks-shell"
-      data-rail={railOn ? rail.mode : undefined}
-      data-rail-collapsed={(railOn && rail.collapsed) || undefined}
-      lang="pt-BR"
-    >
-      {railOn && <SuiteRail />}
+    <KitchenShell railOn={railOn} current={current} onPick={setCurrent}>
       <div className="dd-frame ks">
         <SideBar
           // Com o trilho, a marca aberta é a do app atual dele; recolhida, o mascote DeckDoo.
-          brand={railOn ? <CurrentAppBrand /> : <Logo height={26} />}
+          brand={
+            railOn ? (
+              <Logo app={SUITE_APPS[current]?.lockup} variant="stacked" height={36} />
+            ) : (
+              <Logo height={26} />
+            )
+          }
           brandCollapsed={<AppIcon size={30} />}
           top={<KitchenWorkspace />}
           foot={<KitchenFoot aiOn={aiOn} onAiChange={setAiOn} />}
@@ -328,6 +334,52 @@ function Kitchen({ controls }: { controls: Controls }) {
           <Example />
         </main>
       </div>
+    </KitchenShell>
+  );
+}
+
+/** O trilho de apps ligado na cozinha: a mesma chave na barra do topo e na página. */
+function useRailOn() {
+  return useLocalStorage<boolean>({ key: "dd-k-rail-on", defaultValue: true });
+}
+
+// Os apps da suíte como o control plane mandaria. O link é da própria cozinha: o clique só
+// troca o app atual (e a marca da barra lateral).
+const RAIL_SERVICES: SuiteService[] = Object.values(SUITE_APPS).map((app) => ({
+  slug: app.slug,
+  kind: "app",
+  name: app.name,
+  href: "#apps",
+}));
+
+/** A página inteira: com o trilho de apps do pacote em volta da moldura, ou só a moldura. */
+function KitchenShell({
+  railOn,
+  current,
+  onPick,
+  children,
+}: {
+  railOn: boolean;
+  current: string;
+  onPick: (slug: SuiteAppSlug) => void;
+  children: ReactNode;
+}) {
+  return (
+    <div className="dd-root" lang="pt-BR">
+      {railOn ? (
+        <SuiteRail
+          services={RAIL_SERVICES}
+          currentSlug={current}
+          onSelect={(service, event) => {
+            event.preventDefault();
+            onPick(service.slug as SuiteAppSlug);
+          }}
+        >
+          {children}
+        </SuiteRail>
+      ) : (
+        children
+      )}
     </div>
   );
 }
@@ -454,7 +506,7 @@ function KitchenFoot({ aiOn, onAiChange }: { aiOn: boolean; onAiChange: (on: boo
 
 function ThemeBar({ controls }: { controls: Controls }) {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
-  const rail = useRailState();
+  const [railOn, setRailOn] = useRailOn();
   const accents = ["lime", "cyan", "yellow", "coral", "magenta", "purple"] as const;
   return (
     <Group gap="sm" className="ks-themebar" wrap="wrap">
@@ -505,16 +557,11 @@ function ThemeBar({ controls }: { controls: Controls }) {
           { value: "reto", label: "Reto" },
         ]}
       />
-      <SegmentedControl
+      <Switch
         size="xs"
-        aria-label="Trilho de apps"
-        value={rail.mode}
-        onChange={(v) => rail.setMode(v as RailMode)}
-        data={[
-          { value: "off", label: "Sem trilho" },
-          { value: "solto", label: "Solto" },
-          { value: "fundo", label: "Com fundo" },
-        ]}
+        label="Trilho"
+        checked={railOn}
+        onChange={(e) => setRailOn(e.currentTarget.checked)}
       />
       <ActionIcon
         size="lg"

@@ -181,7 +181,9 @@ DeckDoo; sem `--bg`, limão; a tinta sai do contraste (ou `--ink`).
 | `BRAND`, `INVERSE`, `accentHex` | A paleta, a cor `"inverse"` e o normalizador de acento |
 | `DesignProvider`, `useBrand`, `DECKDOO_BRAND` | A marca do app (e, com `app`, o nome dele no `Logo`) |
 | `LOCKUP_SLIDES`, `LOCKUP_WORKS`…, `LOCKUP_SPEC`, `lockupLayout`, `lockupWeight`, `DECKDOO_WORD` | O nome de cada app em contorno; as medidas do lockup e a conta que as aplica; o "DeckDoo" desenhado |
-| `Logo`, `AppIcon` | Logotipo / mascote; ícone de app |
+| `Logo`, `AppIcon` | Logotipo / mascote; ícone de app (o do app atual, no acento dele) |
+| `SuiteAppIcon`, `SUITE_APPS`, `suiteApp`, `APP_ICON_SHAPES`, `roundedRectPath` | O ícone de cada app da suíte (o objeto do app com os olhos do DuDoo); os apps com cor, desenho e lockup; o desenho de cada um |
+| `SuiteRail` | O trilho de apps na borda esquerda da janela: um ícone por app da pessoa, recolhível |
 | `Panel`, `Block`, `NavItem`, `PillTabs`, `Count` | Camadas e navegação (`NavItem` vira link com `component`; aba aceita `icon`) |
 | `Status`, `Stat`, `Steps`, `Dots` | Estado, número grande, etapas, medidor |
 | `DuDoo`, `ChatBubble`, `DuDooWall` | O assistente: rosto (com `mood`), fala do chat, papel de parede |
@@ -259,6 +261,70 @@ e sem ela a barra inteira rola, como antes.
 
 O cabeçalho dos apps de editor (menu de apps, marca, abas, pessoa) é o `SuiteHeader` (ver
 [Cabeçalho da suíte e preferências](#cabeçalho-da-suíte-e-preferências)).
+
+### Trilho de apps
+
+O `SuiteRail` é a faixa estreita (52 px) na borda esquerda da janela, fora da moldura do app, com
+um ícone por app da pessoa. É como um app leva a outro e como a suíte se divulga, então fica
+sempre à vista. Ele vai **em volta** da `.dd-frame`:
+
+```tsx
+const { data: services = [] } = useServices(); // o GET /api/me/services, pelo servidor do app
+
+<DesignProvider app={LOCKUP_SLIDES}>
+  <SuiteRail services={services} currentSlug="slides">
+    <div className="dd-root dd-frame">
+      <SideBar
+        brand={<Logo variant="stacked" height={36} />}
+        brandCollapsed={<AppIcon size={30} />}
+      >
+        {/* … */}
+      </SideBar>
+      <main className="dd-main">{/* … */}</main>
+    </div>
+  </SuiteRail>
+</DesignProvider>
+```
+
+- **O ícone vem do `slug`** do serviço (`SUITE_APPS`: `slides`, `marketing`, `pages`, `works`,
+  `commerce`). Um serviço sem ícone (um externo, um app novo) sai com a inicial do nome no
+  quadrado neutro. A ordem é a da lista.
+- **Só o app atual é colorido.** Os outros ficam no quadrado neutro e ganham a cor ao passar o
+  mouse ou com o foco; a dica diz o nome (e "você está aqui" no atual).
+- **A marca da barra com o trilho:** a empilhada (`variant="stacked"`, 36 px), que assina o app
+  e a suíte; o trilho não repete o mascote. O primeiro ícone fica na altura dela
+  (`--dd-suite-rail-anchor`). Recolhida, a barra fica com o `AppIcon` de sempre.
+- **Cores:** marinho no tema claro; no escuro, o fundo do painel (o invertido do escuro seria
+  claro). O neutro é `--dd-app-icon-neutral` / `--dd-app-icon-neutral-ink`.
+- **Recolher:** o botão do pé esconde o trilho, e fica um botão pequeno (a grade de pontos) preso
+  na borda esquerda da barra do app, na altura da marca: o par do botão de abrir a `SideBar`. A
+  escolha fica no `localStorage` (`dd-suite-rail-collapsed`); `collapsed`/`onCollapsedChange`
+  controlam de fora.
+- **Celular:** abaixo de 48em não há trilho (a barra do app vira o topo da página). Lá a troca de
+  app continua sendo o `AppSwitcher`.
+- `onSelect(service, event)` roda no clique, antes de seguir o link (`event.preventDefault()`
+  segura a navegação). Os textos para leitor de tela vão em `labels`.
+- É **apresentação**, como o `AppSwitcher`: o que ele mostra nunca decide acesso. A lista vem do
+  app, sem cache (o control plane manda `no-store`).
+
+### Ícone de cada app
+
+`<SuiteAppIcon app="marketing" size={40} />`: o objeto do app com os olhos do DuDoo, no quadrado
+na cor do app (cantos de 28%, os do `AppIcon`). É um `svg` só, com o quadrado dentro, então
+serve para salvar como arquivo; a bancada da marca (`/marca.html`) baixa o SVG e o PNG de cada
+um.
+
+- `app` é o `slug` ou um `SuiteApp` (`{ slug, name, color, shape, lockup? }`): um app fora da
+  lista passa o dele, com a cor (hex) e o desenho (`AppIconShape`, num quadro de 24 × 24).
+- A tinta segue o fundo, como o mascote: na cor clara (limão, ciano, laranja, coral) o desenho é
+  cheio e o olho é furo; na escura (roxo) é o inverso, com o contorno, o branco do olho pintado e
+  a pupila furada. A pupila nunca fica branca.
+- `neutral`: o quadrado neutro e o desenho em cinza (o que o trilho usa nos apps que não são o
+  atual).
+- `name` muda o rótulo acessível; `name=""` deixa o ícone decorativo (quando há texto ao lado).
+- Works e Commerce ainda não têm acento decidido: saem em laranja e coral até ter.
+
+A regra do desenho está em [docs/marca.md](docs/marca.md#o-ícone-de-cada-app).
 
 O `NavItem` é botão; para navegar de verdade, passe o link:
 

@@ -175,6 +175,45 @@ texto (Figtree), não desenho: app novo é só digitar. No código é o `Logo` c
 - **O nome é o do produto, sem sinônimo.** Dois apps com nomes que dizem a mesma coisa ("Sites"
   e "Websites") confundem mais que qualquer colisão de letra.
 
+## O ícone de cada app
+
+Onde um app aponta para outro (o trilho de apps, uma lista), cada um tem um ícone: **o objeto do
+app com os olhos do DuDoo**, num quadrado na cor do app. Forma, cor e família juntas: dá para
+saber que é DeckDoo e qual app é. No código é o `SuiteAppIcon` (ver o
+[README](../README.md#ícone-de-cada-app)); a bancada para ver e baixar o SVG e o PNG é a da marca
+(`/marca.html`). As outras ideias (o mascote em cada cor, a sigla, o ícone sem olhos) e as
+variações de cada desenho ficam na cozinha, na seção Apps.
+
+| App       | Objeto                                         | Cor     |
+| --------- | ---------------------------------------------- | ------- |
+| Slides    | O slide                                        | Limão   |
+| Marketing | O marcador de salvar post                      | Roxo    |
+| Pages     | As seções da página: o menu fino e o bloco grande | Ciano |
+| Works     | A agenda de contatos (é o CRM)                 | Laranja, provisório |
+| Commerce  | A sacola                                       | Coral, provisório   |
+
+### As regras
+
+- **Os olhos são os do mascote.** O olho tem cerca de 1/5 da largura do corpo e a pupila, 2/5
+  do olho; o da direita passa da borda, como no D. A pupila puxa um pouco para a direita e para
+  cima: ele espia.
+- **A pupila nunca é branca**, a regra do mascote. Na cor clara, o corpo é cheio, o olho é furo e
+  a pupila é tinta. Na cor escura (o roxo, o neutro do trilho), vale o desenho inverso: o corpo
+  vira contorno, o branco do olho é pintado e sai da borda como um círculo inteiro, e a pupila é
+  furo. Um corpo branco cheio com a pupila marinho foi testado e saiu: some em 28 px.
+- **Nada ao lado dos olhos nem embaixo deles.** Peça ao lado vira orelha (os cards laterais de
+  um carrossel); embaixo, vira boca ou nariz (um botão, uma curtida, um cursor), e o DuDoo não
+  tem boca. O que acompanha o objeto fica atrás dele (uma pilha), em cima (o menu das seções) ou
+  é o próprio contorno (o recorte do marcador, que é borda).
+- **O objeto é o que o app faz,** reconhecível sem o nome. Um balão de fala com olhos não serve
+  para nenhum app: é o DuDoo falando no chat.
+- **O ícone é assinatura,** como o logotipo: fica fora da conta de "uma aparição por tela" do
+  DuDoo.
+- **Só o app atual é colorido no trilho.** Os outros ficam no quadrado neutro e ganham a cor ao
+  passar o mouse.
+- **App novo** escolhe o objeto pelas regras de cima, desenha no quadro de 24 (`AppIconShape`) e
+  se prova na cozinha antes de entrar em `SUITE_APPS`.
+
 ## Movimento
 
 O movimento é a voz em outro meio: segue as mesmas intensidades. A personalidade se mexe no

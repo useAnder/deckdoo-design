@@ -34,6 +34,18 @@ export { LOCKUP_SPEC, lockupWeight, lockupWeights, type LockupSpec } from "./loc
 export { DECKDOO_WORD } from "./word.js";
 export * from "./lockup-names.js";
 export {
+  APP_ICON_SHAPES,
+  SUITE_APPS,
+  SuiteAppIcon,
+  roundedRectPath,
+  suiteApp,
+  type AppIconPiece,
+  type AppIconShape,
+  type SuiteApp,
+  type SuiteAppSlug,
+} from "./app-icons.js";
+export { SuiteRail, type SuiteRailLabels, type SuiteRailProps } from "./suite-rail.js";
+export {
   AppIcon,
   Block,
   ChatBubble,

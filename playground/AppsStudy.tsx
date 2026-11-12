@@ -1,7 +1,6 @@
 import {
   createContext,
   useContext,
-  useId,
   useMemo,
   useState,
   type ComponentType,
@@ -18,13 +17,11 @@ import {
   Text,
   Tooltip,
   UnstyledButton,
-  useMantineColorScheme,
 } from "@mantine/core";
 import { useLocalStorage } from "@mantine/hooks";
 import {
   Browser,
   CalendarBlank,
-  CaretLineLeft,
   DotsNine,
   Handshake,
   House,
@@ -36,22 +33,20 @@ import {
   type IconProps,
 } from "@phosphor-icons/react";
 import {
+  APP_ICON_SHAPES,
   BRAND,
   Logo,
-  LOCKUP_COMMERCE,
-  LOCKUP_MARKETING,
-  LOCKUP_PAGES,
   LOCKUP_SLIDES,
-  LOCKUP_WORKS,
   NavItem,
   Status,
-  type LockupApp,
+  SuiteAppIcon,
+  roundedRectPath,
+  type AppIconShape,
 } from "@deckdoo/design";
 
 /*
- * Estudo (só na cozinha, nada disto está no pacote): o ícone de cada app da suíte e a barra que
- * leva de um app a outro. Quando um caminho for escolhido, ele sobe para o pacote e ganha regra
- * em `docs/marca.md`.
+ * O estudo que levou ao ícone de cada app e ao trilho de apps. O escolhido está no pacote
+ * (`SuiteAppIcon`, `SuiteRail`, regra em `docs/marca.md`); aqui ficam as opções, como teste.
  */
 
 type MarketingShape = "megafone" | "aviao" | "marcador" | "pilha";
@@ -68,18 +63,6 @@ interface StudyApp {
   abbr: string;
   glyph: ComponentType<IconProps>;
   shape: Shape;
-  /** O lockup do app: a marca da barra lateral quando ele é o app atual. */
-  lockup: LockupApp;
-}
-
-/**
- * Um fundo neutro no lugar da cor do app (o trilho pinta só o app atual): o fundo, a tinta e se a
- * tinta é clara (o desenho inverso) ou escura (o cheio).
- */
-interface IconTone {
-  bg: string;
-  ink: string;
-  inverse: boolean;
 }
 
 const APPS: StudyApp[] = [
@@ -91,7 +74,6 @@ const APPS: StudyApp[] = [
     abbr: "Sl",
     glyph: Presentation,
     shape: "slide",
-    lockup: LOCKUP_SLIDES,
   },
   {
     slug: "marketing",
@@ -101,7 +83,6 @@ const APPS: StudyApp[] = [
     abbr: "Mk",
     glyph: Megaphone,
     shape: "marcador",
-    lockup: LOCKUP_MARKETING,
   },
   {
     slug: "pages",
@@ -111,7 +92,6 @@ const APPS: StudyApp[] = [
     abbr: "Pg",
     glyph: Browser,
     shape: "blocos",
-    lockup: LOCKUP_PAGES,
   },
   {
     slug: "works",
@@ -121,7 +101,6 @@ const APPS: StudyApp[] = [
     abbr: "Wk",
     glyph: Handshake,
     shape: "agenda",
-    lockup: LOCKUP_WORKS,
   },
   {
     slug: "commerce",
@@ -131,7 +110,6 @@ const APPS: StudyApp[] = [
     abbr: "Cm",
     glyph: ShoppingBag,
     shape: "sacola",
-    lockup: LOCKUP_COMMERCE,
   },
 ];
 
@@ -182,19 +160,17 @@ function inkOn(hex: string): string {
 
 /* ——— O ícone ——— */
 
-function StudyIcon({
-  app,
-  look,
-  size,
-  tone,
-}: {
-  app: StudyApp;
-  look: Look;
-  size: number;
-  /** Fundo neutro no lugar da cor do app (só no desenho de olhos). */
-  tone?: IconTone;
-}) {
-  const ink = tone?.ink ?? inkOn(app.color);
+function StudyIcon({ app, look, size }: { app: StudyApp; look: Look; size: number }) {
+  if (look === "olhos") {
+    // O do pacote, com o desenho do estudo (as alternativas de Marketing e Pages).
+    return (
+      <SuiteAppIcon
+        app={{ slug: app.slug, name: app.name, color: app.color, shape: SHAPES[app.shape] }}
+        size={size}
+      />
+    );
+  }
+  const ink = inkOn(app.color);
   const Glyph = app.glyph;
   let inner: ReactNode;
   if (look === "cor") {
@@ -212,17 +188,8 @@ function StudyIcon({
         {app.abbr}
       </span>
     );
-  } else if (look === "objeto") {
-    inner = <Glyph size={Math.round(size * 0.58)} weight="fill" color={ink} />;
   } else {
-    inner = (
-      <EyesGlyph
-        shape={app.shape}
-        size={Math.round(size * 0.7)}
-        ink={ink}
-        inverse={tone?.inverse ?? ink !== BRAND.ink}
-      />
-    );
+    inner = <Glyph size={Math.round(size * 0.58)} weight="fill" color={ink} />;
   }
   return (
     <span
@@ -233,7 +200,7 @@ function StudyIcon({
         width: size,
         height: size,
         borderRadius: size * 0.28,
-        background: tone?.bg ?? app.color,
+        background: app.color,
         color: ink,
       }}
     >
@@ -243,75 +210,21 @@ function StudyIcon({
 }
 
 /*
- * O objeto com os olhos do DuDoo, nas duas tintas do mascote:
- *
- * - **Tinta escura** (fundo claro: limão, ciano, laranja, coral): o corpo cheio, o olho é um furo
- *   (mostra o fundo) e a pupila é tinta.
- * - **Tinta clara** (fundo escuro: o roxo, o cartão invertido): o desenho inverso, como o
- *   `deckdoo-mark-inverse`. O corpo vira contorno, o branco do olho é pintado e sai da borda como
- *   um círculo inteiro, e a pupila é furo (mostra o fundo). A pupila nunca fica branca.
- *
- * Medidas do mascote: o olho tem ~1/5 da largura do corpo e a pupila, ~2/5 do olho. O da direita
- * passa da borda. Para o Works (um CRM), a agenda de contatos.
+ * Os desenhos de olhos: os escolhidos vêm do pacote (`APP_ICON_SHAPES`); as alternativas de
+ * Marketing e Pages ficam aqui, no formato do pacote (`AppIconShape`). Peça ao lado dos olhos
+ * vira orelha; embaixo deles, boca ou nariz.
  */
 
-/** Um pedaço do desenho, em 24 × 24. */
-type Piece =
-  /** Corpo: cheio na tinta escura, contorno na clara. */
-  | { kind: "body"; d: string }
-  /** Traço (a alça da sacola, as abas da agenda): igual nas duas. */
-  | { kind: "line"; d: string; w: number }
-  /** Recorte no corpo (a barra do navegador, a legenda): furo na escura, traço na clara. */
-  | { kind: "cut"; d: string; w: number }
-  /** Furo cheio (os pontos do navegador): furo na escura, cheio na clara. */
-  | { kind: "hole"; d: string };
-
-interface EyeShape {
-  pieces: Piece[];
-  eyes: [number, number];
-  y: number;
-  r: number;
-}
-
-/** Retângulo de cantos redondos como `path`. */
-function rr(x: number, y: number, w: number, h: number, r: number): string {
-  const iw = w - 2 * r;
-  const ih = h - 2 * r;
-  return (
-    `M${x + r} ${y}h${iw}a${r} ${r} 0 0 1 ${r} ${r}v${ih}a${r} ${r} 0 0 1 ${-r} ${r}` +
-    `h${-iw}a${r} ${r} 0 0 1 ${-r} ${-r}v${-ih}a${r} ${r} 0 0 1 ${r} ${-r}z`
-  );
-}
+const rr = roundedRectPath;
 
 function dot(cx: number, cy: number, r: number): string {
   return `M${cx - r} ${cy}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0z`;
 }
 
-const SHAPES: Record<Shape, EyeShape> = {
-  slide: {
-    pieces: [{ kind: "body", d: rr(0.5, 3.5, 22, 16, 3.4) }],
-    eyes: [8.8, 19],
-    y: 10.6,
-    r: 4.3,
-  },
-  agenda: {
-    pieces: [
-      { kind: "body", d: rr(4, 0.5, 18, 23, 3) },
-      { kind: "line", d: "M2.7 6.2h2M2.7 12h2M2.7 17.8h2", w: 2.4 },
-    ],
-    eyes: [10.4, 19.6],
-    y: 9.4,
-    r: 3.9,
-  },
-  sacola: {
-    pieces: [
-      { kind: "body", d: "M3.5 8h17l-.9 13a2.6 2.6 0 0 1-2.6 2.5H7a2.6 2.6 0 0 1-2.6-2.5z" },
-      { kind: "line", d: "M8 8.6V6.5a4 4 0 0 1 8 0v2.1", w: 2.2 },
-    ],
-    eyes: [9, 18.6],
-    y: 15.2,
-    r: 3.9,
-  },
+const SHAPES: Record<Shape, AppIconShape> = {
+  slide: APP_ICON_SHAPES.slides,
+  agenda: APP_ICON_SHAPES.works,
+  sacola: APP_ICON_SHAPES.commerce,
 
   // Marketing. Peça ao lado dos olhos vira orelha; embaixo deles, boca: o que acompanha o corpo
   // fica atrás dele (a pilha) ou é o próprio contorno (o bico do avião, o recorte do marcador).
@@ -332,17 +245,7 @@ const SHAPES: Record<Shape, EyeShape> = {
     y: 9.2,
     r: 3.1,
   },
-  marcador: {
-    pieces: [
-      {
-        kind: "body",
-        d: "M4.3 0.5h15.4a2.8 2.8 0 0 1 2.8 2.8V23.5L12 17.4 1.5 23.5V3.3A2.8 2.8 0 0 1 4.3 0.5z",
-      },
-    ],
-    eyes: [8.4, 19],
-    y: 8.6,
-    r: 3.9,
-  },
+  marcador: APP_ICON_SHAPES.marketing,
   pilha: {
     pieces: [
       { kind: "body", d: rr(0.5, 4.8, 19.5, 18.7, 3.4) },
@@ -365,15 +268,7 @@ const SHAPES: Record<Shape, EyeShape> = {
     r: 3.8,
   },
   // As seções da página: o menu fino em cima e o bloco grande (o hero) com os olhos.
-  blocos: {
-    pieces: [
-      { kind: "body", d: rr(0.5, 0.5, 22, 3.4, 1.7) },
-      { kind: "body", d: rr(0.5, 6, 22, 17.5, 3.2) },
-    ],
-    eyes: [8.6, 19],
-    y: 12.8,
-    r: 4,
-  },
+  blocos: APP_ICON_SHAPES.pages,
   // O esqueleto de um site: o topo e a coluna recortados, os olhos no miolo.
   layout: {
     pieces: [
@@ -397,78 +292,6 @@ const SHAPES: Record<Shape, EyeShape> = {
     r: 3.4,
   },
 };
-
-/**
- * A espessura do contorno no desenho inverso. O `deckdoo-mark-inverse` tem ~1/10 do corpo (1,9
- * aqui); um pouco mais grosso, para o traço segurar em 28 px.
- */
-const OUTLINE = 2.4;
-
-function EyesGlyph({
-  shape,
-  size,
-  ink,
-  inverse,
-}: {
-  shape: Shape;
-  size: number;
-  ink: string;
-  /** Tinta clara: o desenho inverso (contorno, branco do olho pintado, pupila furada). */
-  inverse: boolean;
-}) {
-  const id = useId();
-  const s = SHAPES[shape];
-  const light = inverse;
-  // A pupila puxa um pouco para a direita e para cima: ele espia.
-  const pupils = s.eyes.map((x) => ({ cx: x + s.r * 0.18, cy: s.y - s.r * 0.12, r: s.r * 0.42 }));
-
-  // O que sai do corpo: na escura, os furos, os recortes e o olho inteiro; na clara, só a pupila.
-  const cutouts = (
-    <>
-      {light
-        ? pupils.map((p) => <circle key={p.cx} {...p} fill="#000" />)
-        : s.pieces.map((piece, i) =>
-            piece.kind === "hole" ? (
-              <path key={i} d={piece.d} fill="#000" />
-            ) : piece.kind === "cut" ? (
-              <path key={i} d={piece.d} fill="none" stroke="#000" strokeWidth={piece.w} />
-            ) : null,
-          )}
-      {!light && s.eyes.map((x) => <circle key={x} cx={x} cy={s.y} r={s.r} fill="#000" />)}
-    </>
-  );
-
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden style={{ overflow: "visible" }}>
-      <mask id={id} maskUnits="userSpaceOnUse" x="-3" y="-3" width="30" height="30">
-        <rect x="-3" y="-3" width="30" height="30" fill="#fff" />
-        {cutouts}
-      </mask>
-      <g mask={`url(#${id})`} fill={ink} stroke={ink} strokeLinecap="round" strokeLinejoin="round">
-        {s.pieces.map((piece, i) => {
-          if (piece.kind === "body")
-            return light ? (
-              <path key={i} d={piece.d} fill="none" strokeWidth={OUTLINE} />
-            ) : (
-              <path key={i} d={piece.d} stroke="none" />
-            );
-          if (piece.kind === "line")
-            return <path key={i} d={piece.d} fill="none" strokeWidth={piece.w} />;
-          if (!light) return null;
-          // Na clara, o furo vira cheio e o recorte vira traço.
-          return piece.kind === "hole" ? (
-            <path key={i} d={piece.d} stroke="none" />
-          ) : piece.kind === "cut" ? (
-            <path key={i} d={piece.d} fill="none" strokeWidth={piece.w} />
-          ) : null;
-        })}
-        {/* Na clara, o branco do olho pintado (a pupila sai pela máscara). */}
-        {light && s.eyes.map((x) => <circle key={x} cx={x} cy={s.y} r={s.r} stroke="none" />)}
-      </g>
-      {!light && pupils.map((p) => <circle key={p.cx} {...p} fill={ink} />)}
-    </svg>
-  );
-}
 
 /* ——— As variações de Marketing e Pages ——— */
 
@@ -940,145 +763,5 @@ function GridMock({ look }: { look: Look }) {
         <MiniContent />
       </div>
     </MockCard>
-  );
-}
-
-/* ——— O trilho de verdade ——— */
-
-/** Sem trilho, solto sobre o fundo da janela, ou com fundo próprio (fora da moldura do app). */
-export type RailMode = "off" | "solto" | "fundo";
-
-/**
- * O estado do trilho da página inteira, guardado no navegador: o jeito, se está recolhido e o app
- * atual. Quem chama em lugares diferentes (o trilho, a barra lateral, a barra do topo) vê o mesmo.
- */
-export function useRailState() {
-  const [mode, setMode] = useLocalStorage<RailMode>({
-    key: "dd-k-rail-mode",
-    defaultValue: "fundo",
-  });
-  const [collapsed, setCollapsed] = useLocalStorage<boolean>({
-    key: "dd-k-rail-collapsed",
-    defaultValue: false,
-  });
-  const [current, setCurrent] = useLocalStorage<string>({
-    key: "dd-k-rail-app",
-    defaultValue: CURRENT,
-  });
-  return { mode, setMode, collapsed, setCollapsed, current, setCurrent };
-}
-
-/**
- * A marca da barra lateral aberta seguindo o app atual do trilho: o lockup empilhado (o nome com
- * o "DeckDoo" embaixo). Com o trilho, a assinatura da suíte fica aqui, e o trilho não repete o
- * mascote no topo. Recolhida, a barra fica com o mascote DeckDoo de sempre (o `AppIcon`): o
- * ícone do app já está colorido no trilho ao lado.
- */
-export function CurrentAppBrand() {
-  const { apps } = useStudyApps();
-  const { current } = useRailState();
-  const app = apps.find((a) => a.slug === current) ?? apps[0]!;
-  return <Logo app={app.lockup} variant="stacked" height={36} />;
-}
-
-/**
- * O fundo neutro dos apps que não são o atual. Sobre fundo escuro, a tinta é clara e vale o
- * desenho inverso (a pupila furada); só no trilho solto do tema claro o neutro é claro e o
- * desenho é o cheio. Em hex, porque a tinta pinta o SVG.
- */
-function neutralTone(mode: RailMode, dark: boolean): IconTone {
-  if (mode === "solto" && !dark) return { bg: "#ffffff", ink: "#5a6372", inverse: false };
-  return dark
-    ? { bg: "#1b2848", ink: "#a2abbe", inverse: true }
-    : { bg: "#1b2848", ink: "#97a0b4", inverse: true };
-}
-
-/**
- * O trilho de apps na borda da página inteira da cozinha (o caminho escolhido), para ver no
- * tamanho real: os apps com o ícone de olhos e, no pé, o botão de recolher. Clicar num app o
- * torna o atual, e a marca da barra lateral troca junto.
- *
- * Só o app atual tem a cor dele; os outros ficam num fundo neutro e ganham a cor ao passar o
- * mouse. A cor sozinha já marca o atual, sem anel nem tracinho, e o trilho fica com 52 px.
- *
- * Recolhido, o trilho some e fica um botão pequeno preso na borda esquerda da barra do app, na
- * altura do logo (o par do botão de abrir a barra, na borda direita).
- */
-export function SuiteRail() {
-  const { apps } = useStudyApps();
-  const { mode, collapsed, setCollapsed, current, setCurrent } = useRailState();
-  const { colorScheme } = useMantineColorScheme();
-  const [hover, setHover] = useState<string | null>(null);
-  const dark = colorScheme === "dark";
-  // Com fundo, no claro, o trilho é o cartão invertido (o logo e o texto trocam de desenho
-  // sozinhos); no escuro, o invertido seria claro, então ele fica com o fundo do painel.
-  const inverse = mode === "fundo" && !dark;
-  const neutral = neutralTone(mode, dark);
-  return (
-    <>
-      <nav
-        className={inverse ? "ks-rail dd-inverse" : "ks-rail"}
-        data-tone={mode}
-        aria-label="Apps da suíte"
-        inert={collapsed}
-      >
-        {apps.map((app) => {
-          const here = app.slug === current;
-          return (
-            // O Tooltip toma o `onMouseEnter` do botão: o passar do mouse vem do invólucro.
-            <span
-              key={app.slug}
-              className="ks-rail-slot"
-              onMouseEnter={() => setHover(app.slug)}
-              onMouseLeave={() => setHover(null)}
-              onFocus={() => setHover(app.slug)}
-              onBlur={() => setHover(null)}
-            >
-              <Tooltip
-                label={here ? `${app.name} · você está aqui` : app.name}
-                position="right"
-                offset={12}
-              >
-                <UnstyledButton
-                  className="ks-rail-btn"
-                  data-current={here || undefined}
-                  aria-current={here ? "page" : undefined}
-                  onClick={() => setCurrent(app.slug)}
-                >
-                  <StudyIcon
-                    app={app}
-                    look="olhos"
-                    size={32}
-                    tone={here || hover === app.slug ? undefined : neutral}
-                  />
-                </UnstyledButton>
-              </Tooltip>
-            </span>
-          );
-        })}
-        <Tooltip label="Recolher os apps" position="right" offset={12}>
-          <UnstyledButton
-            className="ks-rail-fold"
-            aria-label="Recolher os apps"
-            onClick={() => setCollapsed(true)}
-          >
-            <CaretLineLeft size={16} />
-          </UnstyledButton>
-        </Tooltip>
-      </nav>
-      {collapsed && (
-        <Tooltip label="Mostrar os apps" position="right" offset={8}>
-          <ActionIcon
-            variant="default"
-            size={22}
-            className="ks-rail-open"
-            aria-label="Mostrar os apps"
-            onClick={() => setCollapsed(false)}
-          >
-            <DotsNine size={13} weight="bold" />
-          </ActionIcon>
-        </Tooltip>
-      )}
-    </>
   );
 }

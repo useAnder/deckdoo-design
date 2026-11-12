@@ -1388,6 +1388,156 @@
   }
 }
 
+/* ——— ícone de cada app (`SuiteAppIcon`) e trilho de apps (`SuiteRail`) ——— */
+
+.dd-app-mark {
+  display: inline-block;
+  flex: none;
+  vertical-align: middle;
+}
+
+/*
+ * O neutro: quadrado escuro e desenho cinza, no lugar da cor do app. É sempre escuro (o desenho
+ * é o inverso): marinho no claro, o cinza-escuro dos itens no escuro.
+ */
+.dd-app-mark[data-neutral] {
+  color: var(--dd-app-icon-neutral-ink, var(--dd-on-inverse-muted));
+}
+
+.dd-app-mark[data-neutral] .dd-app-mark-tile {
+  fill: var(--dd-app-icon-neutral, var(--dd-inverse-hover));
+}
+
+[data-mantine-color-scheme="dark"] .dd-app-mark[data-neutral] {
+  color: var(--dd-app-icon-neutral-ink, var(--dd-ink-muted));
+}
+
+[data-mantine-color-scheme="dark"] .dd-app-mark[data-neutral] .dd-app-mark-tile {
+  fill: var(--dd-app-icon-neutral, var(--dd-hover));
+}
+
+/*
+ * A janela com o trilho: a faixa de 52 px na borda e a moldura do app ao lado. A moldura
+ * (`.dd-frame`) continua com o respiro dela, e o trilho fica fora dela, com fundo próprio.
+ * `--dd-suite-rail-anchor` é a linha do primeiro app e do botão de mostrar: o centro da marca da
+ * `SideBar` (o respiro da moldura, o do painel e metade da marca empilhada, de 36 px).
+ */
+.dd-suite-shell {
+  --dd-suite-rail-w: 52px;
+  --dd-suite-rail-anchor: calc(var(--dd-gap) + 40px);
+  display: grid;
+  grid-template-columns: var(--dd-suite-rail-w) minmax(0, 1fr);
+  min-height: 100vh;
+  background: var(--dd-canvas);
+  transition: grid-template-columns 180ms ease;
+}
+
+.dd-suite-shell[data-collapsed] {
+  grid-template-columns: 0 minmax(0, 1fr);
+}
+
+.dd-suite-shell > :not(.dd-suite-rail) {
+  grid-column: 2;
+  min-width: 0;
+}
+
+/* Marinho no claro, o fundo do painel no escuro (o invertido do escuro seria claro). */
+.dd-suite-rail {
+  --dd-app-icon-neutral: var(--dd-inverse-hover);
+  --dd-app-icon-neutral-ink: var(--dd-on-inverse-muted);
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  height: 100vh;
+  padding: calc(var(--dd-suite-rail-anchor) - 16px) 0 var(--dd-gap);
+  overflow: hidden;
+  background: var(--dd-inverse);
+  color: var(--dd-on-inverse-muted);
+}
+
+[data-mantine-color-scheme="dark"] .dd-suite-rail {
+  --dd-app-icon-neutral: var(--dd-hover);
+  --dd-app-icon-neutral-ink: var(--dd-ink-muted);
+  background: var(--dd-surface);
+  color: var(--dd-ink-muted);
+}
+
+.dd-suite-rail-slot {
+  display: contents;
+}
+
+.dd-suite-rail-item {
+  display: inline-flex;
+  border-radius: 10px;
+  transition: transform 120ms ease;
+}
+
+.dd-suite-rail-item:hover {
+  transform: translateY(-1px);
+}
+
+.dd-suite-rail-item:focus-visible {
+  outline: 2px solid var(--dd-on-inverse);
+  outline-offset: 2px;
+}
+
+[data-mantine-color-scheme="dark"] .dd-suite-rail-item:focus-visible {
+  outline-color: var(--dd-ink);
+}
+
+.dd-suite-rail-fold {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-top: auto;
+  border-radius: 10px;
+  color: inherit;
+}
+
+.dd-suite-rail-fold:hover {
+  background: var(--dd-app-icon-neutral);
+  color: var(--dd-on-inverse);
+}
+
+[data-mantine-color-scheme="dark"] .dd-suite-rail-fold:hover {
+  color: var(--dd-ink);
+}
+
+/* Recolhido: o botão pequeno na borda esquerda da barra do app, na altura da marca. */
+.dd-suite-rail-open {
+  position: fixed;
+  z-index: 3;
+  top: var(--dd-suite-rail-anchor);
+  left: var(--dd-gap);
+  translate: -50% -50%;
+  border-radius: calc(var(--dd-r-item) / 2);
+  color: var(--dd-ink-muted);
+  box-shadow: var(--mantine-shadow-xs);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dd-suite-shell,
+  .dd-suite-rail-item {
+    transition: none;
+  }
+}
+
+/* Abaixo de 48em a barra do app vira o topo da página: sem trilho (a troca é o `AppSwitcher`). */
+@media (max-width: 48em) {
+  .dd-suite-shell {
+    display: block;
+  }
+
+  .dd-suite-rail,
+  .dd-suite-rail-open {
+    display: none;
+  }
+}
+
 /* ——— espera (`wait.tsx`) ——— */
 
 /* O traço do esqueleto, com o brilho que corre. */

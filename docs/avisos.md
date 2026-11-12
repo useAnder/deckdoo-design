@@ -5,6 +5,22 @@ O que muda no pacote e pede um olhar de quem usa. O mais novo em cima. Ao subir 
 
 O caminho de volta (o app pedindo algo ao pacote) é o [pendencias.md](pendencias.md).
 
+## Trilho de apps e o ícone de cada app
+
+- **Quando:** 2026-11-12, na v0.16.0.
+- **O que entrou:** o `SuiteRail`, o trilho de apps na borda esquerda da janela (em volta da
+  `.dd-frame`), e o `SuiteAppIcon`, o ícone de cada app da suíte (o objeto do app com os olhos
+  do DuDoo), com os apps em `SUITE_APPS`. Nada mudou no que já existia: é peça nova.
+- **Quem quer o trilho:** ponha o `SuiteRail` em volta da moldura, com os serviços da pessoa (a
+  mesma lista do `AppSwitcher`) e o `slug` do app atual; troque a marca da `SideBar` pela
+  empilhada (`<Logo variant="stacked" height={36} />`). O passo a passo está no
+  [README](../README.md#trilho-de-apps). O `AppSwitcher` continua valendo no celular, onde o
+  trilho não aparece.
+- **Quem aponta para outro app** (uma lista de apps, um atalho): o ícone é o
+  `<SuiteAppIcon app="slug" />`. O SVG e o PNG para fora do código (loja, favicon, divulgação)
+  saem da bancada da marca (`/marca.html`).
+- **Works e Commerce:** a cor do ícone é provisória (laranja e coral) até o app decidir o acento.
+
 ## A barra recolhida não empurra mais os itens
 
 - **Quando:** 2026-11-12, na v0.15.0.
